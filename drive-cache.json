@@ -1,0 +1,108 @@
+{
+  "ok": true,
+  "folderId": "1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw",
+  "updatedAt": "2026-11-18T13:54:04.775Z",
+  "count": 10,
+  "folders": [
+    {
+      "id": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
+      "name": "공모전 1"
+    },
+    {
+      "id": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
+      "name": "공모전2"
+    }
+  ],
+  "photos": [
+    {
+      "id": "1wCeT3U1kWUsxkzATavQMImhhXDCMfmsm",
+      "name": "DSC05383.jpg",
+      "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
+      "folderName": "공모전 1",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1wCeT3U1kWUsxkzATavQMImhhXDCMfmsm&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1wCeT3U1kWUsxkzATavQMImhhXDCMfmsm&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1wCeT3U1kWUsxkzATavQMImhhXDCMfmsm/view"
+    },
+    {
+      "id": "1y7F62wRg5qCISNBnW1jxtWokWkEWM6ej",
+      "name": "DSC05432.jpg",
+      "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
+      "folderName": "공모전 1",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1y7F62wRg5qCISNBnW1jxtWokWkEWM6ej&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1y7F62wRg5qCISNBnW1jxtWokWkEWM6ej&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1y7F62wRg5qCISNBnW1jxtWokWkEWM6ej/view"
+    },
+    {
+      "id": "1JziKw_35A8evStvDufO1axWSAtneRips",
+      "name": "DSC05448.jpg",
+      "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
+      "folderName": "공모전 1",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1JziKw_35A8evStvDufO1axWSAtneRips&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1JziKw_35A8evStvDufO1axWSAtneRips&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1JziKw_35A8evStvDufO1axWSAtneRips/view"
+    },
+    {
+      "id": "1RtdcQHWazE5vF9ssppanvOCG9NCNCf_4",
+      "name": "DSC05475.jpg",
+      "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
+      "folderName": "공모전 1",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1RtdcQHWazE5vF9ssppanvOCG9NCNCf_4&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1RtdcQHWazE5vF9ssppanvOCG9NCNCf_4&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1RtdcQHWazE5vF9ssppanvOCG9NCNCf_4/view"
+    },
+    {
+      "id": "1FMYxY8mqg-YrTw--S16tw-PeIZ1Sjt-3",
+      "name": "DSC02009.jpg",
+      "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
+      "folderName": "공모전2",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1FMYxY8mqg-YrTw--S16tw-PeIZ1Sjt-3&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1FMYxY8mqg-YrTw--S16tw-PeIZ1Sjt-3&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1FMYxY8mqg-YrTw--S16tw-PeIZ1Sjt-3/view"
+    },
+    {
+      "id": "1CelZTVIxJzi5ZJmNWT2bQGxxGxNKOWKU",
+      "name": "DSC02010.jpg",
+      "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
+      "folderName": "공모전2",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1CelZTVIxJzi5ZJmNWT2bQGxxGxNKOWKU&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1CelZTVIxJzi5ZJmNWT2bQGxxGxNKOWKU&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1CelZTVIxJzi5ZJmNWT2bQGxxGxNKOWKU/view"
+    },
+    {
+      "id": "1j4ajTcAjqeTHLJrVntQmpxGblJ7yaq1J",
+      "name": "DSC02013.jpg",
+      "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
+      "folderName": "공모전2",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1j4ajTcAjqeTHLJrVntQmpxGblJ7yaq1J&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1j4ajTcAjqeTHLJrVntQmpxGblJ7yaq1J&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1j4ajTcAjqeTHLJrVntQmpxGblJ7yaq1J/view"
+    },
+    {
+      "id": "1YQ8HcVMWC-ATEqDcQrQjoOvqGtcyw823",
+      "name": "DSC02014.jpg",
+      "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
+      "folderName": "공모전2",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1YQ8HcVMWC-ATEqDcQrQjoOvqGtcyw823&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1YQ8HcVMWC-ATEqDcQrQjoOvqGtcyw823&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1YQ8HcVMWC-ATEqDcQrQjoOvqGtcyw823/view"
+    },
+    {
+      "id": "1fafvz-wSWDNkkilH4kATxHCqlYzDWBhc",
+      "name": "DSC02016.jpg",
+      "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
+      "folderName": "공모전2",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1fafvz-wSWDNkkilH4kATxHCqlYzDWBhc&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1fafvz-wSWDNkkilH4kATxHCqlYzDWBhc&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1fafvz-wSWDNkkilH4kATxHCqlYzDWBhc/view"
+    },
+    {
+      "id": "1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m",
+      "name": "DSC02017.jpg",
+      "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
+      "folderName": "공모전2",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m/view"
+    }
+  ]
+}

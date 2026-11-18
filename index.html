@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark" data-frame="framed">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ATELIER DRIVE — 온라인 사진 전시관</title>
+  <!-- 무료 웹폰트: Pretendard & Cormorant Garamond (갤러리 에디토리얼 세리프) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 배경 앰비언트 라이트 효과 -->
+  <div class="ambient-glow glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow glow-2" aria-hidden="true"></div>
+
+  <!-- 상단 글래스모피즘 네비게이션 헤더 -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-frame-logo" aria-hidden="true">
+          <span></span>
+        </div>
+        <div>
+          <span class="brand-eyebrow">CURATED ARCHIVE</span>
+          <h1 class="brand-title">ATELIER DRIVE</h1>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- 액자 모드 vs 미니멀 모드 스위치 -->
+        <div class="segmented-control" role="group" aria-label="전시 스타일 선택">
+          <button type="button" class="seg-btn active" data-style-mode="framed">액자 전시</button>
+          <button type="button" class="seg-btn" data-style-mode="minimal">모던 그리드</button>
+        </div>
+
+        <!-- 다크 갤러리 vs 화이트 미술관 테마 스위치 -->
+        <button type="button" id="btnThemeToggle" class="icon-pill-btn" title="전시관 조명(다크/화이트) 전환">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">다크 갤러리</span>
+        </button>
+
+        <!-- 드라이브 폴더 설정 토글 버튼 -->
+        <button type="button" id="btnToggleFolderDrawer" class="icon-pill-btn accent-border">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>드라이브 폴더 변경</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 접이식 구글 드라이브 폴더 링크 설정 바 (평소엔 깔끔하게 숨김) -->
+    <div id="folderDrawer" class="folder-drawer hidden">
+      <div class="container">
+        <form id="folderForm" class="folder-form">
+          <div class="input-wrapper">
+            <span class="input-badge">Google Drive 공유 링크</span>
+            <input
+              type="text"
+              id="folderUrlInput"
+              value="https://drive.google.com/drive/folders/1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw?usp=sharing"
+              placeholder="공개된 구글 드라이브 폴더 링크 또는 ID를 붙여넣으세요"
+              aria-label="구글 드라이브 공유 폴더 링크"
+            />
+          </div>
+          <button type="submit" class="btn-gold">폴더 불러오기</button>
+          <a
+            id="openDriveFolderLink"
+            href="https://drive.google.com/drive/folders/1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-outline"
+          >
+            드라이브 원본 열기 ↗
+          </a>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  <!-- 갤러리 히어로 배너 -->
+  <section class="hero-section">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <p class="hero-kicker">ONLINE PHOTOGRAPHY EXHIBITION</p>
+        <h2 class="hero-heading">빛과 순간의 기록</h2>
+        <p class="hero-desc">
+          구글 드라이브 공유 폴더와 실시간으로 연결된 온라인 사진 전시관입니다.<br />
+          작품을 클릭하면 시네마틱 라이트박스 뷰어로 감상하실 수 있습니다.
+        </p>
+      </div>
+
+      <div class="hero-toolbar">
+        <div class="stats-group">
+          <div class="stat-item">
+            <span class="stat-label">EXHIBITED WORKS</span>
+            <strong id="photoCountBadge" class="stat-num">로딩 중...</strong>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-label">TOTAL LIKES</span>
+            <strong id="totalLikesBadge" class="stat-num">♥ 0</strong>
+          </div>
+        </div>
+
+        <div class="filter-controls">
+          <div class="search-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="searchInput" placeholder="작품명 검색..." aria-label="작품명 검색" />
+          </div>
+
+          <button type="button" id="btnRefreshGallery" class="icon-pill-btn" title="폴더 새로고침">
+            ↻ 새로고침
+          </button>
+        </div>
+      </div>
+
+      <!-- 하위 폴더(카테고리/공모전) 탭 바 -->
+      <div id="folderCategoryTabs" class="folder-category-tabs" role="tablist" aria-label="하위 폴더 선택"></div>
+    </div>
+  </section>
+
+  <!-- 메인 갤러리 그리드 -->
+  <main class="gallery-main">
+    <div class="container">
+      <div id="statusBanner" class="status-banner hidden"></div>
+
+      <!-- 반응형 사진 그리드 -->
+      <div id="photoGrid" class="photo-grid" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <!-- 시네마틱 라이트박스 (모달) -->
+  <div id="lightboxModal" class="lightbox-backdrop hidden" role="dialog" aria-modal="true" aria-label="작품 크게 보기">
+    <!-- 현재 사진의 블러 배경 효과 -->
+    <div id="lightboxAmbientBg" class="lightbox-ambient-bg"></div>
+
+    <div class="lightbox-topbar">
+      <div class="lightbox-meta">
+        <span id="lightboxCounter" class="lightbox-counter">01 / 01</span>
+        <div>
+          <h3 id="lightboxTitle" class="lightbox-title">작품 제목</h3>
+          <span id="lightboxResolution" class="lightbox-sub">원본 해상도 확인 중...</span>
+        </div>
+      </div>
+
+      <div class="lightbox-actions">
+        <button type="button" id="btnLightboxLike" class="lightbox-pill-btn">
+          <span class="heart-icon">♥</span>
+          <span id="lightboxLikeText">좋아요</span>
+          <strong id="lightboxLikeCount">0</strong>
+        </button>
+        <a
+          id="lightboxDriveLink"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="lightbox-pill-btn"
+        >
+          원본 파일 열기 ↗
+        </a>
+        <button type="button" id="btnCloseLightbox" class="lightbox-close" aria-label="닫기">&times;</button>
+      </div>
+    </div>
+
+    <div class="lightbox-stage" id="lightboxStage">
+      <button type="button" id="btnPrevPhoto" class="lightbox-nav prev" aria-label="이전 작품">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <div class="lightbox-media-box">
+        <div id="lightboxSpinner" class="lightbox-spinner">
+          <div class="spinner-ring"></div>
+          <span>고해상도 작품을 불러오는 중...</span>
+        </div>
+        <div class="lightbox-frame-mat">
+          <img id="lightboxImage" class="lightbox-img" src="" alt="" />
+        </div>
+      </div>
+
+      <button type="button" id="btnNextPhoto" class="lightbox-nav next" aria-label="다음 작품">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 하단 썸네일 필름스트립 -->
+    <div class="lightbox-filmstrip-bar">
+      <div id="lightboxFilmstrip" class="lightbox-filmstrip"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <strong>ATELIER DRIVE</strong>
+        <span>— Google Drive 공유 폴더 기반 무료 온라인 사진 전시관</span>
+      </div>
+      <div class="footer-right">
+        <span>Powered by Open Web Standards (100% Free, No Paid API)</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
