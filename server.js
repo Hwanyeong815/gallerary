@@ -3,7 +3,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
-const { GOOGLE_DRIVE_FOLDER_URL } = require('./config.js');
+const { GOOGLE_DRIVE_FOLDER_URL, GOOGLE_SHEET_CSV_URL } = require('./config.js');
 
 const PORT = 3000;
 function extractIdFromUrl(input) {
@@ -15,6 +15,7 @@ function extractIdFromUrl(input) {
   return s || '1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw';
 }
 const DEFAULT_FOLDER_ID = extractIdFromUrl(GOOGLE_DRIVE_FOLDER_URL);
+const DEFAULT_CSV_URL = GOOGLE_SHEET_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRSSnDF4kOkpdc395mcK_tVi4yYg5klJfL-iIkHco6Bn2F1VBJqB9Cmj-1eFPiofNKhK00UmIT8YJU5/pub?output=csv';
 
 // HTTPS GET helper that follows redirects
 function fetchUrlBuffer(targetUrl, redirectsLeft = 5) {
@@ -188,9 +189,47 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
+  // API 0: 구글 시트 게시판 CSV 프록시 조회
+  if (pathname === '/api/board-csv') {
+    try {
+      const sep = DEFAULT_CSV_URL.includes('?') ? '&' : '?';
+      const csvUrl = `${DEFAULT_CSV_URL}${sep}t=${Date.now()}`;
+      const csvRes = await fetchUrlBuffer(csvUrl);
+      res.writeHead(200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(csvRes.buffer);
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('');
+    }
+    return;
+  }
+
   // API 1: 하위 폴더 포함 전체 사진 및 폴더 카테고리 조회
   if (pathname === '/api/folder') {
     const folderId = parsedUrl.query.id || DEFAULT_FOLDER_ID;
+    const forceLive = parsedUrl.query.live === '1';
+
+    if (!forceLive) {
+      try {
+        const cachePath = path.join(__dirname, 'drive-cache.json');
+        if (fs.existsSync(cachePath)) {
+          const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+          if (cached && cached.ok && Array.isArray(cached.photos) && cached.photos.length > 0) {
+            res.writeHead(200, {
+              'Content-Type': 'application/json; charset=utf-8',
+              'Access-Control-Allow-Origin': '*'
+            });
+            res.end(JSON.stringify(cached));
+            return;
+          }
+        }
+      } catch (cacheErr) {}
+    }
+
     try {
       const { folders, photos } = await parseDriveFolderTree(folderId);
       res.writeHead(200, {

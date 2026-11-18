@@ -79,7 +79,7 @@ textarea {
   -webkit-font-smoothing: antialiased;
 }
 
-/* WebGL 앰비언트 셰이더 캔버스 */
+/* WebGL 앰비언트 셰이더 캔버스 & 미세 필름 그레인 오버레이 */
 .webgl-canvas {
   position: fixed;
   inset: 0;
@@ -88,6 +88,17 @@ textarea {
   pointer-events: none;
   z-index: 0;
   opacity: 0.92;
+}
+
+.film-grain-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.038;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 /* ==========================================================================
@@ -409,66 +420,81 @@ textarea {
 }
 
 /* ==========================================================================
-   [진행중] 공모전 상단 고정(Sticky) 슬림 공지 배너 (스크롤 시 축소 애니메이션)
+   [진행중] 공모전 상단 고정(Sticky) 유리 카드형 공지 필(Pill) 배너
    ========================================================================== */
 .ongoing-ribbon {
   position: relative;
   z-index: 45;
   width: 100%;
-  background: rgba(18, 18, 20, 0.78);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-top: 1px solid var(--glass-border);
-  border-bottom: 1px solid rgba(245, 245, 247, 0.1);
+  padding: 10px 16px;
+  background: transparent;
   display: flex;
   justify-content: center;
-  transition: all 0.25s ease;
-}
-
-html[data-theme="light"] .ongoing-ribbon {
-  background: rgba(245, 245, 247, 0.88);
-  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
+  transition: all 0.28s var(--spring-easing);
 }
 
 .ongoing-ribbon-btn {
   appearance: none;
-  border: none;
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(22, 22, 26, 0.78);
+  backdrop-filter: saturate(190%) blur(20px);
+  -webkit-backdrop-filter: saturate(190%) blur(20px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-pill);
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.9rem;
   letter-spacing: -0.02em;
-  padding: 11px 20px;
+  padding: 9px 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 8px 10px;
+  gap: 8px 12px;
   cursor: pointer;
-  width: 100%;
-  max-width: 1380px;
-  transition: all 0.25s ease;
+  width: auto;
+  max-width: min(94vw, 720px);
+  transition: all 0.28s var(--spring-easing);
 }
 
-/* 스크롤 시(scrollY > 40px) 슬림하게 축소되는 공지 바 상태 */
+html[data-theme="light"] .ongoing-ribbon-btn {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(29, 29, 31, 0.14);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+}
+
+.ongoing-ribbon-btn:hover {
+  border-color: rgba(246, 218, 152, 0.48);
+  background: rgba(30, 30, 36, 0.88);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.6), 0 0 20px rgba(226, 184, 98, 0.12);
+}
+
+html[data-theme="light"] .ongoing-ribbon-btn:hover {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(29, 29, 31, 0.28);
+}
+
+.ongoing-ribbon-btn:hover .ongoing-ribbon-cta {
+  transform: translateX(5px);
+  color: #f6da98;
+}
+
+/* 스크롤 시(scrollY > 40px) 슬림하게 축소되는 공지 필 상태 */
 .ongoing-ribbon.is-compact {
-  background: rgba(14, 14, 16, 0.68);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-html[data-theme="light"] .ongoing-ribbon.is-compact {
-  background: rgba(248, 248, 250, 0.78);
+  padding: 6px 14px;
 }
 
 .ongoing-ribbon.is-compact .ongoing-ribbon-btn {
-  padding: 5px 16px;
-  font-size: 0.8rem;
-  gap: 6px 8px;
+  padding: 6px 18px;
+  font-size: 0.81rem;
+  gap: 6px 9px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .ongoing-ribbon.is-compact .ongoing-ribbon-cta {
-  font-size: 0.76rem;
+  font-size: 0.77rem;
 }
 
 .ongoing-ribbon.is-compact .live-dot {
@@ -534,13 +560,28 @@ html[data-theme="light"] .ongoing-ribbon-cta {
 }
 
 /* ==========================================================================
-   애플 키노트 스타일 미니멀 히어로 (상단 여백을 넉넉히 확보해 제목 겹침 완벽 방지)
+   애플 키노트 스타일 미니멀 히어로 (방사형 스포트라이트 조명 효과 추가)
    ========================================================================== */
 .hero-stage {
   position: relative;
   z-index: 1;
-  padding: 112px 24px 72px;
+  padding: 104px 24px 72px;
   text-align: center;
+  background: radial-gradient(
+    ellipse 68% 58% at 50% 22%,
+    rgba(235, 206, 148, 0.1),
+    rgba(245, 245, 247, 0.035) 48%,
+    transparent 78%
+  );
+}
+
+html[data-theme="light"] .hero-stage {
+  background: radial-gradient(
+    ellipse 68% 58% at 50% 22%,
+    rgba(212, 175, 95, 0.12),
+    rgba(0, 0, 0, 0.02) 50%,
+    transparent 78%
+  );
 }
 
 @media (max-width: 768px) {
@@ -550,7 +591,7 @@ html[data-theme="light"] .ongoing-ribbon-cta {
 }
 
 .hero-container {
-  max-width: 780px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -580,7 +621,9 @@ html[data-theme="light"] .ongoing-ribbon-cta {
   font-weight: 400;
   color: var(--text-secondary);
   letter-spacing: -0.02em;
-  line-height: 1.62;
+  line-height: 1.68;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .hero-count-inline {
@@ -653,19 +696,19 @@ html[data-theme="light"] .ongoing-ribbon-cta {
   }
 }
 
-/* 개별 사진 카드 */
+/* 개별 사진 카드 (모서리 1px 반투명 광택 테두리로 경계 선명화) */
 .photo-card {
   position: relative;
   break-inside: avoid;
   margin-bottom: 28px;
   border-radius: var(--radius-card);
   background: var(--bg-elevated);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
   cursor: zoom-in;
   transform-style: preserve-3d;
   will-change: transform, opacity;
-  box-shadow: var(--shadow-card);
 
   opacity: 0;
   transform: translateY(42px) scale(0.96);
@@ -674,6 +717,11 @@ html[data-theme="light"] .ongoing-ribbon-cta {
     transform 0.85s var(--spring-easing),
     border-color 0.35s ease,
     box-shadow 0.45s ease;
+}
+
+html[data-theme="light"] .photo-card {
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 @media (max-width: 600px) {
@@ -701,88 +749,91 @@ html[data-theme="light"] .ongoing-ribbon-cta {
 }
 
 /* ==========================================================================
-   1등 수상작(1등/우승/대상/최우수) 전용 퓨어 실버 화이트 발광 테두리 (Silver-White Ambient Glow)
+   1등 수상작(1등/우승/대상/최우수) 샴페인 골드 후광 외곽선 & 메달 배지
    ========================================================================== */
 .photo-card.is-winner {
-  border: 1.5px solid rgba(245, 245, 247, 0.68);
+  border: 1px solid rgba(235, 198, 118, 0.65);
   box-shadow:
-    0 24px 58px rgba(0, 0, 0, 0.75),
-    0 0 26px rgba(245, 245, 247, 0.24),
-    0 0 54px rgba(245, 245, 247, 0.1),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28);
-  animation: winnerSilverGlow 4s ease-in-out infinite alternate;
+    0 24px 58px rgba(0, 0, 0, 0.76),
+    0 0 28px rgba(226, 184, 98, 0.26),
+    0 0 56px rgba(226, 184, 98, 0.12),
+    inset 0 0 0 1px rgba(255, 236, 188, 0.25);
+  animation: winnerGoldGlow 4s ease-in-out infinite alternate;
 }
 
 .photo-card.is-winner:hover {
-  border-color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(250, 222, 156, 0.95);
   box-shadow:
     0 34px 76px rgba(0, 0, 0, 0.88),
-    0 0 36px rgba(245, 245, 247, 0.38),
-    0 0 68px rgba(245, 245, 247, 0.16),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+    0 0 38px rgba(235, 198, 118, 0.42),
+    0 0 70px rgba(226, 184, 98, 0.18),
+    inset 0 0 0 1px rgba(255, 242, 204, 0.42);
 }
 
 html[data-theme="light"] .photo-card.is-winner {
-  border: 1.5px solid rgba(29, 29, 31, 0.55);
+  border: 1.5px solid rgba(196, 152, 64, 0.72);
   box-shadow:
-    0 22px 50px rgba(0, 0, 0, 0.16),
-    0 0 28px rgba(29, 29, 31, 0.15),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+    0 22px 50px rgba(0, 0, 0, 0.14),
+    0 0 28px rgba(212, 168, 78, 0.28),
+    inset 0 0 0 1px rgba(255, 240, 195, 0.6);
   animation: none;
 }
 
-@keyframes winnerSilverGlow {
+@keyframes winnerGoldGlow {
   0% {
-    border-color: rgba(245, 245, 247, 0.52);
+    border-color: rgba(226, 184, 98, 0.5);
     box-shadow:
-      0 24px 54px rgba(0, 0, 0, 0.7),
-      0 0 20px rgba(245, 245, 247, 0.18),
-      0 0 42px rgba(245, 245, 247, 0.07);
+      0 24px 54px rgba(0, 0, 0, 0.72),
+      0 0 20px rgba(226, 184, 98, 0.2),
+      0 0 42px rgba(226, 184, 98, 0.08);
   }
   100% {
-    border-color: rgba(255, 255, 255, 0.88);
+    border-color: rgba(248, 218, 148, 0.88);
     box-shadow:
-      0 26px 60px rgba(0, 0, 0, 0.76),
-      0 0 32px rgba(245, 245, 247, 0.34),
-      0 0 60px rgba(245, 245, 247, 0.14);
+      0 26px 60px rgba(0, 0, 0, 0.78),
+      0 0 34px rgba(235, 198, 118, 0.36),
+      0 0 64px rgba(226, 184, 98, 0.16);
   }
 }
 
-/* 세련된 모노크롬 글래스모피즘 1등 배지 (All 탭 및 개별 폴더 탭 모두 표시) */
+/* 샴페인 골드 그라데이션 + 광택 테두리 + 왕관 메달 1등 배지 */
 .winner-glass-badge {
   position: absolute;
   top: 14px;
   left: 14px;
-  z-index: 3;
+  z-index: 4;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  gap: 6px;
+  padding: 6px 14px;
   border-radius: var(--radius-pill);
-  background: rgba(18, 18, 22, 0.74);
-  backdrop-filter: saturate(190%) blur(18px);
-  -webkit-backdrop-filter: saturate(190%) blur(18px);
-  border: 1px solid rgba(245, 245, 247, 0.38);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  color: #f5f5f7;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, rgba(248, 222, 162, 0.96) 0%, rgba(216, 174, 92, 0.94) 52%, rgba(186, 140, 58, 0.96) 100%);
+  border: 1px solid rgba(255, 246, 220, 0.82);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(235, 198, 118, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  color: #141109;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
   pointer-events: none;
 }
 
 .winner-badge-inline {
   display: inline-flex;
   align-items: center;
-  padding: 2px 9px;
+  gap: 4px;
+  padding: 3px 11px;
   border-radius: var(--radius-pill);
-  background: rgba(245, 245, 247, 0.16);
-  border: 1px solid rgba(245, 245, 247, 0.35);
-  color: #f5f5f7;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  margin-right: 6px;
+  background: linear-gradient(135deg, #f6da98 0%, #d4a84e 100%);
+  border: 1px solid rgba(255, 245, 214, 0.78);
+  box-shadow: 0 4px 14px rgba(226, 184, 98, 0.32);
+  color: #141109;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  margin-right: 8px;
 }
 
 /* 고대비 퓨어 화이트 투표 번호 배지 (1번, 2번...) */
@@ -898,38 +949,67 @@ html[data-theme="light"] .photo-card.is-winner {
 }
 
 .photo-card:hover .photo-thumb {
-  transform: scale(1.025);
+  transform: scale(1.03);
 }
 
-/* 카드 하단 캡션 (데스크톱에서는 호버 시 등장, 모바일 터치 화면에서는 은은하게 기본 표시) */
+/* 카드 하단 캡션 (평소에도 은은한 그라데이션과 함께 제목·작가명이 세련되게 보이고, 호버 시 반투명 유리 질감 오버레이로 확장되며 카테고리·카메라 EXIF까지 표시) */
 .card-glass-caption {
   position: absolute;
   inset: auto 0 0 0;
-  padding: 32px 20px 18px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.76) 0%, rgba(0, 0, 0, 0.3) 58%, transparent 100%);
+  padding: 36px 18px 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.84) 0%, rgba(0, 0, 0, 0.4) 58%, transparent 100%);
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.35s var(--spring-easing), transform 0.35s var(--spring-easing);
+  opacity: 0.94;
+  transform: translateY(0);
+  transition: all 0.36s var(--spring-easing);
   z-index: 2;
   pointer-events: none;
 }
 
 .photo-card:hover .card-glass-caption {
   opacity: 1;
+  background: linear-gradient(to top, rgba(10, 10, 14, 0.9) 0%, rgba(16, 16, 22, 0.68) 72%, transparent 100%);
+  backdrop-filter: saturate(185%) blur(12px);
+  -webkit-backdrop-filter: saturate(185%) blur(12px);
+  padding: 24px 18px 18px;
+}
+
+.caption-exif-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f5f5f7;
+  font-size: 0.74rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.28s var(--spring-easing), transform 0.28s var(--spring-easing);
+}
+
+.photo-card:hover .caption-exif-pill {
+  opacity: 1;
   transform: translateY(0);
 }
 
-/* 스마트폰/터치 디바이스에서는 호버가 없으므로 하단 캡션을 얇고 은은하게 기본 노출 */
+/* 스마트폰/터치 디바이스에서는 호버가 없으므로 EXIF 태그도 은은하게 기본 노출 */
 @media (hover: none), (max-width: 768px) {
   .card-glass-caption {
     opacity: 1;
     transform: translateY(0);
     padding: 24px 16px 14px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.68) 0%, rgba(0, 0, 0, 0.22) 62%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.28) 62%, transparent 100%);
+  }
+
+  .caption-exif-pill {
+    opacity: 0.92;
+    transform: translateY(0);
   }
 }
 
@@ -1603,17 +1683,29 @@ html[data-theme="light"] .toast-icon {
   position: relative;
   z-index: 1;
   border-top: 1px solid var(--glass-border);
-  padding: 28px;
-  font-size: 0.82rem;
+  padding: 28px 20px;
+  font-size: 0.84rem;
   color: var(--text-tertiary);
 }
 
 .footer-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px 10px;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.footer-item {
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.footer-sep {
+  color: var(--text-tertiary);
+  opacity: 0.6;
 }
 
 /* ==========================================================================
@@ -2042,4 +2134,785 @@ html[data-theme="light"] .tip-write-dialog {
 .tip-form-field select:focus,
 .tip-form-field textarea:focus {
   border-color: var(--text-primary);
+}
+
+/* ==========================================================================
+   Photography Competition Archive — 공모전 아카이브 / 상세 전시관 / 역대 수상작
+   ========================================================================== */
+
+/* 우수상·입선 실버 배지 변형 */
+.winner-glass-badge.is-silver-tier {
+  background: linear-gradient(135deg, rgba(235, 235, 242, 0.94) 0%, rgba(175, 175, 188, 0.92) 100%);
+  border-color: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5), 0 0 14px rgba(245, 245, 247, 0.25);
+  color: #121214;
+}
+
+/* 1. 메인 갤러리 상단 진행 중인 공모전 스포트라이트 쇼케이스 */
+.ongoing-hero-showcase {
+  margin-bottom: 44px;
+}
+
+.ongoing-showcase-card {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 28px;
+  align-items: center;
+  padding: 32px 34px;
+  border-radius: 26px;
+  background: linear-gradient(145deg, rgba(24, 24, 29, 0.88) 0%, rgba(14, 14, 18, 0.94) 100%);
+  border: 1px solid rgba(235, 198, 118, 0.26);
+  box-shadow:
+    0 28px 68px rgba(0, 0, 0, 0.65),
+    0 0 36px rgba(226, 184, 98, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="light"] .ongoing-showcase-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 246, 250, 0.98) 100%);
+  border-color: rgba(196, 152, 64, 0.35);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 920px) {
+  .ongoing-showcase-card {
+    grid-template-columns: 1fr;
+    padding: 24px 20px;
+  }
+}
+
+.ongoing-showcase-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.comp-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.comp-status-pill.is-live {
+  background: rgba(255, 69, 58, 0.14);
+  border: 1px solid rgba(255, 69, 58, 0.42);
+  color: #ff6961;
+}
+
+.comp-status-pill.is-ended {
+  background: rgba(245, 245, 247, 0.1);
+  border: 1px solid rgba(245, 245, 247, 0.2);
+  color: var(--text-secondary);
+}
+
+.comp-period-tag {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.ongoing-showcase-title {
+  font-size: clamp(1.55rem, 2.8vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.ongoing-showcase-desc {
+  font-size: 0.96rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin-bottom: 20px;
+  word-break: keep-all;
+}
+
+.ongoing-showcase-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  margin-bottom: 22px;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-num {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 0.76rem;
+  color: var(--text-tertiary);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 26px;
+  background: var(--glass-border);
+}
+
+.ongoing-showcase-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ongoing-showcase-actions .ongoing-btn-primary,
+.ongoing-showcase-actions .ongoing-btn-secondary {
+  flex: 0 1 auto;
+  padding: 11px 22px;
+}
+
+.ongoing-showcase-thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.showcase-thumb-card {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.32s var(--spring-easing), border-color 0.25s ease;
+}
+
+.showcase-thumb-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(246, 218, 152, 0.65);
+}
+
+.showcase-thumb-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.showcase-thumb-num {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(15, 15, 18, 0.85);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 2. 공모전 아카이브 & 역대 수상작 공통 페이지 헤더 */
+.comp-archive-stage,
+.comp-detail-stage,
+.winners-hall-stage {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 72px 24px 128px;
+}
+
+@media (max-width: 768px) {
+  .comp-archive-stage,
+  .comp-detail-stage,
+  .winners-hall-stage {
+    padding: 44px 16px 88px;
+  }
+}
+
+.archive-page-header {
+  max-width: 900px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+
+.archive-page-title {
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.archive-page-subtitle {
+  font-size: 1.04rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  word-break: keep-all;
+  margin-bottom: 28px;
+}
+
+.comp-filter-bar {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.comp-filter-chip {
+  appearance: none;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-pill);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.comp-filter-chip:hover {
+  color: var(--text-primary);
+  border-color: var(--glass-border-highlight);
+}
+
+.comp-filter-chip.active {
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  font-weight: 700;
+  border-color: var(--text-primary);
+}
+
+.comp-year-section {
+  margin-bottom: 64px;
+}
+
+.comp-year-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--glass-border-highlight);
+}
+
+.comp-year-title {
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.comp-year-count {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.comp-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 28px;
+}
+
+@media (max-width: 640px) {
+  .comp-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.comp-archive-card {
+  border-radius: 24px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.36s var(--spring-easing), border-color 0.3s ease, box-shadow 0.36s ease;
+}
+
+.comp-archive-card.is-ongoing-card {
+  border-color: rgba(235, 198, 118, 0.42);
+}
+
+.comp-archive-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(246, 218, 152, 0.72);
+  box-shadow: 0 32px 72px rgba(0, 0, 0, 0.78), 0 0 28px rgba(226, 184, 98, 0.14);
+}
+
+.comp-card-cover-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: rgba(128, 128, 135, 0.08);
+  overflow: hidden;
+}
+
+.comp-card-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.65s var(--spring-easing);
+}
+
+.comp-archive-card:hover .comp-card-cover {
+  transform: scale(1.05);
+}
+
+.comp-card-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 10, 14, 0.75) 0%, transparent 60%);
+}
+
+.comp-card-top-badges {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.comp-winner-count-pill {
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  background: rgba(20, 17, 9, 0.82);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(246, 218, 152, 0.55);
+  color: #f6da98;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.comp-card-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.comp-card-period {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.comp-card-title {
+  font-size: 1.38rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.comp-card-desc {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.comp-card-winner-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(235, 198, 118, 0.08);
+  border: 1px solid rgba(235, 198, 118, 0.22);
+  margin-bottom: 18px;
+  font-size: 0.83rem;
+}
+
+.winner-highlight-label {
+  color: #e6c274;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.winner-highlight-val {
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.comp-card-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.86rem;
+}
+
+.comp-card-meta-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.comp-card-meta-stats strong {
+  color: var(--text-primary);
+}
+
+.comp-card-enter-link {
+  font-weight: 700;
+  color: var(--text-primary);
+  transition: transform 0.22s ease, color 0.22s ease;
+}
+
+.comp-archive-card:hover .comp-card-enter-link {
+  transform: translateX(4px);
+  color: #f6da98;
+}
+
+/* 3. 공모전 상세 페이지 (Competition Detail Exhibition View) */
+.comp-detail-topbar {
+  margin-bottom: 24px;
+}
+
+.comp-back-btn {
+  appearance: none;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-pill);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.comp-back-btn:hover {
+  background: var(--glass-pill-hover);
+  border-color: var(--glass-border-highlight);
+  transform: translateX(-3px);
+}
+
+.comp-detail-hero {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(16, 16, 20, 0.92);
+  margin-bottom: 48px;
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr;
+  min-height: 380px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.72);
+}
+
+html[data-theme="light"] .comp-detail-hero {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 900px) {
+  .comp-detail-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+.comp-detail-hero-media {
+  position: relative;
+  min-height: 280px;
+  background: #09090b;
+  overflow: hidden;
+}
+
+.comp-detail-hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.comp-detail-hero-content {
+  padding: 40px 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .comp-detail-hero-content {
+    padding: 26px 22px;
+  }
+}
+
+.comp-detail-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.comp-detail-title {
+  font-size: clamp(1.85rem, 3.6vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.comp-detail-desc {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.68;
+  margin-bottom: 26px;
+  word-break: keep-all;
+}
+
+.comp-detail-QuickStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--glass-border);
+  margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .comp-detail-QuickStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.detail-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-stat-label {
+  font-size: 0.76rem;
+  color: var(--text-tertiary);
+}
+
+.detail-stat-value {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.comp-cover-caption {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+}
+
+.comp-detail-section {
+  margin-bottom: 56px;
+}
+
+.comp-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.comp-section-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.comp-section-title {
+  font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.comp-section-count {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.comp-authors-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.comp-author-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-pill);
+  border: 1px solid var(--glass-border-highlight);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.comp-winners-spotlight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 28px;
+}
+
+/* 4. 역대 수상작 (Hall of Fame Pedestal Curation) */
+.winners-curation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 36px;
+}
+
+@media (max-width: 640px) {
+  .winners-curation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.winner-pedestal-card {
+  border-radius: 26px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(235, 198, 118, 0.48);
+  box-shadow:
+    0 26px 64px rgba(0, 0, 0, 0.76),
+    0 0 32px rgba(226, 184, 98, 0.14);
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: transform 0.38s var(--spring-easing), border-color 0.3s ease, box-shadow 0.38s ease;
+}
+
+.winner-pedestal-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(250, 222, 156, 0.92);
+  box-shadow:
+    0 34px 80px rgba(0, 0, 0, 0.86),
+    0 0 42px rgba(235, 198, 118, 0.28);
+}
+
+.winner-pedestal-media {
+  position: relative;
+  width: 100%;
+  background: #08080a;
+  overflow: hidden;
+}
+
+.winner-pedestal-media img {
+  width: 100%;
+  max-height: 520px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.65s var(--spring-easing);
+}
+
+.winner-pedestal-card:hover .winner-pedestal-media img {
+  transform: scale(1.03);
+}
+
+.winner-pedestal-info {
+  padding: 24px 26px;
+  background: linear-gradient(180deg, rgba(20, 20, 24, 0.96) 0%, rgba(14, 14, 18, 0.98) 100%);
+  border-top: 1px solid rgba(235, 198, 118, 0.22);
+}
+
+html[data-theme="light"] .winner-pedestal-info {
+  background: #ffffff;
+}
+
+.winner-pedestal-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.winner-pedestal-comp {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e6c274;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.winner-pedestal-comp:hover {
+  text-decoration: underline;
+}
+
+.winner-pedestal-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.winner-pedestal-author-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.winner-pedestal-author {
+  font-size: 0.96rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.winner-pedestal-camera {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.archive-empty-state {
+  text-align: center;
+  padding: 72px 24px;
+  border-radius: 22px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  font-size: 0.98rem;
 }
