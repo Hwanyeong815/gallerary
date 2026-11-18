@@ -63,6 +63,15 @@ function isNonImageFile(name) {
   return /\.(pdf|zip|rar|7z|mp4|mov|avi|mkv|doc|docx|xls|xlsx|ppt|pptx|txt|csv|json|js|css|html)$/i.test(name);
 }
 
+function parseDriveModifiedTime(chunk, index) {
+  const m = chunk.match(/class="flip-entry-last-modified"[\s\S]*?<div>([^<]+)<\/div>/i);
+  if (!m) return index;
+  const raw = m[1].trim();
+  const parsed = Date.parse(raw);
+  if (!isNaN(parsed)) return parsed;
+  return index;
+}
+
 // 단일 embeddedfolderview HTML에서 하위 폴더 목록과 이미지 파일 목록을 분리 추출
 function parseEntriesFromEmbedHtml(html) {
   const subfolders = [];
@@ -84,12 +93,13 @@ function parseEntriesFromEmbedHtml(html) {
 
     const name = decodeHtmlEntities(titleMatch[1].trim());
     const href = hrefMatch ? hrefMatch[1] : '';
+    const modifiedTime = parseDriveModifiedTime(chunk, i);
 
     // 링크가 /drive/folders/ 를 포함하면 하위 폴더
     if (href.includes('/folders/') || chunk.includes('drive/folders/')) {
       subfolders.push({ id, name });
     } else if (!isNonImageFile(name)) {
-      files.push({ id, name });
+      files.push({ id, name, modifiedTime, uploadIndex: i });
     }
   }
 
@@ -126,6 +136,8 @@ async function parseDriveFolderTree(rootFolderId, maxDepth = 3) {
           name: file.name,
           folderId: folderId,
           folderName: folderName,
+          modifiedTime: file.modifiedTime || 0,
+          uploadIndex: file.uploadIndex || 0,
           thumbUrl: `/api/image?id=${encodeURIComponent(file.id)}&sz=w800`,
           fullUrl: `/api/image?id=${encodeURIComponent(file.id)}&sz=w2000`,
           driveUrl: `https://drive.google.com/file/d/${file.id}/view`

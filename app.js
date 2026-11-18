@@ -3,11 +3,38 @@ const CONFIGURED_FOLDER_URL =
   (typeof window !== 'undefined' && window.GOOGLE_DRIVE_FOLDER_URL) ||
   'https://drive.google.com/drive/folders/1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw?usp=sharing';
 
+// 사용자 브라우저 언어(Locale) 기반 다국어(i18n) 매핑 (한국어 기본, 해외 접속 시 영문 전환)
+const IS_KOREAN = typeof navigator !== 'undefined'
+  ? String(navigator.language || 'ko').toLowerCase().startsWith('ko')
+  : true;
+
+const I18N = {
+  allTab: IS_KOREAN ? '전체' : 'ALL',
+  liveBadge: IS_KOREAN ? '진행중' : 'LIVE',
+  heroEyebrow: IS_KOREAN ? '전시 아카이브' : 'ARCHIVE',
+  firstPrizeBadge: IS_KOREAN ? '1등' : '1ST',
+  footerLeft: IS_KOREAN ? '각자의 프레임 — 사진 아카이브' : 'Gallery Archive',
+  footerRight: IS_KOREAN ? '구글 드라이브 실시간 연동 갤러리' : 'Synchronized with Google Drive'
+};
+
+function applyLocaleTexts() {
+  const eyebrow = document.getElementById('heroEyebrow');
+  const liveBadgeText = document.getElementById('ongoingLiveBadgeText');
+  const footerLeft = document.getElementById('footerLeftText');
+  const footerRight = document.getElementById('footerRightText');
+
+  if (eyebrow) eyebrow.textContent = I18N.heroEyebrow;
+  if (liveBadgeText) liveBadgeText.textContent = I18N.liveBadge;
+  if (footerLeft) footerLeft.textContent = I18N.footerLeft;
+  if (footerRight) footerRight.textContent = I18N.footerRight;
+}
+
 let allPhotos = [];
 let folderCategories = [];
 let selectedSubfolderId = 'ALL';
-let selectedAuthor = 'ALL';
+let searchQuery = '';
 let currentOngoingFolder = null;
+let isOngoingModalOpen = false;
 let ongoingModalDismissedOnThisLoad = false;
 let filteredPhotos = [];
 let activePhotoIndex = 0;
@@ -15,6 +42,100 @@ let revealObserver = null;
 let currentThemeValue = 0.0;
 let targetThemeValue = 0.0;
 let toastTimer = null;
+
+// 메인 섹션 전환 및 정보·꿀팁 게시판 상태
+const STORAGE_KEY_TIPS = 'gallery_archive_tips_posts_v2';
+let currentMainView = 'gallery'; // 'gallery' | 'tips'
+let selectedTipCategory = 'ALL';
+let activeTipPostId = null;
+
+const DEFAULT_TIPS_POSTS = [
+  {
+    id: 'tip-lunar-sea',
+    category: '기타',
+    title: '부천 달의바다 현상소 | C-41 무료 현상·스캔 베타테스터 모집',
+    content: `부천 달의바다 현상소에서 다음 주부터 35mm 컬러 네거티브 필름 현상·스캔 테스트를 진행합니다. 코닥 컬러 현상 약품의 성능이 어느 시점부터 떨어지는지 확인하고, AGO 프로세서의 처리 속도를 측정하기 위한 테스트입니다.
+
+- 모집 수량: 총 50롤
+- 대상 필름: 35mm C-41 컬러 네거티브 필름
+- 현상: AGO 프로세서 + 코닥 컬러 현상 약품
+- 스캔: 노리츠 자동 모드
+- 비용: 현상·스캔 무료 / 필름 원본 회수 시 3,000원
+
+필름이 5롤 모일 때마다 현상하므로 결과를 받아보기까지 시간이 걸릴 수 있습니다. 약품의 성능을 확인하는 테스트인 만큼 스캔 결과의 색이 평소와 다를 수 있습니다. 가능하면 유효기간이 지나지 않은 신선한 필름으로 참여해 주세요.
+
+총 50롤의 테스트가 끝나면 이벤트를 종료합니다.
+
+달의바다 현상소
+경기 부천시 원미구 장말로 173 지층`,
+    author: '데이/부산/FE2',
+    date: '2026.11.19',
+    imageUrl: '',
+    linkUrl: ''
+  },
+  {
+    id: 'tip-1',
+    category: '촬영팁',
+    title: '야간 장노출 촬영 시 빛 갈라짐과 노이즈를 동시에 잡는 조리개 세팅법',
+    content: `야경 촬영에서 가로등이나 교량의 조명을 깔끔한 빛 갈라짐(Sunburst)으로 표현하려면 조리개를 f/8에서 f/11 사이로 조여주는 것이 가장 이상적입니다.\n\n조리개를 f/16 이상 과도하게 조이면 회절 현상(Diffraction)으로 인해 오히려 전체적인 해상력이 저하될 수 있습니다. ISO는 베이스 감도(ISO 64~100)로 고정하고, 삼각대 위에서 손떨림 방지(IBIS) 기능을 오프(OFF)한 뒤 2초 셀프 타이머나 릴리즈를 사용해 미세 진동을 차단해 보세요.\n\n하이라이트 클리핑을 방지하기 위해 노출 보정을 -0.7 EV 정도로 약간 언더로 촬영한 뒤 암부를 복원하면 훨씬 깊이 있는 밤하늘 계조를 얻을 수 있습니다.`,
+    author: '웰컴',
+    date: '2026.11.15',
+    imageUrl: 'https://drive.google.com/thumbnail?id=1wCeT3U1kWUsxkzATavQMImhhXDCMfmsm&sz=w1200',
+    linkUrl: 'https://www.sony.co.kr'
+  },
+  {
+    id: 'tip-2',
+    category: '보정팁',
+    title: '라이트룸에서 필름 그레인과 무채색 모노크롬 톤 커브 만드는 3단계 공식',
+    content: `디지털 원본 사진을 깊이 있는 흑백(Monochrome) 아카이브 톤으로 전환할 때는 단순히 채도를 빼는 것보다 포인트 커브(Tone Curve)의 양 끝단을 제어하는 것이 핵심입니다.\n\n1단계: 톤 커브의 가장 왼쪽 아래 블랙 포인트를 살짝 위로 들어 올려(Output 8~12) 순수 블랙을 매트한 다크 차콜로 부드럽게 눌러줍니다.\n2단계: 색상 혼합(B&W Mix) 패널에서 블루 채널의 명도를 -20 낮춰 하늘과 그림자의 무게감을 살리고, 오렌지/옐로우 채널을 +15 올려 인물이나 피사체의 하이라이트를 분리합니다.\n3단계: 효과(Effects) 탭에서 입자(Grain) 크기를 25, 거칠기를 40 내외로 추가하면 클래식 인화지 같은 질감이 완성됩니다.`,
+    author: '마오',
+    date: '2026.11.14',
+    imageUrl: 'https://drive.google.com/thumbnail?id=1mpH4TEr5tgpA6PV2F4qwV5jI3q0ROn4M&sz=w1200',
+    linkUrl: ''
+  },
+  {
+    id: 'tip-3',
+    category: '장비·소품',
+    title: '겨울철 영하의 설경 출사 시 배터리 방전 방지와 결로 현상 대처 노하우',
+    content: `기온이 영하로 떨어지는 겨울철 새벽 출사에서는 리튬이온 배터리의 전압 강하가 급격히 일어납니다. 여분의 배터리는 반드시 외투 안주머니나 핫팩과 가까운 파우치에 보관해 온도를 유지해 주세요.\n\n가장 주의해야 할 점은 추운 야외에서 촬영을 마치고 따뜻한 실내나 차량으로 바로 들어올 때 발생하는 '결로 현상'입니다. 카메라와 렌즈 표면에 물방울이 맺히면 내부 회로 손상이나 렌즈 곰팡이의 원인이 됩니다.\n\n실내에 들어오기 전 야외에서 미리 지퍼백에 카메라를 넣고 밀봉한 뒤, 실내 온도에 30분 이상 천천히 적응시키면 온도 차로 인한 습기가 지퍼백 겉면에만 맺혀 장비를 안전하게 보호할 수 있습니다.`,
+    author: '아카이브큐레이터',
+    date: '2026.11.12',
+    imageUrl: '',
+    linkUrl: ''
+  },
+  {
+    id: 'tip-4',
+    category: '촬영팁',
+    title: '역광 인물 및 겨울 풍경 스냅에서 플레어를 감성적인 레이어로 활용하기',
+    content: `해가 낮게 뜨는 겨울 오후 3~4시 무렵에는 피사체 뒤쪽 대각선 45도 방향에서 들어오는 사광과 역광을 적극적으로 활용해 보세요.\n\n렌즈 후드를 잠시 분리하고 태양 빛이 렌즈 전면 유리에 살짝 스치도록 앵글을 미세 조정하면, 인위적인 후보정으로는 만들기 어려운 자연스러운 고스트와 헤이즈(Haze)가 프레임 전체를 감싸 안습니다.\n\n이때 측광 모드는 스팟 측광 또는 하이라이트 중점 측광으로 설정해 빛이 닿는 윤곽선(Rim Light)이 하얗게 날아가지 않도록 제어하는 것이 포인트입니다.`,
+    author: '시선기록자',
+    date: '2026.11.10',
+    imageUrl: 'https://drive.google.com/thumbnail?id=1FMYxY8mqg-YrTw--S16tw-PeIZ1Sjt-3&sz=w1200',
+    linkUrl: ''
+  },
+  {
+    id: 'tip-5',
+    category: '장비·소품',
+    title: '단렌즈 하나로 스트리트 스냅 구도를 정돈하는 35mm vs 50mm 화각 선택 가이드',
+    content: `거리 스냅이나 일상 기록에서 줌렌즈 대신 단렌즈 하나만 마운트하고 나가면 발걸음 자체가 줌링이 되어 피사체와의 거리감이 훨씬 일정해집니다.\n\n35mm 화각은 피사체와 주변 공간의 맥락(Context)을 함께 담아내기에 최적화된 스토리텔링 화각이며, 50mm 화각은 불필요한 배경 요소를 덜어내고 시선이 머무는 주제를 압축적으로 강조할 때 유리합니다.\n\n자신이 평소 사진을 찍을 때 배경의 분위기를 먼저 보는지, 아니면 피사체의 디테일과 형태를 먼저 보는지에 따라 메인 단렌즈 화각을 결정해 보세요.`,
+    author: '모노크롬',
+    date: '2026.11.08',
+    imageUrl: '',
+    linkUrl: ''
+  },
+  {
+    id: 'tip-6',
+    category: '기타',
+    title: '공모전 출품 전 반드시 체크해야 할 색공간(sRGB) 설정과 파일 네이밍 팁',
+    content: `웹 갤러리나 온라인 사진 공모전에 작품을 출품할 때 Adobe RGB 색공간 그대로 내보내면 일반 브라우저나 모바일 화면에서 채도가 빠지고 물 빠진 색감으로 보일 수 있습니다.\n\n내보내기(Export) 설정에서 색공간(Color Space)을 반드시 표준 'sRGB IEC61966-2.1'로 지정하고, 긴 변 기준 2048px~3000px 해상도로 저장하면 화질 손실 없이 가장 선명하게 웹에 게시됩니다.\n\n출품 시 파일명은 '작가명_작품제목_카메라기종.jpg' 규칙을 지켜 업로드해 주시면 아카이브 시스템에서 자동으로 인식하여 전시됩니다.`,
+    author: '운영진',
+    date: '2026.11.05',
+    imageUrl: 'https://drive.google.com/thumbnail?id=1CelZTVIxJzi5ZJmNWT2bQGxxGxNKOWKU&sz=w1200',
+    linkUrl: ''
+  }
+];
+
+let tipsPosts = [];
 
 /* ==========================================================================
    1. WebGL 셰이더 배경 (다크/라이트 테마 대응 앰비언트 실크 오로라 & 마우스 빛 반사)
@@ -184,10 +305,14 @@ function sortFoldersOngoingFirst(folders) {
 
 function navigateToOngoingFolder(folder) {
   if (!folder) return;
+  if (currentMainView !== 'gallery') {
+    switchMainView('gallery');
+  }
   selectedSubfolderId = folder.id;
-  selectedAuthor = 'ALL';
+  searchQuery = '';
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.value = '';
   renderFolderTabs();
-  renderAuthorFilter();
   applyFiltersAndRender();
 
   const gridEl = document.getElementById('photoGrid');
@@ -197,16 +322,14 @@ function navigateToOngoingFolder(folder) {
 }
 
 function dismissOngoingPopup() {
+  isOngoingModalOpen = false;
+  ongoingModalDismissedOnThisLoad = true;
+
   const backdrop = document.getElementById('ongoingModalBackdrop');
   if (!backdrop) return;
 
-  ongoingModalDismissedOnThisLoad = true;
   backdrop.classList.remove('is-visible');
-  setTimeout(() => {
-    if (!backdrop.classList.contains('is-visible')) {
-      backdrop.classList.add('hidden');
-    }
-  }, 400);
+  backdrop.classList.add('hidden');
 }
 
 function updateOngoingNoticeUI() {
@@ -214,16 +337,19 @@ function updateOngoingNoticeUI() {
   const bannerText = document.getElementById('ongoingBannerText');
   const backdrop = document.getElementById('ongoingModalBackdrop');
   const popupTitle = document.getElementById('ongoingPopupTitle');
+  const previewGrid = document.getElementById('ongoingModalPreviewGrid');
 
   const ongoingFolder = folderCategories.find(f => isOngoingFolder(f.name)) || null;
   currentOngoingFolder = ongoingFolder;
 
   if (!ongoingFolder) {
+    isOngoingModalOpen = false;
     if (banner) banner.classList.add('hidden');
     if (backdrop) {
       backdrop.classList.remove('is-visible');
       backdrop.classList.add('hidden');
     }
+    if (previewGrid) previewGrid.innerHTML = '';
     return;
   }
 
@@ -234,13 +360,65 @@ function updateOngoingNoticeUI() {
     banner.classList.remove('hidden');
   }
 
+  // 모달 내 진행중 후보작 미리보기 카드 렌더링 (고대비 1번 배지 + 굵은 작품제목 + 클릭 시 라이트박스 직행)
+  if (previewGrid) {
+    const ongoingPhotos = allPhotos.filter(p => p.folderId === ongoingFolder.id);
+    previewGrid.innerHTML = ongoingPhotos.map(photo => {
+      const meta = getDisplayMeta(photo);
+      const numBadgeHtml = meta.numLabel
+        ? `<span class="vote-num-badge">${escapeHtml(meta.numLabel)}</span>`
+        : '';
+      return `
+        <button type="button" class="ongoing-preview-item" data-photo-id="${escapeHtml(photo.id)}" aria-label="${escapeHtml(meta.title)} 크게 보기">
+          <div class="ongoing-preview-thumb-wrap">
+            <img class="ongoing-preview-thumb" src="${photo.thumbUrl}" alt="${escapeHtml(meta.title)}" loading="lazy" referrerpolicy="no-referrer" />
+          </div>
+          <div class="ongoing-preview-info">
+            <div class="ongoing-preview-title-row">
+              ${numBadgeHtml}
+              <span class="ongoing-preview-title">${escapeHtml(meta.pureTitle)}</span>
+            </div>
+            <span class="ongoing-preview-author">by 익명</span>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    previewGrid.querySelectorAll('.ongoing-preview-item').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetId = btn.getAttribute('data-photo-id');
+        dismissOngoingPopup();
+        selectedSubfolderId = ongoingFolder.id;
+        searchQuery = '';
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = '';
+        renderFolderTabs();
+        applyFiltersAndRender();
+
+        const targetIndex = filteredPhotos.findIndex(p => p.id === targetId);
+        if (targetIndex !== -1) {
+          openLightbox(targetIndex);
+        }
+      });
+    });
+  }
+
+  // 한 번 닫은 뒤에는 다시 튀어나오지 않도록 ongoingModalDismissedOnThisLoad 체크
   if (backdrop && popupTitle) {
     if (!ongoingModalDismissedOnThisLoad) {
+      isOngoingModalOpen = true;
       popupTitle.textContent = `현재 ${cleanName} 진행 중입니다`;
       backdrop.classList.remove('hidden');
       requestAnimationFrame(() => {
-        backdrop.classList.add('is-visible');
+        if (!ongoingModalDismissedOnThisLoad) {
+          backdrop.classList.add('is-visible');
+        }
       });
+    } else {
+      isOngoingModalOpen = false;
+      backdrop.classList.remove('is-visible');
+      backdrop.classList.add('hidden');
     }
   }
 }
@@ -379,18 +557,44 @@ function extractAuthorFromFilename(filename) {
   return '';
 }
 
-// 순수 작품 제목 추출 (언더바 뒤 작품 제목 부분만 추출 + 끝의 중복 (1), (2) 제거)
-function extractWorkTitleOnly(filename) {
+// 순수 작품 제목 추출 (언더바 뒤 작품 제목 부분만 추출 + 진행중 익명 투표 시 카메라 기종 숨김 + 끝의 중복 (1), (2) 제거)
+function extractWorkTitleOnly(filename, hideCamera = false) {
   const cleaned = removeAwardAndLeadingNumber(filename);
-  const underscoreIdx = cleaned.indexOf('_');
-  let titlePart = cleaned;
-  if (underscoreIdx > 0) {
-    titlePart = cleaned.slice(underscoreIdx + 1).replace(/^[_-\s]+/, '').trim() || cleaned;
+  const withoutParen = cleanDuplicateTrailingNumber(cleaned);
+  const parts = withoutParen.split('_').map(s => s.trim()).filter(Boolean);
+
+  if (parts.length >= 3 && hideCamera) {
+    // 작가명_작품제목_카메라기종 형태에서 진행중 폴더는 순수 작품제목만 노출
+    return parts.slice(1, -1).join(' ');
   }
-  return cleanDuplicateTrailingNumber(titlePart);
+  if (parts.length >= 2) {
+    return parts.slice(1).join('_');
+  }
+  return withoutParen;
 }
 
-// 진행중 폴더 내 사진들을 정렬 기준(번호 오름차순 -> 업로드/원본 순서 오름차순)으로 정렬하고 고정 번호(1번, 2번...) 부여
+// 사진 정렬 비교 함수: [1등] 최상단 -> 1순위 파일명 숫자 오름차순 -> 2순위 업로드(수정) 시간 오름차순
+function comparePhotosByPriority(a, b) {
+  const aWin = isFirstPrize(a.name) ? 1 : 0;
+  const bWin = isFirstPrize(b.name) ? 1 : 0;
+  if (aWin !== bWin) return bWin - aWin;
+
+  const numA = extractExplicitOrderNumber(a.name);
+  const numB = extractExplicitOrderNumber(b.name);
+  if (numA !== null && numB !== null && numA !== numB) {
+    return numA - numB;
+  }
+  if (numA !== null && numB === null) return -1;
+  if (numA === null && numB !== null) return 1;
+
+  const timeA = typeof a.modifiedTime === 'number' ? a.modifiedTime : (a.uploadIndex || a._originalIdx || 0);
+  const timeB = typeof b.modifiedTime === 'number' ? b.modifiedTime : (b.uploadIndex || b._originalIdx || 0);
+  if (timeA !== timeB) return timeA - timeB;
+
+  return (a._originalIdx || 0) - (b._originalIdx || 0);
+}
+
+// 폴더별 사진들을 정렬 원칙으로 정렬하고 진행중 폴더 사진에 고정 번호(1번, 2번...) 부여
 function sortAndNumberOngoingPhotos(photos) {
   const byFolder = new Map();
   photos.forEach((p, idx) => {
@@ -402,17 +606,9 @@ function sortAndNumberOngoingPhotos(photos) {
   const result = [];
   byFolder.forEach((group) => {
     const ongoing = group.length > 0 && isOngoingFolder(group[0].folderName);
+    group.sort(comparePhotosByPriority);
+
     if (ongoing) {
-      group.sort((a, b) => {
-        const numA = extractExplicitOrderNumber(a.name);
-        const numB = extractExplicitOrderNumber(b.name);
-        if (numA !== null && numB !== null && numA !== numB) {
-          return numA - numB;
-        }
-        if (numA !== null && numB === null) return -1;
-        if (numA === null && numB !== null) return 1;
-        return (a._originalIdx || 0) - (b._originalIdx || 0);
-      });
       group.forEach((p, idx) => {
         p.contestNumber = idx + 1;
       });
@@ -427,17 +623,20 @@ function sortAndNumberOngoingPhotos(photos) {
   return result;
 }
 
-// 사진 객체별로 화면에 표시할 제목과 작가명 반환 (진행중 폴더는 '1번 작품제목' + 'by 익명' 일관 유지)
+// 사진 객체별로 화면에 표시할 제목, 순번 배지, 작가명 반환
 function getDisplayMeta(photo) {
   const inOngoing = isOngoingFolder(photo.folderName);
   const rawAuthor = extractAuthorFromFilename(photo.name);
-  const workTitleOnly = extractWorkTitleOnly(photo.name);
+  const pureWorkTitle = extractWorkTitleOnly(photo.name, inOngoing);
   const fullCleanTitle = cleanDuplicateTrailingNumber(removeAwardAndLeadingNumber(photo.name));
 
   if (inOngoing) {
-    const numPrefix = photo.contestNumber ? `${photo.contestNumber}번 ` : '';
+    const numLabel = photo.contestNumber ? `${photo.contestNumber}번` : '';
+    const combinedTitle = numLabel ? `${numLabel} ${pureWorkTitle}` : pureWorkTitle;
     return {
-      title: `${numPrefix}${workTitleOnly}`,
+      title: combinedTitle,
+      pureTitle: pureWorkTitle,
+      numLabel: numLabel,
       authorLabel: 'by 익명',
       isAnonymous: true
     };
@@ -445,96 +644,28 @@ function getDisplayMeta(photo) {
 
   return {
     title: fullCleanTitle,
+    pureTitle: fullCleanTitle,
+    numLabel: '',
     authorLabel: rawAuthor ? `by ${rawAuthor}` : '',
     isAnonymous: false
   };
 }
 
-// 상단 작가 필터 렌더링 (역추적 방지: 진행중 폴더에 속한 사진은 작가 집계 및 필터에서 완전히 제외!)
-function renderAuthorFilter() {
-  const menu = document.getElementById('authorDropdownMenu');
-  const label = document.getElementById('authorFilterLabel');
-  const btn = document.getElementById('btnAuthorFilter');
-  if (!menu || !label || !btn) return;
+// 검색어 매칭 검사 (진행중 폴더는 실제 작가명/카메라 기종 검색을 차단하고 오직 노출된 제목 및 번호로만 검색 허용)
+function matchesSearchQuery(photo, query) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  const meta = getDisplayMeta(photo);
 
-  // 역추적 방지: 진행중(isOngoingFolder)이 아닌 일반 마감 폴더의 사진들에서만 작가명을 추출
-  const authorCounts = new Map();
-  let publicPhotoCount = 0;
-
-  allPhotos.forEach(p => {
-    if (isOngoingFolder(p.folderName)) return; // 진행중 폴더 사진은 작가 필터 집계에서 제외
-    publicPhotoCount++;
-    const author = extractAuthorFromFilename(p.name);
-    if (author) {
-      authorCounts.set(author, (authorCounts.get(author) || 0) + 1);
-    }
-  });
-
-  const authors = Array.from(authorCounts.keys());
-
-  if (selectedAuthor !== 'ALL' && !authorCounts.has(selectedAuthor)) {
-    selectedAuthor = 'ALL';
+  if (meta.isAnonymous) {
+    // 진행중 익명 작품: 오직 화면에 표시된 번호('1번', '1')와 순수 작품 제목만 검색 허용
+    const searchable = `${meta.numLabel} ${meta.pureTitle}`.toLowerCase();
+    return searchable.includes(q);
   }
 
-  label.textContent = selectedAuthor === 'ALL' ? '전체 작가' : selectedAuthor;
-  btn.classList.toggle('has-filter', selectedAuthor !== 'ALL');
-
-  let html = `
-    <button type="button" class="author-option-btn ${selectedAuthor === 'ALL' ? 'active' : ''}" data-author="ALL" role="option" aria-selected="${selectedAuthor === 'ALL'}">
-      <span>전체 작가</span>
-      <span class="author-option-count">${allPhotos.length}</span>
-    </button>
-  `;
-
-  authors.forEach(author => {
-    const count = authorCounts.get(author) || 0;
-    const isSelected = selectedAuthor === author;
-    html += `
-      <button type="button" class="author-option-btn ${isSelected ? 'active' : ''}" data-author="${escapeHtml(author)}" role="option" aria-selected="${isSelected}">
-        <span>${escapeHtml(author)}</span>
-        <span class="author-option-count">${count}</span>
-      </button>
-    `;
-  });
-
-  menu.innerHTML = html;
-
-  menu.querySelectorAll('.author-option-btn').forEach(optBtn => {
-    optBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      selectedAuthor = optBtn.getAttribute('data-author');
-      closeAuthorDropdown();
-      renderAuthorFilter();
-      applyFiltersAndRender();
-    });
-  });
-}
-
-function toggleAuthorDropdown() {
-  const wrap = document.getElementById('authorFilterWrap');
-  const menu = document.getElementById('authorDropdownMenu');
-  const btn = document.getElementById('btnAuthorFilter');
-  if (!wrap || !menu || !btn) return;
-
-  const isOpen = !menu.classList.contains('hidden');
-  if (isOpen) {
-    closeAuthorDropdown();
-  } else {
-    menu.classList.remove('hidden');
-    wrap.classList.add('is-open');
-    btn.setAttribute('aria-expanded', 'true');
-  }
-}
-
-function closeAuthorDropdown() {
-  const wrap = document.getElementById('authorFilterWrap');
-  const menu = document.getElementById('authorDropdownMenu');
-  const btn = document.getElementById('btnAuthorFilter');
-  if (!wrap || !menu || !btn) return;
-
-  menu.classList.add('hidden');
-  wrap.classList.remove('is-open');
-  btn.setAttribute('aria-expanded', 'false');
+  // 일반 마감 폴더 작품: 작품 제목, 작가명, 카메라 기종(파일명 전체), 폴더명 모두 검색 허용
+  const fullSearchable = `${meta.title} ${photo.name} ${photo.folderName || ''}`.toLowerCase();
+  return fullSearchable.includes(q);
 }
 
 /* ==========================================================================
@@ -583,6 +714,13 @@ function isNonImageFile(name) {
   return /\.(pdf|zip|rar|7z|mp4|mov|avi|mkv|doc|docx|xls|xlsx|ppt|pptx|txt|csv|json|js|css|html)$/i.test(name);
 }
 
+function parseDriveModifiedTime(chunk, index) {
+  const m = chunk.match(/class="flip-entry-last-modified"[\s\S]*?<div>([^<]+)<\/div>/i);
+  if (!m) return index;
+  const parsed = Date.parse(m[1].trim());
+  return !isNaN(parsed) ? parsed : index;
+}
+
 function parseEntriesFromEmbedHtml(html) {
   const subfolders = [];
   const files = [];
@@ -602,11 +740,12 @@ function parseEntriesFromEmbedHtml(html) {
 
     const name = decodeEntities(titleMatch[1].trim());
     const href = hrefMatch ? hrefMatch[1] : '';
+    const modifiedTime = parseDriveModifiedTime(chunk, i);
 
     if (href.includes('/folders/') || chunk.includes('drive/folders/')) {
       subfolders.push({ id, name });
     } else if (!isNonImageFile(name)) {
-      files.push({ id, name });
+      files.push({ id, name, modifiedTime, uploadIndex: i });
     }
   }
 
@@ -666,6 +805,8 @@ async function fetchFolderTreeViaPublicEmbed(rootFolderId, bustCache = false, ma
           name: file.name,
           folderId: folderId,
           folderName: folderName,
+          modifiedTime: file.modifiedTime || 0,
+          uploadIndex: file.uploadIndex || 0,
           thumbUrl: `https://drive.google.com/thumbnail?id=${file.id}&sz=w1000`,
           fullUrl: `https://drive.google.com/thumbnail?id=${file.id}&sz=w2000`,
           driveUrl: `https://drive.google.com/file/d/${file.id}/view`
@@ -700,7 +841,7 @@ function renderFolderTabs() {
 
   let html = `
     <button type="button" class="folder-tab-btn ${selectedSubfolderId === 'ALL' ? 'active' : ''}" data-folder-id="ALL">
-      All<span class="folder-tab-count">${allPhotos.length}</span>
+      ${escapeHtml(I18N.allTab)}<span class="folder-tab-count">${allPhotos.length}</span>
     </button>
   `;
 
@@ -730,15 +871,10 @@ function applyFiltersAndRender() {
   const matched = allPhotos.filter(p => {
     const matchFolder = selectedSubfolderId === 'ALL' || p.folderId === selectedSubfolderId;
     if (!matchFolder) return false;
-
-    if (selectedAuthor === 'ALL') return true;
-
-    // 역추적 방지: 특정 작가 필터가 선택된 경우, 진행중(블라인드) 폴더의 작품은 절대 노출하지 않음
-    if (isOngoingFolder(p.folderName)) return false;
-    return extractAuthorFromFilename(p.name) === selectedAuthor;
+    return matchesSearchQuery(p, searchQuery);
   });
 
-  // 1등 수상작 우선 배치 + 진행중 폴더 작품은 부여된 번호(1번, 2번...) 오름차순 유지
+  // 1등 수상작 우선 배치 + 진행중 폴더 번호순 / 일반 폴더 우선순위 유지
   filteredPhotos = [...matched].sort((a, b) => {
     const aWin = isFirstPrize(a.name) ? 1 : 0;
     const bWin = isFirstPrize(b.name) ? 1 : 0;
@@ -747,17 +883,14 @@ function applyFiltersAndRender() {
     if (a.folderId === b.folderId && a.contestNumber && b.contestNumber) {
       return a.contestNumber - b.contestNumber;
     }
-    return 0;
+    return comparePhotosByPriority(a, b);
   });
 
   const badge = document.getElementById('photoCountBadge');
   if (badge) {
     const activeFolder = folderCategories.find(f => f.id === selectedSubfolderId);
     const cleanFolder = activeFolder ? cleanOngoingFolderName(activeFolder.name) : '';
-    const parts = [];
-    if (cleanFolder) parts.push(cleanFolder);
-    if (selectedAuthor !== 'ALL') parts.push(`${selectedAuthor} 작가`);
-    const prefix = parts.length > 0 ? `${parts.join(' · ')} · ` : '';
+    const prefix = cleanFolder ? `${cleanFolder} · ` : '';
     badge.textContent = `${prefix}${filteredPhotos.length}장의 사진`;
   }
 
@@ -830,7 +963,6 @@ async function loadDriveFolder(folderInput, forceLive = false) {
     }
 
     renderFolderTabs();
-    renderAuthorFilter();
     updateOngoingNoticeUI();
 
     if (photos.length === 0) {
@@ -866,13 +998,18 @@ function renderPhotoGrid(photos) {
 
   grid.innerHTML = photos.map((photo, idx) => {
     const winner = isFirstPrize(photo.name);
+    // All 탭에서는 발광 테두리 효과를 끄고, 특정 공모전 폴더 탭을 선택했을 때만 발광 테두리 적용
+    const showWinnerGlow = winner && selectedSubfolderId !== 'ALL';
     const meta = getDisplayMeta(photo);
     const rawFolder = photo.folderName && photo.folderName !== '기본 폴더' ? photo.folderName : '';
     const folderLabel = rawFolder ? cleanOngoingFolderName(rawFolder) : '';
+    const numBadgeHtml = meta.numLabel
+      ? `<span class="vote-num-badge">${escapeHtml(meta.numLabel)}</span>`
+      : '';
 
     return `
       <article
-        class="photo-card ${winner ? 'is-winner' : ''}"
+        class="photo-card ${showWinnerGlow ? 'is-winner' : ''}"
         data-index="${idx}"
         tabindex="0"
         role="button"
@@ -881,6 +1018,7 @@ function renderPhotoGrid(photos) {
       >
         <div class="card-glare" aria-hidden="true"></div>
         <div class="photo-media-wrap">
+          ${winner ? `<span class="winner-glass-badge">${escapeHtml(I18N.firstPrizeBadge)}</span>` : ''}
           <div class="skeleton-shimmer">
             <div class="apple-spinner"></div>
           </div>
@@ -898,7 +1036,7 @@ function renderPhotoGrid(photos) {
                 ${folderLabel && meta.authorLabel ? `<span>·</span>` : ''}
                 ${meta.authorLabel ? `<span class="caption-author">${escapeHtml(meta.authorLabel)}</span>` : ''}
               </div>
-              <h3 class="caption-title">${escapeHtml(meta.title)}</h3>
+              <h3 class="caption-title">${numBadgeHtml}${escapeHtml(meta.pureTitle)}</h3>
             </div>
             <span class="caption-expand-icon" aria-hidden="true">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -993,6 +1131,7 @@ function updateLightboxContent() {
   if (!photo) return;
 
   const meta = getDisplayMeta(photo);
+  const winner = isFirstPrize(photo.name);
   const img = document.getElementById('lightboxImage');
   const spinner = document.getElementById('lightboxSpinner');
   const counter = document.getElementById('lightboxCounter');
@@ -1005,7 +1144,9 @@ function updateLightboxContent() {
   img.setAttribute('referrerpolicy', 'no-referrer');
 
   counter.textContent = `${activePhotoIndex + 1} / ${filteredPhotos.length}`;
-  title.textContent = meta.title;
+  const winnerInline = winner ? `<span class="winner-badge-inline">${escapeHtml(I18N.firstPrizeBadge)}</span>` : '';
+  const numInline = meta.numLabel ? `<span class="vote-num-badge">${escapeHtml(meta.numLabel)}</span>` : '';
+  title.innerHTML = `${winnerInline}${numInline}${escapeHtml(meta.pureTitle)}`;
 
   if (authorEl) {
     authorEl.textContent = meta.authorLabel || '';
@@ -1145,6 +1286,166 @@ function setupLightboxTouchGestures() {
   });
 }
 
+/* ==========================================================================
+   7. 정보·꿀팁 게시판 렌더링 & 상세/작성 모달 + 메인 뷰 전환
+   ========================================================================== */
+function loadTipsPosts() {
+  try {
+    localStorage.removeItem('gallery_archive_tips_posts_v1');
+    const saved = localStorage.getItem(STORAGE_KEY_TIPS);
+    const parsed = saved ? JSON.parse(saved) : [...DEFAULT_TIPS_POSTS];
+    tipsPosts = parsed.filter(p => p && p.title !== 'ㅁㄴㅇ');
+  } catch (e) {
+    tipsPosts = [...DEFAULT_TIPS_POSTS];
+  }
+}
+
+function saveTipsPosts() {
+  try {
+    localStorage.setItem(STORAGE_KEY_TIPS, JSON.stringify(tipsPosts));
+  } catch (e) {}
+}
+
+function switchMainView(viewName) {
+  currentMainView = viewName === 'tips' ? 'tips' : 'gallery';
+
+  const galleryContainer = document.getElementById('galleryViewContainer');
+  const tipsView = document.getElementById('tipsBoardView');
+  const folderTabs = document.getElementById('folderCategoryTabs');
+  const btnGallery = document.getElementById('navViewGallery');
+  const btnTips = document.getElementById('navViewTips');
+  const searchInput = document.getElementById('searchInput');
+
+  if (currentMainView === 'tips') {
+    if (galleryContainer) galleryContainer.classList.add('hidden');
+    if (folderTabs) folderTabs.classList.add('hidden');
+    if (tipsView) tipsView.classList.remove('hidden');
+    if (btnGallery) btnGallery.classList.remove('active');
+    if (btnTips) btnTips.classList.add('active');
+    if (searchInput) searchInput.placeholder = '제목, 내용, 작성자 검색...';
+    renderTipsBoard();
+  } else {
+    if (tipsView) tipsView.classList.add('hidden');
+    if (galleryContainer) galleryContainer.classList.remove('hidden');
+    if (folderTabs) folderTabs.classList.remove('hidden');
+    if (btnTips) btnTips.classList.remove('active');
+    if (btnGallery) btnGallery.classList.add('active');
+    if (searchInput) searchInput.placeholder = '작품, 작가, 카메라 검색...';
+    applyFiltersAndRender();
+  }
+}
+
+function renderTipsBoard() {
+  const grid = document.getElementById('tipsCardGrid');
+  if (!grid) return;
+
+  const q = searchQuery.toLowerCase();
+  const filtered = tipsPosts.filter(post => {
+    if (!q) return true;
+    const text = `${post.title} ${post.content} ${post.author}`.toLowerCase();
+    return text.includes(q);
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div style="text-align: center; padding: 64px 20px; color: var(--text-secondary); border-bottom: 1px solid var(--glass-border);">
+        조건에 맞는 게시글이 없습니다.
+      </div>
+    `;
+    return;
+  }
+
+  const total = filtered.length;
+  grid.innerHTML = filtered.map((post, idx) => {
+    const rowNum = total - idx;
+    const hasPhoto = Boolean(post.imageUrl && post.imageUrl.trim());
+    const photoIconHtml = hasPhoto ? `
+      <span class="board-attach-icon" title="사진 첨부됨" aria-label="사진 첨부됨">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+      </span>
+    ` : '';
+
+    return `
+      <div class="board-row" data-tip-id="${escapeHtml(post.id)}" tabindex="0" role="listitem" aria-label="${escapeHtml(post.title)} 상세 보기">
+        <span class="col-num">${rowNum}</span>
+        <div class="col-title">
+          <span class="board-row-title-text">${escapeHtml(post.title)}</span>
+          ${photoIconHtml}
+        </div>
+        <div class="board-mobile-meta">
+          <span class="col-author">${escapeHtml(post.author)}</span>
+          <span class="col-date">${escapeHtml(post.date)}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  grid.querySelectorAll('.board-row').forEach(row => {
+    const openPost = () => openTipDetailModal(row.getAttribute('data-tip-id'));
+    row.addEventListener('click', openPost);
+    row.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openPost();
+      }
+    });
+  });
+}
+
+function openTipDetailModal(postId) {
+  const post = tipsPosts.find(p => p.id === postId);
+  if (!post) return;
+
+  activeTipPostId = postId;
+  document.getElementById('tipDetailTitle').textContent = post.title;
+  document.getElementById('tipDetailMeta').textContent = `${post.author} · ${post.date}`;
+  document.getElementById('tipDetailBody').textContent = post.content;
+
+  const imgWrap = document.getElementById('tipDetailImageWrap');
+  const imgEl = document.getElementById('tipDetailImage');
+  if (post.imageUrl && post.imageUrl.trim()) {
+    imgEl.src = post.imageUrl;
+    imgEl.alt = post.title;
+    imgWrap.classList.remove('hidden');
+  } else {
+    imgEl.src = '';
+    imgWrap.classList.add('hidden');
+  }
+
+  const linkWrap = document.getElementById('tipDetailLinkWrap');
+  const linkEl = document.getElementById('tipDetailLink');
+  if (post.linkUrl && post.linkUrl.trim()) {
+    linkEl.href = post.linkUrl;
+    linkWrap.classList.remove('hidden');
+  } else {
+    linkWrap.classList.add('hidden');
+  }
+
+  document.getElementById('tipDetailModalBackdrop').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTipDetailModal() {
+  activeTipPostId = null;
+  document.getElementById('tipDetailModalBackdrop').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function openTipWriteModal() {
+  document.getElementById('tipWriteForm').reset();
+  document.getElementById('tipWriteModalBackdrop').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTipWriteModal() {
+  document.getElementById('tipWriteModalBackdrop').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
 function escapeHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
@@ -1154,31 +1455,116 @@ function escapeHtml(str) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  applyLocaleTexts();
+  loadTipsPosts();
   initWebGLBackground();
   setupLightboxTouchGestures();
   loadDriveFolder(CONFIGURED_FOLDER_URL, false);
 
+  // 스크롤 시 상단 공지 배너 슬림 축소 애니메이션 (scrollY > 40px)
+  window.addEventListener('scroll', () => {
+    const banner = document.getElementById('ongoingBanner');
+    if (!banner || banner.classList.contains('hidden')) return;
+    if (window.scrollY > 40) {
+      banner.classList.add('is-compact');
+    } else {
+      banner.classList.remove('is-compact');
+    }
+  }, { passive: true });
+
+  // 상단 갤러리 / 정보·꿀팁 섹션 전환 메뉴
+  const navGalleryBtn = document.getElementById('navViewGallery');
+  const navTipsBtn = document.getElementById('navViewTips');
+  if (navGalleryBtn) {
+    navGalleryBtn.addEventListener('click', () => switchMainView('gallery'));
+  }
+  if (navTipsBtn) {
+    navTipsBtn.addEventListener('click', () => switchMainView('tips'));
+  }
+
+  // 게시판 상세 모달 닫기 이벤트
+  const tipDetailBackdrop = document.getElementById('tipDetailModalBackdrop');
+  const tipDetailDialog = document.getElementById('tipDetailDialog');
+  document.getElementById('btnCloseTipDetailTop')?.addEventListener('click', closeTipDetailModal);
+  document.getElementById('btnCloseTipDetailBottom')?.addEventListener('click', closeTipDetailModal);
+  tipDetailDialog?.addEventListener('click', e => e.stopPropagation());
+  tipDetailBackdrop?.addEventListener('click', e => {
+    if (e.target === tipDetailBackdrop) closeTipDetailModal();
+  });
+
+  // 게시판 작성 모달 이벤트
+  const tipWriteBackdrop = document.getElementById('tipWriteModalBackdrop');
+  const tipWriteDialog = document.getElementById('tipWriteDialog');
+  document.getElementById('btnOpenTipWrite')?.addEventListener('click', openTipWriteModal);
+  document.getElementById('btnCloseTipWriteTop')?.addEventListener('click', closeTipWriteModal);
+  document.getElementById('btnCancelTipWrite')?.addEventListener('click', closeTipWriteModal);
+  tipWriteDialog?.addEventListener('click', e => e.stopPropagation());
+  tipWriteBackdrop?.addEventListener('click', e => {
+    if (e.target === tipWriteBackdrop) closeTipWriteModal();
+  });
+
+  document.getElementById('tipWriteForm')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+    const newPost = {
+      id: `tip-${Date.now()}`,
+      author: document.getElementById('tipInputAuthor').value.trim(),
+      title: document.getElementById('tipInputTitle').value.trim(),
+      content: document.getElementById('tipInputContent').value.trim(),
+      imageUrl: document.getElementById('tipInputImage').value.trim(),
+      linkUrl: document.getElementById('tipInputLink').value.trim(),
+      date: dateStr
+    };
+    tipsPosts.unshift(newPost);
+    saveTipsPosts();
+    closeTipWriteModal();
+    renderTipsBoard();
+    showAppleToast('새로운 게시글이 등록되었습니다');
+  });
+
   document.getElementById('btnResetFilter').addEventListener('click', (e) => {
     e.preventDefault();
+    switchMainView('gallery');
     selectedSubfolderId = 'ALL';
-    selectedAuthor = 'ALL';
+    searchQuery = '';
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
     renderFolderTabs();
-    renderAuthorFilter();
     applyFiltersAndRender();
   });
 
-  // 상단 작가 필터 드롭다운 토글 및 외부 클릭 시 닫기
-  document.getElementById('btnAuthorFilter').addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleAuthorDropdown();
-  });
+  // 상단 검색창 입력 및 모바일 돋보기 확장 토글
+  const searchInput = document.getElementById('searchInput');
+  const searchPillWrap = document.getElementById('searchPillWrap');
+  const btnMobileSearchToggle = document.getElementById('btnMobileSearchToggle');
 
-  document.addEventListener('click', (e) => {
-    const wrap = document.getElementById('authorFilterWrap');
-    if (wrap && !wrap.contains(e.target)) {
-      closeAuthorDropdown();
-    }
-  });
+  if (btnMobileSearchToggle && searchPillWrap && searchInput) {
+    btnMobileSearchToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      searchPillWrap.classList.toggle('is-expanded');
+      if (searchPillWrap.classList.contains('is-expanded')) {
+        searchInput.focus();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!searchPillWrap.contains(e.target) && !searchInput.value.trim()) {
+        searchPillWrap.classList.remove('is-expanded');
+      }
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      if (currentMainView === 'tips') {
+        renderTipsBoard();
+      } else {
+        applyFiltersAndRender();
+      }
+    });
+  }
 
   // 상단 슬림 공지 배너 클릭 -> 해당 [진행중] 폴더 탭 필터링 및 스크롤
   document.getElementById('btnOngoingBanner').addEventListener('click', () => {
@@ -1187,17 +1573,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 화면 중앙 모달 팝업 -> [작품 보러가기] / [닫기] 버튼 직접 클릭 시에만 닫힘
-  document.getElementById('btnOngoingViewNow').addEventListener('click', () => {
-    if (currentOngoingFolder) {
-      navigateToOngoingFolder(currentOngoingFolder);
-    }
-    dismissOngoingPopup();
-  });
+  // 화면 중앙 모달 팝업 닫기 동작 연결 (상단 X 버튼, 하단 닫기 버튼, 배경 오버레이 클릭, ESC 키)
+  const btnOngoingViewNow = document.getElementById('btnOngoingViewNow');
+  const btnOngoingClose = document.getElementById('btnOngoingClose');
+  const btnOngoingCloseTop = document.getElementById('btnOngoingCloseTop');
+  const ongoingModalBackdrop = document.getElementById('ongoingModalBackdrop');
+  const ongoingPopupCard = document.getElementById('ongoingPopup');
 
-  document.getElementById('btnOngoingClose').addEventListener('click', () => {
-    dismissOngoingPopup();
-  });
+  if (btnOngoingViewNow) {
+    btnOngoingViewNow.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissOngoingPopup();
+      if (currentOngoingFolder) {
+        navigateToOngoingFolder(currentOngoingFolder);
+      }
+    });
+  }
+
+  if (btnOngoingClose) {
+    btnOngoingClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissOngoingPopup();
+    });
+  }
+
+  if (btnOngoingCloseTop) {
+    btnOngoingCloseTop.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissOngoingPopup();
+    });
+  }
+
+  if (ongoingPopupCard) {
+    ongoingPopupCard.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  if (ongoingModalBackdrop) {
+    ongoingModalBackdrop.addEventListener('click', (e) => {
+      if (e.target === ongoingModalBackdrop) {
+        dismissOngoingPopup();
+      }
+    });
+  }
 
   // 새로고침(↻) 버튼: 캐시 무시하고 구글 드라이브 최신 폴더명/파일명 즉시 반영
   document.getElementById('btnRefreshGallery').addEventListener('click', () => {
@@ -1231,6 +1650,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && isOngoingModalOpen) {
+      dismissOngoingPopup();
+      return;
+    }
+    const tipDetailBackdrop = document.getElementById('tipDetailModalBackdrop');
+    if (e.key === 'Escape' && tipDetailBackdrop && !tipDetailBackdrop.classList.contains('hidden')) {
+      closeTipDetailModal();
+      return;
+    }
+    const tipWriteBackdrop = document.getElementById('tipWriteModalBackdrop');
+    if (e.key === 'Escape' && tipWriteBackdrop && !tipWriteBackdrop.classList.contains('hidden')) {
+      closeTipWriteModal();
+      return;
+    }
     const modal = document.getElementById('lightboxModal');
     if (modal.classList.contains('hidden')) return;
     if (e.key === 'Escape') closeLightbox();

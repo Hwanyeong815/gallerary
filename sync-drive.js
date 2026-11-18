@@ -53,6 +53,15 @@ function isNonImageFile(name) {
   return /\.(pdf|zip|rar|7z|mp4|mov|avi|mkv|doc|docx|xls|xlsx|ppt|pptx|txt|csv|json|js|css|html)$/i.test(name);
 }
 
+function parseDriveModifiedTime(chunk, index) {
+  const m = chunk.match(/class="flip-entry-last-modified"[\s\S]*?<div>([^<]+)<\/div>/i);
+  if (!m) return index;
+  const raw = m[1].trim();
+  const parsed = Date.parse(raw);
+  if (!isNaN(parsed)) return parsed;
+  return index;
+}
+
 function parseEntriesFromEmbedHtml(html) {
   const subfolders = [];
   const files = [];
@@ -72,11 +81,12 @@ function parseEntriesFromEmbedHtml(html) {
 
     const name = decodeHtmlEntities(titleMatch[1].trim());
     const href = hrefMatch ? hrefMatch[1] : '';
+    const modifiedTime = parseDriveModifiedTime(chunk, i);
 
     if (href.includes('/folders/') || chunk.includes('drive/folders/')) {
       subfolders.push({ id, name });
     } else if (!isNonImageFile(name)) {
-      files.push({ id, name });
+      files.push({ id, name, modifiedTime, uploadIndex: i });
     }
   }
   return { subfolders, files };
@@ -105,6 +115,8 @@ async function buildCache(rootFolderId, maxDepth = 3) {
           name: file.name,
           folderId: folderId,
           folderName: folderName,
+          modifiedTime: file.modifiedTime || 0,
+          uploadIndex: file.uploadIndex || 0,
           thumbUrl: `https://drive.google.com/thumbnail?id=${file.id}&sz=w800`,
           fullUrl: `https://drive.google.com/thumbnail?id=${file.id}&sz=w2000`,
           driveUrl: `https://drive.google.com/file/d/${file.id}/view`
