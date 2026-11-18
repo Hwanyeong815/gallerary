@@ -6,7 +6,7 @@
 html[data-theme="dark"] {
   --bg-canvas: #000000;
   --bg-elevated: rgba(24, 24, 27, 0.55);
-  --glass-nav: rgba(10, 10, 12, 0.68);
+  --glass-nav: rgba(10, 10, 12, 0.72);
   --glass-pill: rgba(255, 255, 255, 0.06);
   --glass-pill-hover: rgba(255, 255, 255, 0.12);
   --glass-pill-active: rgba(255, 255, 255, 0.18);
@@ -16,9 +16,9 @@ html[data-theme="dark"] {
   --text-secondary: #86868b;
   --text-tertiary: #6e6e73;
   --hero-grad-start: #ffffff;
-  --hero-grad-end: rgba(255, 255, 255, 0.58);
+  --hero-grad-end: rgba(255, 255, 255, 0.62);
   --shadow-card: 0 22px 54px rgba(0, 0, 0, 0.62);
-  --shadow-card-hover: 0 34px 76px rgba(0, 0, 0, 0.84), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-card-hover: 0 34px 76px rgba(0, 0, 0, 0.84), 0 0 0 1px rgba(255, 255, 255, 0.1);
   --radius-card: 20px;
   --radius-pill: 980px;
   --spring-easing: cubic-bezier(0.16, 1, 0.3, 1);
@@ -26,8 +26,8 @@ html[data-theme="dark"] {
 
 html[data-theme="light"] {
   --bg-canvas: #fbfbfd;
-  --bg-elevated: rgba(255, 255, 255, 0.78);
-  --glass-nav: rgba(251, 251, 253, 0.72);
+  --bg-elevated: rgba(255, 255, 255, 0.82);
+  --glass-nav: rgba(251, 251, 253, 0.76);
   --glass-pill: rgba(0, 0, 0, 0.045);
   --glass-pill-hover: rgba(0, 0, 0, 0.085);
   --glass-pill-active: rgba(0, 0, 0, 0.88);
@@ -37,7 +37,7 @@ html[data-theme="light"] {
   --text-secondary: #6e6e73;
   --text-tertiary: #86868b;
   --hero-grad-start: #1d1d1f;
-  --hero-grad-end: rgba(29, 29, 31, 0.62);
+  --hero-grad-end: rgba(29, 29, 31, 0.65);
   --shadow-card: 0 18px 42px rgba(0, 0, 0, 0.07);
   --shadow-card-hover: 0 28px 64px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
@@ -82,13 +82,13 @@ body {
 }
 
 /* ==========================================================================
-   슬림 1줄 글래스모피즘 네비게이션 바 (브랜드 타이틀 + 폴더 탭 + 검색 + 다크/라이트 토글)
+   슬림 글래스모피즘 네비게이션 바 (데스크톱 1줄 / 모바일 가로 스와이프 최적화)
    ========================================================================== */
 .global-nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  height: 52px;
+  min-height: 52px;
   background: var(--glass-nav);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -97,14 +97,14 @@ body {
 }
 
 .nav-inner {
-  max-width: 1380px;
-  height: 100%;
+  max-width: 1400px;
+  min-height: 52px;
   margin: 0 auto;
   padding: 0 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
 }
 
 .nav-brand {
@@ -129,7 +129,7 @@ body {
   opacity: 0.85;
 }
 
-/* 중앙 폴더 카테고리 캡슐 탭 */
+/* 중앙 폴더 카테고리 캡슐 탭 (가로 스와이프 지원 & 스크롤바 숨김) */
 .nav-pills {
   display: inline-flex;
   align-items: center;
@@ -139,7 +139,8 @@ body {
   padding: 3px;
   border-radius: var(--radius-pill);
   overflow-x: auto;
-  max-width: 56vw;
+  -webkit-overflow-scrolling: touch;
+  max-width: 55vw;
   scrollbar-width: none;
 }
 
@@ -164,6 +165,7 @@ body {
   border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
   transition: color 0.25s ease, background 0.25s var(--spring-easing);
 }
 
@@ -185,49 +187,130 @@ body {
   font-weight: 400;
 }
 
-/* 우측 검색 및 다크/라이트 토글 */
+/* 우측 애플 스타일 단일 작가 필터 & 액션 버튼 */
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
-.search-pill {
-  display: flex;
+.author-filter-wrap {
+  position: relative;
+}
+
+.author-pill-btn {
+  appearance: none;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   background: var(--glass-pill);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-pill);
-  padding: 5px 12px;
-  color: var(--text-secondary);
-  transition: all 0.25s var(--spring-easing);
-}
-
-.search-pill:focus-within {
-  background: var(--glass-pill-hover);
-  border-color: var(--glass-border-highlight);
-  color: var(--text-primary);
-}
-
-.search-pill input {
-  background: transparent;
-  border: none;
-  outline: none;
+  padding: 6px 13px;
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.78rem;
-  width: 105px;
-  transition: width 0.28s var(--spring-easing);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s var(--spring-easing);
 }
 
-.search-pill:focus-within input {
-  width: 150px;
+.author-pill-btn:hover,
+.author-filter-wrap.is-open .author-pill-btn {
+  background: var(--glass-pill-hover);
+  border-color: var(--glass-border-highlight);
 }
 
-.search-pill input::placeholder {
+.author-pill-btn.has-filter {
+  background: var(--glass-pill-active);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.author-chevron {
+  opacity: 0.65;
+  transition: transform 0.25s var(--spring-easing);
+}
+
+.author-filter-wrap.is-open .author-chevron {
+  transform: rotate(180deg);
+}
+
+.author-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 80;
+  min-width: 184px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 16px;
+  background: rgba(24, 24, 28, 0.88);
+  backdrop-filter: saturate(190%) blur(28px);
+  -webkit-backdrop-filter: saturate(190%) blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: dropdownReveal 0.24s var(--spring-easing);
+}
+
+html[data-theme="light"] .author-dropdown-menu {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes dropdownReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.author-option-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
   color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 9px 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.author-option-btn:hover {
+  background: var(--glass-pill-hover);
+  color: var(--text-primary);
+}
+
+.author-option-btn.active {
+  background: var(--glass-pill-active);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.author-option-count {
+  font-size: 0.72rem;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
 }
 
 .nav-icon-btn {
@@ -241,6 +324,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
@@ -250,7 +334,6 @@ body {
   border-color: var(--glass-border-highlight);
 }
 
-/* 새로고침 버튼 회전 애니메이션 */
 .nav-icon-btn.is-spinning .refresh-svg {
   animation: spin 0.65s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
@@ -260,26 +343,73 @@ body {
   border-color: var(--glass-border-highlight);
 }
 
+/* 모바일 상단 네비게이션 2단 분리 레이아웃 (768px 이하) */
+@media (max-width: 768px) {
+  .global-nav {
+    height: auto;
+  }
+
+  .nav-inner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    padding: 10px 14px 8px;
+    row-gap: 8px;
+    column-gap: 8px;
+  }
+
+  .nav-brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .nav-actions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    gap: 6px;
+  }
+
+  .nav-pills {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px;
+    gap: 6px;
+  }
+
+  .folder-tab-btn {
+    flex: 0 0 auto;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+}
+
 /* ==========================================================================
-   [진행중] 공모전 상단 슬림 공지 배너 (Apple Ribbon 스타일)
+   [진행중] 공모전 상단 슬림 공지 배너 (무채색 실버 글래스 + 카메라 REC 레드 도트)
    ========================================================================== */
 .ongoing-ribbon {
-  position: sticky;
-  top: 52px;
-  z-index: 45;
+  position: relative;
+  z-index: 40;
   width: 100%;
-  background: rgba(18, 22, 20, 0.66);
+  background: rgba(20, 20, 22, 0.74);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid rgba(48, 209, 88, 0.22);
+  border-bottom: 1px solid rgba(245, 245, 247, 0.12);
   display: flex;
   justify-content: center;
-  transition: all 0.35s var(--spring-easing);
 }
 
 html[data-theme="light"] .ongoing-ribbon {
-  background: rgba(242, 250, 245, 0.78);
-  border-bottom: 1px solid rgba(48, 209, 88, 0.28);
+  background: rgba(245, 245, 247, 0.86);
+  border-bottom: 1px solid rgba(29, 29, 31, 0.1);
 }
 
 .ongoing-ribbon-btn {
@@ -288,13 +418,14 @@ html[data-theme="light"] .ongoing-ribbon {
   background: transparent;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.81rem;
   letter-spacing: -0.01em;
-  padding: 9px 20px;
+  padding: 11px 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   cursor: pointer;
   width: 100%;
   max-width: 1380px;
@@ -318,266 +449,60 @@ html[data-theme="light"] .ongoing-ribbon {
 }
 
 .ongoing-ribbon-cta {
-  color: #30d158;
+  color: var(--text-primary);
+  opacity: 0.88;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 0.79rem;
   display: inline-flex;
   align-items: center;
   transition: transform 0.22s var(--spring-easing);
 }
 
 html[data-theme="light"] .ongoing-ribbon-cta {
-  color: #1d9f41;
+  color: #1d1d1f;
 }
 
+/* 카메라 REC 표시등 느낌의 선명한 레드(#FF453A) 상태 점 */
 .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #30d158;
-  box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.65);
+  background-color: #ff453a;
+  box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.7);
   animation: livePulse 2s infinite;
   flex-shrink: 0;
 }
 
 @keyframes livePulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.6);
-  }
-  70% {
-    box-shadow: 0 0 0 7px rgba(48, 209, 88, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(48, 209, 88, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.65); }
+  70% { box-shadow: 0 0 0 7px rgba(255, 69, 58, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0); }
 }
 
-/* 탭 내부 미니 라이브 도트 */
 .tab-live-dot {
   display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #30d158;
+  background-color: #ff453a;
   margin-right: 6px;
   vertical-align: middle;
 }
 
 /* ==========================================================================
-   [진행중] 접속 및 새로고침 시 화면 정중앙 모달 팝업 (Apple Centered Modal)
-   ========================================================================== */
-.ongoing-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 110;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.38s var(--spring-easing);
-}
-
-.ongoing-modal-backdrop.is-visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.ongoing-modal-card {
-  width: min(420px, 100%);
-  padding: 32px 28px 26px;
-  border-radius: 26px;
-  background: rgba(24, 24, 28, 0.82);
-  backdrop-filter: saturate(190%) blur(30px);
-  -webkit-backdrop-filter: saturate(190%) blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 36px 80px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(48, 209, 88, 0.18);
-  color: var(--text-primary);
-  text-align: center;
-  transform: scale(0.92) translateY(14px);
-  transition: transform 0.44s var(--spring-easing);
-}
-
-html[data-theme="light"] .ongoing-modal-card {
-  background: rgba(255, 255, 255, 0.88);
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 32px 70px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(48, 209, 88, 0.28);
-}
-
-.ongoing-modal-backdrop.is-visible .ongoing-modal-card {
-  transform: scale(1) translateY(0);
-}
-
-.ongoing-modal-badge-row {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.ongoing-live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  color: #30d158;
-  background: rgba(48, 209, 88, 0.12);
-  border: 1px solid rgba(48, 209, 88, 0.28);
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-}
-
-html[data-theme="light"] .ongoing-live-badge {
-  color: #178a36;
-  background: rgba(48, 209, 88, 0.14);
-}
-
-.ongoing-modal-title {
-  font-size: 1.32rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.32;
-  margin-bottom: 10px;
-}
-
-.ongoing-modal-desc {
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  margin-bottom: 24px;
-}
-
-.ongoing-modal-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ongoing-btn-primary {
-  flex: 1.35;
-  appearance: none;
-  border: none;
-  background: var(--text-primary);
-  color: var(--bg-canvas);
-  font-family: inherit;
-  font-size: 0.86rem;
-  font-weight: 600;
-  padding: 12px 18px;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.ongoing-btn-primary:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
-}
-
-.ongoing-btn-secondary {
-  flex: 0.85;
-  appearance: none;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-pill);
-  color: var(--text-secondary);
-  font-family: inherit;
-  font-size: 0.86rem;
-  font-weight: 500;
-  padding: 12px 16px;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.ongoing-btn-secondary:hover {
-  background: var(--glass-pill-hover);
-  color: var(--text-primary);
-}
-
-/* 애플 스타일 하단 반투명 글래스 토스트 (HUD Notification) */
-.apple-toast {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translate(-50%, 24px) scale(0.94);
-  z-index: 120;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 20px;
-  border-radius: var(--radius-pill);
-  background: rgba(28, 28, 32, 0.78);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
-  color: #f5f5f7;
-  font-size: 0.82rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.38s var(--spring-easing),
-    transform 0.38s var(--spring-easing);
-}
-
-html[data-theme="light"] .apple-toast {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #1d1d1f;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
-}
-
-.apple-toast.visible {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-.toast-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: rgba(48, 209, 88, 0.2);
-  color: #30d158;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* 수상 태그([1등], [대상] 등) 미니멀 글래스 배지 */
-.award-tag-badge {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 2;
-  padding: 4px 11px;
-  border-radius: var(--radius-pill);
-  background: rgba(20, 20, 24, 0.68);
-  backdrop-filter: saturate(180%) blur(16px);
-  -webkit-backdrop-filter: saturate(180%) blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-}
-
-/* ==========================================================================
-   애플 키노트 스타일 미니멀 히어로 (넓은 여백 & 정교한 타이포그래피)
+   애플 키노트 스타일 미니멀 히어로 (상단 여백을 넉넉히 확보해 제목 겹침 완벽 방지)
    ========================================================================== */
 .hero-stage {
   position: relative;
   z-index: 1;
-  padding: 96px 28px 68px;
+  padding: 112px 24px 72px;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  .hero-stage {
+    padding: 76px 20px 48px;
+  }
 }
 
 .hero-container {
@@ -591,14 +516,15 @@ html[data-theme="light"] .apple-toast {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .hero-title {
-  font-size: clamp(2.5rem, 5.4vw, 4.3rem);
+  font-size: clamp(2.4rem, 5.4vw, 4.3rem);
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.07;
+  line-height: 1.15;
+  padding-top: 4px;
   background: linear-gradient(180deg, var(--hero-grad-start) 0%, var(--hero-grad-end) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -606,7 +532,7 @@ html[data-theme="light"] .apple-toast {
 }
 
 .hero-subtitle {
-  font-size: clamp(1rem, 1.75vw, 1.18rem);
+  font-size: clamp(0.96rem, 1.75vw, 1.18rem);
   font-weight: 400;
   color: var(--text-secondary);
   letter-spacing: -0.015em;
@@ -622,7 +548,7 @@ html[data-theme="light"] .apple-toast {
 }
 
 /* ==========================================================================
-   비율 보존형 벤토(Bento) & 매거진 그리드 + 3D 틸트 & Glare
+   비율 보존형 벤토 & 매거진 그리드 (PC 3~4열 / 태블릿 2열 / 모바일 1열)
    ========================================================================== */
 .gallery-stage {
   position: relative;
@@ -631,8 +557,14 @@ html[data-theme="light"] .apple-toast {
   padding: 0 28px 128px;
 }
 
+@media (max-width: 768px) {
+  .gallery-stage {
+    padding: 0 16px 88px;
+  }
+}
+
 .gallery-container {
-  max-width: 1380px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -651,26 +583,33 @@ html[data-theme="light"] .apple-toast {
   display: none !important;
 }
 
-/* 비대칭 매거진 & 벤토 레이아웃: 원본 사진 비율 유지 */
 .bento-grid {
-  columns: 3 360px;
+  column-count: 3;
   column-gap: 28px;
 }
 
-@media (max-width: 900px) {
+@media (min-width: 1440px) {
   .bento-grid {
-    columns: 2 280px;
+    column-count: 4;
+    column-gap: 26px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .bento-grid {
+    column-count: 2;
     column-gap: 20px;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 600px) {
   .bento-grid {
-    columns: 1;
+    column-count: 1;
+    column-gap: 0;
   }
 }
 
-/* 개별 사진 카드: border-radius 20px, 1px solid rgba(255,255,255,0.08), 3D 틸트 */
+/* 개별 사진 카드 */
 .photo-card {
   position: relative;
   break-inside: avoid;
@@ -684,7 +623,6 @@ html[data-theme="light"] .apple-toast {
   will-change: transform, opacity;
   box-shadow: var(--shadow-card);
 
-  /* 스크롤 스프링 등장 초기 상태 */
   opacity: 0;
   transform: translateY(42px) scale(0.96);
   transition:
@@ -692,6 +630,12 @@ html[data-theme="light"] .apple-toast {
     transform 0.85s var(--spring-easing),
     border-color 0.35s ease,
     box-shadow 0.45s ease;
+}
+
+@media (max-width: 600px) {
+  .photo-card {
+    margin-bottom: 20px;
+  }
 }
 
 .photo-card.in-view {
@@ -710,6 +654,54 @@ html[data-theme="light"] .apple-toast {
 .photo-card:hover {
   border-color: var(--glass-border-highlight);
   box-shadow: var(--shadow-card-hover);
+}
+
+/* ==========================================================================
+   1등 수상작(1등/우승/대상/최우수) 전용 퓨어 실버 화이트 발광 테두리 (Silver-White Ambient Glow)
+   ========================================================================== */
+.photo-card.is-winner {
+  border: 1.5px solid rgba(245, 245, 247, 0.68);
+  box-shadow:
+    0 24px 58px rgba(0, 0, 0, 0.75),
+    0 0 26px rgba(245, 245, 247, 0.24),
+    0 0 54px rgba(245, 245, 247, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  animation: winnerSilverGlow 4s ease-in-out infinite alternate;
+}
+
+.photo-card.is-winner:hover {
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 34px 76px rgba(0, 0, 0, 0.88),
+    0 0 36px rgba(245, 245, 247, 0.38),
+    0 0 68px rgba(245, 245, 247, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+}
+
+html[data-theme="light"] .photo-card.is-winner {
+  border: 1.5px solid rgba(29, 29, 31, 0.55);
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.16),
+    0 0 28px rgba(29, 29, 31, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+  animation: none;
+}
+
+@keyframes winnerSilverGlow {
+  0% {
+    border-color: rgba(245, 245, 247, 0.52);
+    box-shadow:
+      0 24px 54px rgba(0, 0, 0, 0.7),
+      0 0 20px rgba(245, 245, 247, 0.18),
+      0 0 42px rgba(245, 245, 247, 0.07);
+  }
+  100% {
+    border-color: rgba(255, 255, 255, 0.88);
+    box-shadow:
+      0 26px 60px rgba(0, 0, 0, 0.76),
+      0 0 32px rgba(245, 245, 247, 0.34),
+      0 0 60px rgba(245, 245, 247, 0.14);
+  }
 }
 
 /* 마우스 추적 표면 광택 (Apple Card Specular Glare) */
@@ -788,7 +780,6 @@ html[data-theme="light"] .apple-toast {
   to { transform: rotate(360deg); }
 }
 
-/* 사진 원본 비율 보존 */
 .photo-thumb {
   width: 100%;
   height: auto;
@@ -812,12 +803,12 @@ html[data-theme="light"] .apple-toast {
   transform: scale(1.025);
 }
 
-/* 호버 시에만 은은하게 떠오르는 사진 정보 (파일명, 폴더명) */
+/* 카드 하단 캡션 (데스크톱에서는 호버 시 등장, 모바일 터치 화면에서는 은은하게 기본 표시) */
 .card-glass-caption {
   position: absolute;
   inset: auto 0 0 0;
   padding: 32px 20px 18px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.74) 0%, rgba(0, 0, 0, 0.28) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.76) 0%, rgba(0, 0, 0, 0.3) 58%, transparent 100%);
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -834,17 +825,33 @@ html[data-theme="light"] .apple-toast {
   transform: translateY(0);
 }
 
+/* 스마트폰/터치 디바이스에서는 호버가 없으므로 하단 캡션을 얇고 은은하게 기본 노출 */
+@media (hover: none), (max-width: 768px) {
+  .card-glass-caption {
+    opacity: 1;
+    transform: translateY(0);
+    padding: 24px 16px 14px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.68) 0%, rgba(0, 0, 0, 0.22) 62%, transparent 100%);
+  }
+}
+
 .caption-text-group {
   min-width: 0;
 }
 
-.caption-folder {
-  display: block;
-  font-size: 0.7rem;
+.caption-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.71rem;
   font-weight: 500;
-  letter-spacing: 0.03em;
-  color: rgba(255, 255, 255, 0.72);
-  margin-bottom: 2px;
+  color: rgba(255, 255, 255, 0.74);
+  margin-bottom: 3px;
+}
+
+.caption-author {
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 500;
 }
 
 .caption-title {
@@ -877,18 +884,219 @@ html[data-theme="light"] .apple-toast {
 .skeleton-card-box.short { height: 250px; }
 
 /* ==========================================================================
-   애플식 라이트박스 (부드러운 백드롭 디밍 & 스프링 확대 전환 애니메이션)
+   [진행중] 접속 및 새로고침 시 화면 정중앙 모달 팝업 (모바일 90% / max-width 400px 최적화)
+   ========================================================================== */
+.ongoing-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.38s var(--spring-easing);
+}
+
+.ongoing-modal-backdrop.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ongoing-modal-card {
+  width: 90%;
+  max-width: 400px;
+  padding: 30px 26px 24px;
+  border-radius: 26px;
+  background: rgba(24, 24, 27, 0.86);
+  backdrop-filter: saturate(190%) blur(30px);
+  -webkit-backdrop-filter: saturate(190%) blur(30px);
+  border: 1px solid rgba(245, 245, 247, 0.16);
+  box-shadow: 0 36px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  text-align: center;
+  transform: scale(0.92) translateY(14px);
+  transition: transform 0.44s var(--spring-easing);
+}
+
+html[data-theme="light"] .ongoing-modal-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(29, 29, 31, 0.12);
+  box-shadow: 0 32px 70px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(29, 29, 31, 0.06);
+}
+
+.ongoing-modal-backdrop.is-visible .ongoing-modal-card {
+  transform: scale(1) translateY(0);
+}
+
+.ongoing-modal-badge-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+/* LIVE EXHIBITION 배지: 무채색 반투명 글래스 배경 + 레드 도트만 포인트 */
+.ongoing-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+html[data-theme="light"] .ongoing-live-badge {
+  color: #1d1d1f;
+  background: rgba(29, 29, 31, 0.06);
+  border-color: rgba(29, 29, 31, 0.12);
+}
+
+.ongoing-modal-title {
+  font-size: 1.28rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.36;
+  margin-bottom: 10px;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+.ongoing-modal-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.58;
+  margin-bottom: 24px;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+.ongoing-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ongoing-btn-primary {
+  flex: 1.35;
+  appearance: none;
+  border: none;
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 13px 18px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.ongoing-btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.ongoing-btn-secondary {
+  flex: 0.85;
+  appearance: none;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-pill);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 13px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ongoing-btn-secondary:hover {
+  background: var(--glass-pill-hover);
+  color: var(--text-primary);
+}
+
+/* 애플 스타일 하단 반투명 글래스 토스트 */
+.apple-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translate(-50%, 24px) scale(0.94);
+  z-index: 120;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border-radius: var(--radius-pill);
+  background: rgba(28, 28, 32, 0.82);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  color: #f5f5f7;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.38s var(--spring-easing),
+    transform 0.38s var(--spring-easing);
+}
+
+html[data-theme="light"] .apple-toast {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1d1d1f;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14);
+}
+
+.apple-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.toast-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(245, 245, 247, 0.16);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+html[data-theme="light"] .toast-icon {
+  background: rgba(29, 29, 31, 0.1);
+  color: #1d1d1f;
+}
+
+/* ==========================================================================
+   애플식 라이트박스 (모바일 풀스크린 & 스와이프/드래그 닫기 제스처 대응)
    ========================================================================== */
 .lightbox-root {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.84);
   backdrop-filter: saturate(180%) blur(32px);
   -webkit-backdrop-filter: saturate(180%) blur(32px);
   display: flex;
   flex-direction: column;
   opacity: 0;
+  touch-action: none;
   transition: opacity 0.42s var(--spring-easing);
 }
 
@@ -911,25 +1119,26 @@ html[data-theme="light"] .apple-toast {
 .lightbox-header {
   position: relative;
   z-index: 2;
-  height: 60px;
-  padding: 0 28px;
+  min-height: 60px;
+  padding: 10px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .lightbox-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
   min-width: 0;
 }
 
 .lightbox-folder-pill {
   font-size: 0.72rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.85);
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.14);
   padding: 3px 11px;
@@ -937,8 +1146,15 @@ html[data-theme="light"] .apple-toast {
   white-space: nowrap;
 }
 
+.lightbox-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
 .lightbox-filename {
-  font-size: 0.94rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #f5f5f7;
   white-space: nowrap;
@@ -946,8 +1162,14 @@ html[data-theme="light"] .apple-toast {
   text-overflow: ellipsis;
 }
 
+.lightbox-author {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.68);
+  white-space: nowrap;
+}
+
 .lightbox-dimensions {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: #86868b;
   white-space: nowrap;
 }
@@ -955,7 +1177,8 @@ html[data-theme="light"] .apple-toast {
 .lightbox-controls {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .lightbox-index {
@@ -965,8 +1188,8 @@ html[data-theme="light"] .apple-toast {
 }
 
 .lightbox-close-btn {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
@@ -990,14 +1213,8 @@ html[data-theme="light"] .apple-toast {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 84px;
+  padding: 12px 80px;
   min-height: 0;
-}
-
-@media (max-width: 720px) {
-  .lightbox-viewport {
-    padding: 12px 16px;
-  }
 }
 
 .lightbox-figure-wrap {
@@ -1007,6 +1224,7 @@ html[data-theme="light"] .apple-toast {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.28s var(--spring-easing), opacity 0.28s ease;
 }
 
 .lightbox-loader {
@@ -1024,6 +1242,7 @@ html[data-theme="light"] .apple-toast {
   border-radius: 18px;
   box-shadow: 0 40px 90px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08);
   object-fit: contain;
+  user-select: none;
   opacity: 0;
   transform: scale(0.92) translateY(12px);
   transition:
@@ -1061,14 +1280,43 @@ html[data-theme="light"] .apple-toast {
   transform: translateY(-50%) scale(1.06);
 }
 
-.lightbox-arrow.prev { left: 24px; }
-.lightbox-arrow.next { right: 24px; }
+.lightbox-arrow.prev { left: 22px; }
+.lightbox-arrow.next { right: 22px; }
+
+@media (max-width: 768px) {
+  .lightbox-header {
+    padding: 12px 16px;
+  }
+
+  .lightbox-viewport {
+    padding: 8px 10px;
+  }
+
+  .lightbox-photo {
+    max-width: 96vw;
+    max-height: 74vh;
+    border-radius: 14px;
+  }
+
+  .lightbox-arrow {
+    width: 38px;
+    height: 38px;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .lightbox-arrow.prev { left: 10px; }
+  .lightbox-arrow.next { right: 10px; }
+
+  .lightbox-dimensions {
+    display: none;
+  }
+}
 
 /* 하단 플로팅 필름스트립 독(Dock) */
 .lightbox-dock-wrap {
   position: relative;
   z-index: 2;
-  padding: 12px 24px 20px;
+  padding: 12px 16px 20px;
   display: flex;
   justify-content: center;
 }
@@ -1084,7 +1332,7 @@ html[data-theme="light"] .apple-toast {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow-x: auto;
-  max-width: 92vw;
+  max-width: 94vw;
   scrollbar-width: none;
 }
 
@@ -1134,4 +1382,6 @@ html[data-theme="light"] .apple-toast {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }

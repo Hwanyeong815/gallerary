@@ -6,9 +6,9 @@ const CONFIGURED_FOLDER_URL =
 let allPhotos = [];
 let folderCategories = [];
 let selectedSubfolderId = 'ALL';
+let selectedAuthor = 'ALL';
 let currentOngoingFolder = null;
 let ongoingModalDismissedOnThisLoad = false;
-let searchQuery = '';
 let filteredPhotos = [];
 let activePhotoIndex = 0;
 let revealObserver = null;
@@ -54,22 +54,24 @@ function initWebGLBackground() {
       float wave2 = cos(q.x * 1.7 - q.y * 2.5 - t * 0.9) * 0.5 + 0.5;
 
       float distToMouse = length(p - m);
-      float mouseGlow = exp(-distToMouse * 2.4) * 0.22;
+      float mouseGlow = exp(-distToMouse * 2.4) * 0.20;
 
-      vec3 darkBase = vec3(0.012, 0.013, 0.018);
-      vec3 darkAurora1 = vec3(0.065, 0.105, 0.195);
-      vec3 darkAurora2 = vec3(0.095, 0.065, 0.165);
-      vec3 darkSpec = vec3(0.22, 0.28, 0.44);
+      // 무채색 다크 모드 (옵시디언 블랙 & 퓨어 실버 그레이 광택)
+      vec3 darkBase = vec3(0.012, 0.012, 0.014);
+      vec3 darkAurora1 = vec3(0.085, 0.085, 0.092);
+      vec3 darkAurora2 = vec3(0.055, 0.055, 0.060);
+      vec3 darkSpec = vec3(0.28, 0.28, 0.30);
 
       vec3 darkCol = darkBase;
       darkCol = mix(darkCol, darkAurora1, wave1 * 0.45 * (1.0 - uv.y * 0.4));
       darkCol = mix(darkCol, darkAurora2, wave2 * 0.34);
       darkCol += darkSpec * mouseGlow;
 
-      vec3 lightBase = vec3(0.975, 0.977, 0.988);
-      vec3 lightAurora1 = vec3(0.91, 0.94, 0.99);
-      vec3 lightAurora2 = vec3(0.94, 0.92, 0.98);
-      vec3 lightSpec = vec3(0.85, 0.90, 1.0);
+      // 무채색 라이트 모드 (퓨어 실버 화이트 & 모노크롬 미스트 광택)
+      vec3 lightBase = vec3(0.980, 0.980, 0.985);
+      vec3 lightAurora1 = vec3(0.935, 0.935, 0.942);
+      vec3 lightAurora2 = vec3(0.955, 0.955, 0.962);
+      vec3 lightSpec = vec3(1.0, 1.0, 1.0);
 
       vec3 lightCol = lightBase;
       lightCol = mix(lightCol, lightAurora1, wave1 * 0.55);
@@ -160,13 +162,14 @@ function initWebGLBackground() {
    2. [진행중] 공모전 폴더 감지 & 상단 슬림 배너 + 화면 정중앙 모달 제어
    ========================================================================== */
 function isOngoingFolder(folderName) {
-  return /\[\s*진행\s*중\s*\]/i.test(String(folderName || ''));
+  return /(?:\[\s*진행\s*중\s*\]|진행\s*중)/i.test(String(folderName || ''));
 }
 
 function cleanOngoingFolderName(folderName) {
   return String(folderName || '')
     .replace(/\[\s*진행\s*중\s*\]/gi, '')
-    .replace(/^[\s/·-]+|[\s/·-]+$/g, '')
+    .replace(/진행\s*중/gi, '')
+    .replace(/^[\s/·_-]+|[\s/·_-]+$/g, '')
     .trim() || '공모전';
 }
 
@@ -182,7 +185,9 @@ function sortFoldersOngoingFirst(folders) {
 function navigateToOngoingFolder(folder) {
   if (!folder) return;
   selectedSubfolderId = folder.id;
+  selectedAuthor = 'ALL';
   renderFolderTabs();
+  renderAuthorFilter();
   applyFiltersAndRender();
 
   const gridEl = document.getElementById('photoGrid');
@@ -213,7 +218,6 @@ function updateOngoingNoticeUI() {
   const ongoingFolder = folderCategories.find(f => isOngoingFolder(f.name)) || null;
   currentOngoingFolder = ongoingFolder;
 
-  // [진행중] 폴더가 없으면 배너와 모달 모두 즉시 숨김 (자동 비활성화)
   if (!ongoingFolder) {
     if (banner) banner.classList.add('hidden');
     if (backdrop) {
@@ -225,13 +229,11 @@ function updateOngoingNoticeUI() {
 
   const cleanName = cleanOngoingFolderName(ongoingFolder.name);
 
-  // 1) 상단 슬림 공지 배너 표시
   if (banner && bannerText) {
     bannerText.innerHTML = `현재 <strong>[${escapeHtml(cleanName)}]</strong> 진행 중입니다 ·`;
     banner.classList.remove('hidden');
   }
 
-  // 2) 화면 정중앙 모달 팝업 (접속 및 브라우저 F5 새로고침마다 표시, 버튼 클릭 시에만 닫힘)
   if (backdrop && popupTitle) {
     if (!ongoingModalDismissedOnThisLoad) {
       popupTitle.textContent = `현재 ${cleanName} 진행 중입니다`;
@@ -279,11 +281,13 @@ function setupScrollRevealObserver() {
 function attachAppleCardInteractions(card) {
   let rafId = null;
 
-  card.addEventListener('pointerenter', () => {
+  card.addEventListener('pointerenter', (e) => {
+    if (e.pointerType === 'touch') return;
     card.classList.add('is-tilting');
   });
 
   card.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(() => {
       const rect = card.getBoundingClientRect();
@@ -309,19 +313,233 @@ function attachAppleCardInteractions(card) {
 }
 
 /* ==========================================================================
-   4. 구글 드라이브 폴더 & 하위 폴더 파싱
+   4. 수상작 자동 인식 & 키워드 완벽 제거 & 진행중 폴더 작가명 블라인드(익명) 처리
    ========================================================================== */
-function formatCleanTitle(filename) {
+function stripExtension(filename) {
   return String(filename || 'Untitled')
     .replace(/\.(jpg|jpeg|png|webp|gif|bmp|avif|heic|tif|tiff)$/i, '')
-    .trim() || 'Untitled';
+    .trim();
 }
 
-function extractAwardTag(filename) {
-  const m = String(filename || '').match(/\[([^\]]+)\]/);
-  return m ? m[0] : '';
+// 파일명에 1등, 우승, 대상, 최우수 키워드 중 하나라도 포함되어 있는지 감지 (대괄호 무관)
+function isFirstPrize(filename) {
+  return /(?:\[\s*(?:1등|우승|대상|최우수(?:상)?)\s*\]|(?:^|[_\s-])(?:1등|우승|대상|최우수(?:상)?)(?:$|[_\s-]))/i.test(
+    stripExtension(filename)
+  );
 }
 
+// 화면 표시 및 파싱을 위해 [1등], 1등, [우승], 우승, [대상], 대상, [최우수], 최우수 키워드와 앞뒤 언더바/공백을 완전히 제거
+function removeAwardKeywords(filename) {
+  let s = stripExtension(filename);
+  s = s.replace(/\[\s*(?:1등|우승|대상|최우수(?:상)?)\s*\]/gi, '');
+  s = s.replace(/(?:^|[_\s-]+)(?:1등|우승|대상|최우수(?:상)?)(?=$|[_\s-]+)/gi, '');
+  s = s.replace(/^[_-\s]+|[_-\s]+$/g, '').replace(/_{2,}/g, '_').trim();
+  return s || 'Untitled';
+}
+
+// 파일명에서 명시적 순번 추출: (1), (2) 또는 맨 앞의 01_, 02_ 등
+function extractExplicitOrderNumber(filename) {
+  const noExt = stripExtension(filename);
+  // 1) 파일명 끝의 (1), (2) 형태
+  const endParen = noExt.match(/\(0*(\d+)\)\s*$/);
+  if (endParen) return parseInt(endParen[1], 10);
+
+  // 2) 수상 키워드 제거 후 맨 앞의 01_, 02_, 1., 1- 형태
+  const cleaned = removeAwardKeywords(filename);
+  const leadNum = cleaned.match(/^0*(\d+)[_.\s-]+/);
+  if (leadNum) return parseInt(leadNum[1], 10);
+
+  // 3) 파일명 내부의 (1), (2) 형태
+  const anyParen = noExt.match(/\(0*(\d+)\)/);
+  if (anyParen) return parseInt(anyParen[1], 10);
+
+  return null;
+}
+
+// 수상 키워드와 맨 앞 순번 접두어(01_, 02_ 등)를 제거한 문자열 반환
+function removeAwardAndLeadingNumber(filename) {
+  const cleaned = removeAwardKeywords(filename);
+  return cleaned.replace(/^0*\d+[_.\s-]+/, '').trim() || cleaned;
+}
+
+// 제목 텍스트 끝에 붙은 (1), (2) 등 중복 괄호 숫자 제거
+function cleanDuplicateTrailingNumber(title) {
+  return String(title || '')
+    .replace(/\s*\(0*\d+\)\s*$/g, '')
+    .trim() || String(title || '').trim();
+}
+
+// 작가명 추출: 수상 키워드 및 맨 앞 번호(01_) 제거 후 첫 번째 언더바(_) 앞부분 추출
+function extractAuthorFromFilename(filename) {
+  const cleaned = removeAwardAndLeadingNumber(filename);
+  const underscoreIdx = cleaned.indexOf('_');
+  if (underscoreIdx > 0) {
+    return cleaned.slice(0, underscoreIdx).trim();
+  }
+  return '';
+}
+
+// 순수 작품 제목 추출 (언더바 뒤 작품 제목 부분만 추출 + 끝의 중복 (1), (2) 제거)
+function extractWorkTitleOnly(filename) {
+  const cleaned = removeAwardAndLeadingNumber(filename);
+  const underscoreIdx = cleaned.indexOf('_');
+  let titlePart = cleaned;
+  if (underscoreIdx > 0) {
+    titlePart = cleaned.slice(underscoreIdx + 1).replace(/^[_-\s]+/, '').trim() || cleaned;
+  }
+  return cleanDuplicateTrailingNumber(titlePart);
+}
+
+// 진행중 폴더 내 사진들을 정렬 기준(번호 오름차순 -> 업로드/원본 순서 오름차순)으로 정렬하고 고정 번호(1번, 2번...) 부여
+function sortAndNumberOngoingPhotos(photos) {
+  const byFolder = new Map();
+  photos.forEach((p, idx) => {
+    p._originalIdx = idx;
+    if (!byFolder.has(p.folderId)) byFolder.set(p.folderId, []);
+    byFolder.get(p.folderId).push(p);
+  });
+
+  const result = [];
+  byFolder.forEach((group) => {
+    const ongoing = group.length > 0 && isOngoingFolder(group[0].folderName);
+    if (ongoing) {
+      group.sort((a, b) => {
+        const numA = extractExplicitOrderNumber(a.name);
+        const numB = extractExplicitOrderNumber(b.name);
+        if (numA !== null && numB !== null && numA !== numB) {
+          return numA - numB;
+        }
+        if (numA !== null && numB === null) return -1;
+        if (numA === null && numB !== null) return 1;
+        return (a._originalIdx || 0) - (b._originalIdx || 0);
+      });
+      group.forEach((p, idx) => {
+        p.contestNumber = idx + 1;
+      });
+    } else {
+      group.forEach((p) => {
+        p.contestNumber = null;
+      });
+    }
+    result.push(...group);
+  });
+
+  return result;
+}
+
+// 사진 객체별로 화면에 표시할 제목과 작가명 반환 (진행중 폴더는 '1번 작품제목' + 'by 익명' 일관 유지)
+function getDisplayMeta(photo) {
+  const inOngoing = isOngoingFolder(photo.folderName);
+  const rawAuthor = extractAuthorFromFilename(photo.name);
+  const workTitleOnly = extractWorkTitleOnly(photo.name);
+  const fullCleanTitle = cleanDuplicateTrailingNumber(removeAwardAndLeadingNumber(photo.name));
+
+  if (inOngoing) {
+    const numPrefix = photo.contestNumber ? `${photo.contestNumber}번 ` : '';
+    return {
+      title: `${numPrefix}${workTitleOnly}`,
+      authorLabel: 'by 익명',
+      isAnonymous: true
+    };
+  }
+
+  return {
+    title: fullCleanTitle,
+    authorLabel: rawAuthor ? `by ${rawAuthor}` : '',
+    isAnonymous: false
+  };
+}
+
+// 상단 작가 필터 렌더링 (역추적 방지: 진행중 폴더에 속한 사진은 작가 집계 및 필터에서 완전히 제외!)
+function renderAuthorFilter() {
+  const menu = document.getElementById('authorDropdownMenu');
+  const label = document.getElementById('authorFilterLabel');
+  const btn = document.getElementById('btnAuthorFilter');
+  if (!menu || !label || !btn) return;
+
+  // 역추적 방지: 진행중(isOngoingFolder)이 아닌 일반 마감 폴더의 사진들에서만 작가명을 추출
+  const authorCounts = new Map();
+  let publicPhotoCount = 0;
+
+  allPhotos.forEach(p => {
+    if (isOngoingFolder(p.folderName)) return; // 진행중 폴더 사진은 작가 필터 집계에서 제외
+    publicPhotoCount++;
+    const author = extractAuthorFromFilename(p.name);
+    if (author) {
+      authorCounts.set(author, (authorCounts.get(author) || 0) + 1);
+    }
+  });
+
+  const authors = Array.from(authorCounts.keys());
+
+  if (selectedAuthor !== 'ALL' && !authorCounts.has(selectedAuthor)) {
+    selectedAuthor = 'ALL';
+  }
+
+  label.textContent = selectedAuthor === 'ALL' ? '전체 작가' : selectedAuthor;
+  btn.classList.toggle('has-filter', selectedAuthor !== 'ALL');
+
+  let html = `
+    <button type="button" class="author-option-btn ${selectedAuthor === 'ALL' ? 'active' : ''}" data-author="ALL" role="option" aria-selected="${selectedAuthor === 'ALL'}">
+      <span>전체 작가</span>
+      <span class="author-option-count">${allPhotos.length}</span>
+    </button>
+  `;
+
+  authors.forEach(author => {
+    const count = authorCounts.get(author) || 0;
+    const isSelected = selectedAuthor === author;
+    html += `
+      <button type="button" class="author-option-btn ${isSelected ? 'active' : ''}" data-author="${escapeHtml(author)}" role="option" aria-selected="${isSelected}">
+        <span>${escapeHtml(author)}</span>
+        <span class="author-option-count">${count}</span>
+      </button>
+    `;
+  });
+
+  menu.innerHTML = html;
+
+  menu.querySelectorAll('.author-option-btn').forEach(optBtn => {
+    optBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectedAuthor = optBtn.getAttribute('data-author');
+      closeAuthorDropdown();
+      renderAuthorFilter();
+      applyFiltersAndRender();
+    });
+  });
+}
+
+function toggleAuthorDropdown() {
+  const wrap = document.getElementById('authorFilterWrap');
+  const menu = document.getElementById('authorDropdownMenu');
+  const btn = document.getElementById('btnAuthorFilter');
+  if (!wrap || !menu || !btn) return;
+
+  const isOpen = !menu.classList.contains('hidden');
+  if (isOpen) {
+    closeAuthorDropdown();
+  } else {
+    menu.classList.remove('hidden');
+    wrap.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function closeAuthorDropdown() {
+  const wrap = document.getElementById('authorFilterWrap');
+  const menu = document.getElementById('authorDropdownMenu');
+  const btn = document.getElementById('btnAuthorFilter');
+  if (!wrap || !menu || !btn) return;
+
+  menu.classList.add('hidden');
+  wrap.classList.remove('is-open');
+  btn.setAttribute('aria-expanded', 'false');
+}
+
+/* ==========================================================================
+   5. 구글 드라이브 폴더 & 하위 폴더 파싱
+   ========================================================================== */
 function extractFolderId(input) {
   const trimmed = String(input || '').trim();
   const folderMatch = trimmed.match(/\/folders\/([a-zA-Z0-9_-]{15,})/);
@@ -509,19 +727,37 @@ function renderFolderTabs() {
 }
 
 function applyFiltersAndRender() {
-  filteredPhotos = allPhotos.filter(p => {
+  const matched = allPhotos.filter(p => {
     const matchFolder = selectedSubfolderId === 'ALL' || p.folderId === selectedSubfolderId;
-    const matchQuery = !searchQuery ||
-      p.name.toLowerCase().includes(searchQuery) ||
-      (p.folderName && p.folderName.toLowerCase().includes(searchQuery));
-    return matchFolder && matchQuery;
+    if (!matchFolder) return false;
+
+    if (selectedAuthor === 'ALL') return true;
+
+    // 역추적 방지: 특정 작가 필터가 선택된 경우, 진행중(블라인드) 폴더의 작품은 절대 노출하지 않음
+    if (isOngoingFolder(p.folderName)) return false;
+    return extractAuthorFromFilename(p.name) === selectedAuthor;
+  });
+
+  // 1등 수상작 우선 배치 + 진행중 폴더 작품은 부여된 번호(1번, 2번...) 오름차순 유지
+  filteredPhotos = [...matched].sort((a, b) => {
+    const aWin = isFirstPrize(a.name) ? 1 : 0;
+    const bWin = isFirstPrize(b.name) ? 1 : 0;
+    if (aWin !== bWin) return bWin - aWin;
+
+    if (a.folderId === b.folderId && a.contestNumber && b.contestNumber) {
+      return a.contestNumber - b.contestNumber;
+    }
+    return 0;
   });
 
   const badge = document.getElementById('photoCountBadge');
   if (badge) {
     const activeFolder = folderCategories.find(f => f.id === selectedSubfolderId);
     const cleanFolder = activeFolder ? cleanOngoingFolderName(activeFolder.name) : '';
-    const prefix = cleanFolder ? `${cleanFolder} · ` : '';
+    const parts = [];
+    if (cleanFolder) parts.push(cleanFolder);
+    if (selectedAuthor !== 'ALL') parts.push(`${selectedAuthor} 작가`);
+    const prefix = parts.length > 0 ? `${parts.join(' · ')} · ` : '';
     badge.textContent = `${prefix}${filteredPhotos.length}장의 사진`;
   }
 
@@ -551,7 +787,6 @@ async function loadDriveFolder(folderInput, forceLive = false) {
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1';
 
-    // 1순위: 로컬 서버 (/api/folder) — 로컬 환경에서만 호출
     if (isLocalServer) {
       try {
         const res = await fetch(`./api/folder?id=${encodeURIComponent(folderId)}&t=${Date.now()}`, {
@@ -567,7 +802,6 @@ async function loadDriveFolder(folderInput, forceLive = false) {
       } catch (localErr) {}
     }
 
-    // 2순위: forceLive(새로고침 클릭)가 아닐 때만 정적 ./drive-cache.json 사용
     if (photos.length === 0 && !forceLive) {
       try {
         const cacheRes = await fetch(`./drive-cache.json?t=${Date.now()}`);
@@ -581,22 +815,22 @@ async function loadDriveFolder(folderInput, forceLive = false) {
       } catch (cacheErr) {}
     }
 
-    // 3순위: 새로고침(forceLive) 클릭 시 또는 캐시가 없을 때 브라우저에서 직접 구글 드라이브 실시간 파싱
     if (photos.length === 0) {
       const result = await fetchFolderTreeViaPublicEmbed(folderId, forceLive);
       photos = result.photos;
       folders = result.folders;
     }
 
-    allPhotos = photos;
-    // All 바로 다음 첫 번째 순서에 [진행중] 폴더가 오도록 정렬 순서 고정
     folderCategories = sortFoldersOngoingFirst(folders);
+    // 진행중 폴더 작품들을 정렬하고 1번, 2번... 고유 번호를 부여 (All 탭 및 라이트박스에서도 동일 번호 유지)
+    allPhotos = sortAndNumberOngoingPhotos(photos);
 
     if (selectedSubfolderId !== 'ALL' && !folderCategories.some(f => f.id === selectedSubfolderId)) {
       selectedSubfolderId = 'ALL';
     }
 
     renderFolderTabs();
+    renderAuthorFilter();
     updateOngoingNoticeUI();
 
     if (photos.length === 0) {
@@ -624,44 +858,47 @@ async function loadDriveFolder(folderInput, forceLive = false) {
 }
 
 /* ==========================================================================
-   5. 사진 그리드 렌더링 & 라이트박스 스프링 전환
+   6. 사진 그리드 렌더링 & 라이트박스 (모바일 터치 스와이프/드래그 닫기 제스처 포함)
    ========================================================================== */
 function renderPhotoGrid(photos) {
   const grid = document.getElementById('photoGrid');
   setupScrollRevealObserver();
 
   grid.innerHTML = photos.map((photo, idx) => {
-    const cleanTitle = formatCleanTitle(photo.name);
-    const awardTag = extractAwardTag(cleanTitle);
+    const winner = isFirstPrize(photo.name);
+    const meta = getDisplayMeta(photo);
     const rawFolder = photo.folderName && photo.folderName !== '기본 폴더' ? photo.folderName : '';
     const folderLabel = rawFolder ? cleanOngoingFolderName(rawFolder) : '';
 
     return `
       <article
-        class="photo-card"
+        class="photo-card ${winner ? 'is-winner' : ''}"
         data-index="${idx}"
         tabindex="0"
         role="button"
-        aria-label="${escapeHtml(cleanTitle)} 크게 보기"
+        aria-label="${escapeHtml(meta.title)} 크게 보기"
         style="transition-delay: ${Math.min(idx * 45, 270)}ms"
       >
         <div class="card-glare" aria-hidden="true"></div>
         <div class="photo-media-wrap">
-          ${awardTag ? `<span class="award-tag-badge">${escapeHtml(awardTag)}</span>` : ''}
           <div class="skeleton-shimmer">
             <div class="apple-spinner"></div>
           </div>
           <img
             class="photo-thumb"
             src="${photo.thumbUrl}"
-            alt="${escapeHtml(cleanTitle)}"
+            alt="${escapeHtml(meta.title)}"
             loading="lazy"
             referrerpolicy="no-referrer"
           />
           <div class="card-glass-caption">
             <div class="caption-text-group">
-              ${folderLabel ? `<span class="caption-folder">${escapeHtml(folderLabel)}</span>` : ''}
-              <h3 class="caption-title">${escapeHtml(cleanTitle)}</h3>
+              <div class="caption-meta-row">
+                ${folderLabel ? `<span>${escapeHtml(folderLabel)}</span>` : ''}
+                ${folderLabel && meta.authorLabel ? `<span>·</span>` : ''}
+                ${meta.authorLabel ? `<span class="caption-author">${escapeHtml(meta.authorLabel)}</span>` : ''}
+              </div>
+              <h3 class="caption-title">${escapeHtml(meta.title)}</h3>
             </div>
             <span class="caption-expand-icon" aria-hidden="true">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -719,6 +956,12 @@ function openLightbox(index) {
   activePhotoIndex = (index + filteredPhotos.length) % filteredPhotos.length;
 
   const modal = document.getElementById('lightboxModal');
+  const wrap = document.getElementById('lightboxFigureWrap');
+  if (wrap) {
+    wrap.style.transform = '';
+    wrap.style.opacity = '';
+  }
+
   modal.classList.remove('hidden');
   requestAnimationFrame(() => {
     modal.classList.add('is-open');
@@ -733,7 +976,7 @@ function renderFilmstrip() {
   const strip = document.getElementById('lightboxFilmstrip');
   strip.innerHTML = filteredPhotos.map((p, idx) => `
     <div class="film-thumb ${idx === activePhotoIndex ? 'active' : ''}" data-idx="${idx}">
-      <img src="${p.thumbUrl}" alt="${escapeHtml(p.name)}" referrerpolicy="no-referrer" />
+      <img src="${p.thumbUrl}" alt="" referrerpolicy="no-referrer" />
     </div>
   `).join('');
 
@@ -749,10 +992,12 @@ function updateLightboxContent() {
   const photo = filteredPhotos[activePhotoIndex];
   if (!photo) return;
 
+  const meta = getDisplayMeta(photo);
   const img = document.getElementById('lightboxImage');
   const spinner = document.getElementById('lightboxSpinner');
   const counter = document.getElementById('lightboxCounter');
   const title = document.getElementById('lightboxTitle');
+  const authorEl = document.getElementById('lightboxAuthor');
   const folderTag = document.getElementById('lightboxFolderTag');
   const resText = document.getElementById('lightboxResolution');
   const ambientBg = document.getElementById('lightboxAmbientBg');
@@ -760,7 +1005,12 @@ function updateLightboxContent() {
   img.setAttribute('referrerpolicy', 'no-referrer');
 
   counter.textContent = `${activePhotoIndex + 1} / ${filteredPhotos.length}`;
-  title.textContent = formatCleanTitle(photo.name);
+  title.textContent = meta.title;
+
+  if (authorEl) {
+    authorEl.textContent = meta.authorLabel || '';
+    authorEl.classList.toggle('hidden', !meta.authorLabel);
+  }
 
   if (photo.folderName && photo.folderName !== '기본 폴더') {
     folderTag.textContent = cleanOngoingFolderName(photo.folderName);
@@ -798,7 +1048,7 @@ function updateLightboxContent() {
   };
 
   img.src = photo.fullUrl;
-  img.alt = photo.name;
+  img.alt = meta.title;
 }
 
 function closeLightbox() {
@@ -828,6 +1078,73 @@ function showNextPhoto() {
   updateLightboxContent();
 }
 
+// 모바일 라이트박스 터치 제스처 (좌우 스와이프 이전/다음, 아래로 당겨서 닫기)
+function setupLightboxTouchGestures() {
+  const stage = document.getElementById('lightboxStage');
+  const wrap = document.getElementById('lightboxFigureWrap');
+  if (!stage || !wrap) return;
+
+  let startX = 0;
+  let startY = 0;
+  let deltaX = 0;
+  let deltaY = 0;
+  let isTracking = false;
+
+  stage.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    deltaX = 0;
+    deltaY = 0;
+    isTracking = true;
+    wrap.style.transition = 'none';
+  }, { passive: true });
+
+  stage.addEventListener('touchmove', (e) => {
+    if (!isTracking || e.touches.length !== 1) return;
+    deltaX = e.touches[0].clientX - startX;
+    deltaY = e.touches[0].clientY - startY;
+
+    // 아래로 당기는 제스처 시각 피드백
+    if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0) {
+      const progress = Math.min(deltaY / 240, 1);
+      wrap.style.transform = `translateY(${deltaY * 0.75}px) scale(${1 - progress * 0.12})`;
+      wrap.style.opacity = String(1 - progress * 0.45);
+    }
+  }, { passive: true });
+
+  stage.addEventListener('touchend', () => {
+    if (!isTracking) return;
+    isTracking = false;
+    wrap.style.transition = '';
+
+    // 좌우 스와이프 (이전/다음 사진 전환)
+    if (Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      wrap.style.transform = '';
+      wrap.style.opacity = '';
+      if (deltaX < 0) {
+        showNextPhoto();
+      } else {
+        showPrevPhoto();
+      }
+      return;
+    }
+
+    // 아래로 당겨서 닫기 (Swipe Down to Close)
+    if (deltaY > 85 && Math.abs(deltaY) > Math.abs(deltaX)) {
+      closeLightbox();
+      setTimeout(() => {
+        wrap.style.transform = '';
+        wrap.style.opacity = '';
+      }, 360);
+      return;
+    }
+
+    wrap.style.transform = '';
+    wrap.style.opacity = '';
+  });
+}
+
 function escapeHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
@@ -838,15 +1155,29 @@ function escapeHtml(str) {
 
 document.addEventListener('DOMContentLoaded', () => {
   initWebGLBackground();
+  setupLightboxTouchGestures();
   loadDriveFolder(CONFIGURED_FOLDER_URL, false);
 
   document.getElementById('btnResetFilter').addEventListener('click', (e) => {
     e.preventDefault();
     selectedSubfolderId = 'ALL';
-    searchQuery = '';
-    document.getElementById('searchInput').value = '';
+    selectedAuthor = 'ALL';
     renderFolderTabs();
+    renderAuthorFilter();
     applyFiltersAndRender();
+  });
+
+  // 상단 작가 필터 드롭다운 토글 및 외부 클릭 시 닫기
+  document.getElementById('btnAuthorFilter').addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleAuthorDropdown();
+  });
+
+  document.addEventListener('click', (e) => {
+    const wrap = document.getElementById('authorFilterWrap');
+    if (wrap && !wrap.contains(e.target)) {
+      closeAuthorDropdown();
+    }
   });
 
   // 상단 슬림 공지 배너 클릭 -> 해당 [진행중] 폴더 탭 필터링 및 스크롤
@@ -883,11 +1214,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('iconSun').classList.toggle('hidden', next === 'light');
     document.getElementById('iconMoon').classList.toggle('hidden', next === 'dark');
-  });
-
-  document.getElementById('searchInput').addEventListener('input', e => {
-    searchQuery = e.target.value.trim().toLowerCase();
-    applyFiltersAndRender();
   });
 
   document.getElementById('btnCloseLightbox').addEventListener('click', closeLightbox);
