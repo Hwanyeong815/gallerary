@@ -6,6 +6,8 @@ const CONFIGURED_FOLDER_URL =
 let allPhotos = [];
 let folderCategories = [];
 let selectedSubfolderId = 'ALL';
+let currentOngoingFolder = null;
+let ongoingModalDismissedOnThisLoad = false;
 let searchQuery = '';
 let filteredPhotos = [];
 let activePhotoIndex = 0;
@@ -155,7 +157,94 @@ function initWebGLBackground() {
 }
 
 /* ==========================================================================
-   2. 애플 스타일 토스트 알림 & 3D 틸트 인터랙션
+   2. [진행중] 공모전 폴더 감지 & 상단 슬림 배너 + 화면 정중앙 모달 제어
+   ========================================================================== */
+function isOngoingFolder(folderName) {
+  return /\[\s*진행\s*중\s*\]/i.test(String(folderName || ''));
+}
+
+function cleanOngoingFolderName(folderName) {
+  return String(folderName || '')
+    .replace(/\[\s*진행\s*중\s*\]/gi, '')
+    .replace(/^[\s/·-]+|[\s/·-]+$/g, '')
+    .trim() || '공모전';
+}
+
+// [진행중]이 포함된 폴더를 항상 첫 번째 순서로 정렬
+function sortFoldersOngoingFirst(folders) {
+  return [...folders].sort((a, b) => {
+    const aOngoing = isOngoingFolder(a.name) ? 1 : 0;
+    const bOngoing = isOngoingFolder(b.name) ? 1 : 0;
+    return bOngoing - aOngoing;
+  });
+}
+
+function navigateToOngoingFolder(folder) {
+  if (!folder) return;
+  selectedSubfolderId = folder.id;
+  renderFolderTabs();
+  applyFiltersAndRender();
+
+  const gridEl = document.getElementById('photoGrid');
+  if (gridEl) {
+    gridEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function dismissOngoingPopup() {
+  const backdrop = document.getElementById('ongoingModalBackdrop');
+  if (!backdrop) return;
+
+  ongoingModalDismissedOnThisLoad = true;
+  backdrop.classList.remove('is-visible');
+  setTimeout(() => {
+    if (!backdrop.classList.contains('is-visible')) {
+      backdrop.classList.add('hidden');
+    }
+  }, 400);
+}
+
+function updateOngoingNoticeUI() {
+  const banner = document.getElementById('ongoingBanner');
+  const bannerText = document.getElementById('ongoingBannerText');
+  const backdrop = document.getElementById('ongoingModalBackdrop');
+  const popupTitle = document.getElementById('ongoingPopupTitle');
+
+  const ongoingFolder = folderCategories.find(f => isOngoingFolder(f.name)) || null;
+  currentOngoingFolder = ongoingFolder;
+
+  // [진행중] 폴더가 없으면 배너와 모달 모두 즉시 숨김 (자동 비활성화)
+  if (!ongoingFolder) {
+    if (banner) banner.classList.add('hidden');
+    if (backdrop) {
+      backdrop.classList.remove('is-visible');
+      backdrop.classList.add('hidden');
+    }
+    return;
+  }
+
+  const cleanName = cleanOngoingFolderName(ongoingFolder.name);
+
+  // 1) 상단 슬림 공지 배너 표시
+  if (banner && bannerText) {
+    bannerText.innerHTML = `현재 <strong>[${escapeHtml(cleanName)}]</strong> 진행 중입니다 ·`;
+    banner.classList.remove('hidden');
+  }
+
+  // 2) 화면 정중앙 모달 팝업 (접속 및 브라우저 F5 새로고침마다 표시, 버튼 클릭 시에만 닫힘)
+  if (backdrop && popupTitle) {
+    if (!ongoingModalDismissedOnThisLoad) {
+      popupTitle.textContent = `현재 ${cleanName} 진행 중입니다`;
+      backdrop.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        backdrop.classList.add('is-visible');
+      });
+    }
+  }
+}
+
+/* ==========================================================================
+   3. 애플 스타일 토스트 알림 & 3D 틸트 인터랙션
    ========================================================================== */
 function showAppleToast(message = '최신 목록으로 업데이트되었습니다') {
   const toast = document.getElementById('appleToast');
@@ -220,7 +309,7 @@ function attachAppleCardInteractions(card) {
 }
 
 /* ==========================================================================
-   3. 구글 드라이브 폴더 & 하위 폴더 파싱 (수상 태그 [1등], [대상] 등 보존)
+   4. 구글 드라이브 폴더 & 하위 폴더 파싱
    ========================================================================== */
 function formatCleanTitle(filename) {
   return String(filename || 'Untitled')
@@ -228,7 +317,6 @@ function formatCleanTitle(filename) {
     .trim() || 'Untitled';
 }
 
-// 파일명에 포함된 [1등], [대상], [최우수상] 등 수상 태그 추출
 function extractAwardTag(filename) {
   const m = String(filename || '').match(/\[([^\]]+)\]/);
   return m ? m[0] : '';
@@ -307,7 +395,6 @@ function parseEntriesFromEmbedHtml(html) {
   return { subfolders, files };
 }
 
-// 캐시 방지를 위해 타임스탬프를 포함한 공개 임베드 HTML 요청
 async function fetchSingleFolderEmbedHtml(folderId, bustCache = false) {
   const cb = bustCache ? `&cb=${Date.now()}` : '';
   const embedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}${cb}#grid`;
@@ -401,9 +488,11 @@ function renderFolderTabs() {
 
   folderCategories.forEach(folder => {
     const count = allPhotos.filter(p => p.folderId === folder.id).length;
+    const ongoing = isOngoingFolder(folder.name);
+    const label = ongoing ? cleanOngoingFolderName(folder.name) : folder.name;
     html += `
       <button type="button" class="folder-tab-btn ${selectedSubfolderId === folder.id ? 'active' : ''}" data-folder-id="${folder.id}">
-        ${escapeHtml(folder.name)}<span class="folder-tab-count">${count}</span>
+        ${ongoing ? '<span class="tab-live-dot" title="진행중"></span>' : ''}${escapeHtml(label)}<span class="folder-tab-count">${count}</span>
       </button>
     `;
   });
@@ -431,7 +520,8 @@ function applyFiltersAndRender() {
   const badge = document.getElementById('photoCountBadge');
   if (badge) {
     const activeFolder = folderCategories.find(f => f.id === selectedSubfolderId);
-    const prefix = activeFolder ? `${activeFolder.name} · ` : '';
+    const cleanFolder = activeFolder ? cleanOngoingFolderName(activeFolder.name) : '';
+    const prefix = cleanFolder ? `${cleanFolder} · ` : '';
     badge.textContent = `${prefix}${filteredPhotos.length}장의 사진`;
   }
 
@@ -457,24 +547,30 @@ async function loadDriveFolder(folderInput, forceLive = false) {
     let photos = [];
     let folders = [];
 
-    // 1순위: 로컬 서버 (/api/folder) — 항상 실시간으로 구글 드라이브 폴더 파싱
-    try {
-      const res = await fetch(`/api/folder?id=${encodeURIComponent(folderId)}&t=${Date.now()}`, {
-        cache: 'no-store'
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.ok && Array.isArray(data.photos) && data.photos.length > 0) {
-          photos = data.photos;
-          folders = Array.isArray(data.folders) ? data.folders : [];
-        }
-      }
-    } catch (localErr) {}
+    const isLocalServer =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
 
-    // 2순위: forceLive(새로고침 클릭)가 아닐 때만 정적 drive-cache.json 사용
+    // 1순위: 로컬 서버 (/api/folder) — 로컬 환경에서만 호출
+    if (isLocalServer) {
+      try {
+        const res = await fetch(`./api/folder?id=${encodeURIComponent(folderId)}&t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && Array.isArray(data.photos) && data.photos.length > 0) {
+            photos = data.photos;
+            folders = Array.isArray(data.folders) ? data.folders : [];
+          }
+        }
+      } catch (localErr) {}
+    }
+
+    // 2순위: forceLive(새로고침 클릭)가 아닐 때만 정적 ./drive-cache.json 사용
     if (photos.length === 0 && !forceLive) {
       try {
-        const cacheRes = await fetch(`drive-cache.json?t=${Date.now()}`);
+        const cacheRes = await fetch(`./drive-cache.json?t=${Date.now()}`);
         if (cacheRes.ok) {
           const cacheData = await cacheRes.json();
           if (cacheData.ok && cacheData.folderId === folderId && Array.isArray(cacheData.photos) && cacheData.photos.length > 0) {
@@ -493,14 +589,15 @@ async function loadDriveFolder(folderInput, forceLive = false) {
     }
 
     allPhotos = photos;
-    folderCategories = folders;
+    // All 바로 다음 첫 번째 순서에 [진행중] 폴더가 오도록 정렬 순서 고정
+    folderCategories = sortFoldersOngoingFirst(folders);
 
-    // 기존 선택한 폴더 탭이 여전히 존재하면 유지, 없으면 ALL로 리셋
     if (selectedSubfolderId !== 'ALL' && !folderCategories.some(f => f.id === selectedSubfolderId)) {
       selectedSubfolderId = 'ALL';
     }
 
     renderFolderTabs();
+    updateOngoingNoticeUI();
 
     if (photos.length === 0) {
       document.getElementById('photoGrid').innerHTML = '';
@@ -527,7 +624,7 @@ async function loadDriveFolder(folderInput, forceLive = false) {
 }
 
 /* ==========================================================================
-   4. 사진 그리드 렌더링 & 라이트박스 스프링 전환
+   5. 사진 그리드 렌더링 & 라이트박스 스프링 전환
    ========================================================================== */
 function renderPhotoGrid(photos) {
   const grid = document.getElementById('photoGrid');
@@ -536,7 +633,8 @@ function renderPhotoGrid(photos) {
   grid.innerHTML = photos.map((photo, idx) => {
     const cleanTitle = formatCleanTitle(photo.name);
     const awardTag = extractAwardTag(cleanTitle);
-    const folderLabel = photo.folderName && photo.folderName !== '기본 폴더' ? photo.folderName : '';
+    const rawFolder = photo.folderName && photo.folderName !== '기본 폴더' ? photo.folderName : '';
+    const folderLabel = rawFolder ? cleanOngoingFolderName(rawFolder) : '';
 
     return `
       <article
@@ -665,7 +763,7 @@ function updateLightboxContent() {
   title.textContent = formatCleanTitle(photo.name);
 
   if (photo.folderName && photo.folderName !== '기본 폴더') {
-    folderTag.textContent = photo.folderName;
+    folderTag.textContent = cleanOngoingFolderName(photo.folderName);
     folderTag.classList.remove('hidden');
   } else {
     folderTag.classList.add('hidden');
@@ -751,7 +849,26 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFiltersAndRender();
   });
 
-  // 새로고침(↻) 버튼: 캐시 무시하고 구글 드라이브 최신 파일명([1등], [대상] 등) 즉시 반영 + 토스트 표시
+  // 상단 슬림 공지 배너 클릭 -> 해당 [진행중] 폴더 탭 필터링 및 스크롤
+  document.getElementById('btnOngoingBanner').addEventListener('click', () => {
+    if (currentOngoingFolder) {
+      navigateToOngoingFolder(currentOngoingFolder);
+    }
+  });
+
+  // 화면 중앙 모달 팝업 -> [작품 보러가기] / [닫기] 버튼 직접 클릭 시에만 닫힘
+  document.getElementById('btnOngoingViewNow').addEventListener('click', () => {
+    if (currentOngoingFolder) {
+      navigateToOngoingFolder(currentOngoingFolder);
+    }
+    dismissOngoingPopup();
+  });
+
+  document.getElementById('btnOngoingClose').addEventListener('click', () => {
+    dismissOngoingPopup();
+  });
+
+  // 새로고침(↻) 버튼: 캐시 무시하고 구글 드라이브 최신 폴더명/파일명 즉시 반영
   document.getElementById('btnRefreshGallery').addEventListener('click', () => {
     loadDriveFolder(CONFIGURED_FOLDER_URL, true);
   });

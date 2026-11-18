@@ -260,6 +260,244 @@ body {
   border-color: var(--glass-border-highlight);
 }
 
+/* ==========================================================================
+   [진행중] 공모전 상단 슬림 공지 배너 (Apple Ribbon 스타일)
+   ========================================================================== */
+.ongoing-ribbon {
+  position: sticky;
+  top: 52px;
+  z-index: 45;
+  width: 100%;
+  background: rgba(18, 22, 20, 0.66);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(48, 209, 88, 0.22);
+  display: flex;
+  justify-content: center;
+  transition: all 0.35s var(--spring-easing);
+}
+
+html[data-theme="light"] .ongoing-ribbon {
+  background: rgba(242, 250, 245, 0.78);
+  border-bottom: 1px solid rgba(48, 209, 88, 0.28);
+}
+
+.ongoing-ribbon-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: -0.01em;
+  padding: 9px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 1380px;
+  transition: opacity 0.2s ease;
+}
+
+.ongoing-ribbon-btn:hover {
+  opacity: 0.92;
+}
+
+.ongoing-ribbon-btn:hover .ongoing-ribbon-cta {
+  transform: translateX(3px);
+}
+
+.ongoing-ribbon-text {
+  font-weight: 500;
+}
+
+.ongoing-ribbon-text strong {
+  font-weight: 600;
+}
+
+.ongoing-ribbon-cta {
+  color: #30d158;
+  font-weight: 600;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.22s var(--spring-easing);
+}
+
+html[data-theme="light"] .ongoing-ribbon-cta {
+  color: #1d9f41;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #30d158;
+  box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.65);
+  animation: livePulse 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(48, 209, 88, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(48, 209, 88, 0);
+  }
+}
+
+/* 탭 내부 미니 라이브 도트 */
+.tab-live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #30d158;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ==========================================================================
+   [진행중] 접속 및 새로고침 시 화면 정중앙 모달 팝업 (Apple Centered Modal)
+   ========================================================================== */
+.ongoing-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.38s var(--spring-easing);
+}
+
+.ongoing-modal-backdrop.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ongoing-modal-card {
+  width: min(420px, 100%);
+  padding: 32px 28px 26px;
+  border-radius: 26px;
+  background: rgba(24, 24, 28, 0.82);
+  backdrop-filter: saturate(190%) blur(30px);
+  -webkit-backdrop-filter: saturate(190%) blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 36px 80px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(48, 209, 88, 0.18);
+  color: var(--text-primary);
+  text-align: center;
+  transform: scale(0.92) translateY(14px);
+  transition: transform 0.44s var(--spring-easing);
+}
+
+html[data-theme="light"] .ongoing-modal-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 32px 70px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(48, 209, 88, 0.28);
+}
+
+.ongoing-modal-backdrop.is-visible .ongoing-modal-card {
+  transform: scale(1) translateY(0);
+}
+
+.ongoing-modal-badge-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.ongoing-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: #30d158;
+  background: rgba(48, 209, 88, 0.12);
+  border: 1px solid rgba(48, 209, 88, 0.28);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+html[data-theme="light"] .ongoing-live-badge {
+  color: #178a36;
+  background: rgba(48, 209, 88, 0.14);
+}
+
+.ongoing-modal-title {
+  font-size: 1.32rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.32;
+  margin-bottom: 10px;
+}
+
+.ongoing-modal-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 24px;
+}
+
+.ongoing-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ongoing-btn-primary {
+  flex: 1.35;
+  appearance: none;
+  border: none;
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 12px 18px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.ongoing-btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.ongoing-btn-secondary {
+  flex: 0.85;
+  appearance: none;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-pill);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ongoing-btn-secondary:hover {
+  background: var(--glass-pill-hover);
+  color: var(--text-primary);
+}
+
 /* 애플 스타일 하단 반투명 글래스 토스트 (HUD Notification) */
 .apple-toast {
   position: fixed;

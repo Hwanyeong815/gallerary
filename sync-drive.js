@@ -126,6 +126,13 @@ async function buildCache(rootFolderId, maxDepth = 3) {
 
   await traverse(rootFolderId, '기본 폴더', 0);
 
+  // [진행중] 폴더가 가장 먼저 나오도록 정렬
+  folderCategories.sort((a, b) => {
+    const aLive = /\[\s*진행\s*중\s*\]/i.test(a.name) ? 1 : 0;
+    const bLive = /\[\s*진행\s*중\s*\]/i.test(b.name) ? 1 : 0;
+    return bLive - aLive;
+  });
+
   const output = {
     ok: true,
     folderId: rootFolderId,
