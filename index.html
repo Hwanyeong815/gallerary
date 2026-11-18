@@ -1,216 +1,162 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="dark" data-frame="framed">
+<html lang="ko" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ATELIER DRIVE — 온라인 사진 전시관</title>
-  <!-- 무료 웹폰트: Pretendard & Cormorant Garamond (갤러리 에디토리얼 세리프) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" />
+  <title>각자의 프레임 — Gallery Archive</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- 배경 앰비언트 라이트 효과 -->
-  <div class="ambient-glow glow-1" aria-hidden="true"></div>
-  <div class="ambient-glow glow-2" aria-hidden="true"></div>
+  <!-- WebGL 셰이더 앰비언트 오로라 & 마우스 반응 빛 반사 배경 -->
+  <canvas id="webglCanvas" class="webgl-canvas" aria-hidden="true"></canvas>
 
-  <!-- 상단 글래스모피즘 네비게이션 헤더 -->
-  <header class="site-header">
-    <div class="container header-inner">
-      <div class="brand">
-        <div class="brand-frame-logo" aria-hidden="true">
-          <span></span>
-        </div>
-        <div>
-          <span class="brand-eyebrow">CURATED ARCHIVE</span>
-          <h1 class="brand-title">ATELIER DRIVE</h1>
-        </div>
-      </div>
+  <!-- 애플 스타일 슬림 1줄 글래스모피즘 상단 네비게이션 (브랜드 타이틀 + 폴더 탭 + 검색 + 새로고침 + 다크/라이트 토글) -->
+  <header class="global-nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-brand" id="btnResetFilter" aria-label="Gallery 홈">
+        <svg class="brand-aperture" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="14.31" y1="8" x2="20.05" y2="17.94"></line>
+          <line x1="9.69" y1="8" x2="21.17" y2="8"></line>
+          <line x1="7.38" y1="12" x2="13.12" y2="2.06"></line>
+          <line x1="9.69" y1="16" x2="3.95" y2="6.06"></line>
+          <line x1="14.31" y1="16" x2="2.83" y2="16"></line>
+          <line x1="16.62" y1="12" x2="10.88" y2="21.94"></line>
+        </svg>
+        <span class="brand-name">Gallery</span>
+      </a>
 
-      <div class="header-controls">
-        <!-- 액자 모드 vs 미니멀 모드 스위치 -->
-        <div class="segmented-control" role="group" aria-label="전시 스타일 선택">
-          <button type="button" class="seg-btn active" data-style-mode="framed">액자 전시</button>
-          <button type="button" class="seg-btn" data-style-mode="minimal">모던 그리드</button>
-        </div>
+      <!-- 중앙: 폴더 탭 (All / 공모전 1 / 공모전2) -->
+      <nav id="folderCategoryTabs" class="nav-pills" role="tablist" aria-label="컬렉션 폴더 선택"></nav>
 
-        <!-- 다크 갤러리 vs 화이트 미술관 테마 스위치 -->
-        <button type="button" id="btnThemeToggle" class="icon-pill-btn" title="전시관 조명(다크/화이트) 전환">
-          <span id="themeIcon">🌙</span>
-          <span id="themeLabel">다크 갤러리</span>
-        </button>
-
-        <!-- 드라이브 폴더 설정 토글 버튼 -->
-        <button type="button" id="btnToggleFolderDrawer" class="icon-pill-btn accent-border">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      <!-- 우측: 검색 + 새로고침(↻) + 다크/라이트 토글 (불필요한 폴더 아이콘 완전 제거) -->
+      <div class="nav-actions">
+        <div class="search-pill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <span>드라이브 폴더 변경</span>
-        </button>
-      </div>
-    </div>
+          <input type="text" id="searchInput" placeholder="Search" aria-label="사진 검색" />
+        </div>
 
-    <!-- 접이식 구글 드라이브 폴더 링크 설정 바 (평소엔 깔끔하게 숨김) -->
-    <div id="folderDrawer" class="folder-drawer hidden">
-      <div class="container">
-        <form id="folderForm" class="folder-form">
-          <div class="input-wrapper">
-            <span class="input-badge">Google Drive 공유 링크</span>
-            <input
-              type="text"
-              id="folderUrlInput"
-              value="https://drive.google.com/drive/folders/1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw?usp=sharing"
-              placeholder="공개된 구글 드라이브 폴더 링크 또는 ID를 붙여넣으세요"
-              aria-label="구글 드라이브 공유 폴더 링크"
-            />
-          </div>
-          <button type="submit" class="btn-gold">폴더 불러오기</button>
-          <a
-            id="openDriveFolderLink"
-            href="https://drive.google.com/drive/folders/1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw?usp=sharing"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn-outline"
-          >
-            드라이브 원본 열기 ↗
-          </a>
-        </form>
+        <button type="button" id="btnRefreshGallery" class="nav-icon-btn" title="구글 드라이브 최신 목록 새로고침" aria-label="구글 드라이브 최신 목록 새로고침">
+          <svg class="refresh-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+        </button>
+
+        <button type="button" id="btnThemeToggle" class="nav-icon-btn" title="다크 / 라이트 모드 전환" aria-label="테마 전환">
+          <svg id="iconSun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="iconMoon" class="hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- 갤러리 히어로 배너 -->
-  <section class="hero-section">
-    <div class="container hero-inner">
-      <div class="hero-copy">
-        <p class="hero-kicker">ONLINE PHOTOGRAPHY EXHIBITION</p>
-        <h2 class="hero-heading">빛과 순간의 기록</h2>
-        <p class="hero-desc">
-          구글 드라이브 공유 폴더와 실시간으로 연결된 온라인 사진 전시관입니다.<br />
-          작품을 클릭하면 시네마틱 라이트박스 뷰어로 감상하실 수 있습니다.
-        </p>
-      </div>
-
-      <div class="hero-toolbar">
-        <div class="stats-group">
-          <div class="stat-item">
-            <span class="stat-label">EXHIBITED WORKS</span>
-            <strong id="photoCountBadge" class="stat-num">로딩 중...</strong>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-label">TOTAL LIKES</span>
-            <strong id="totalLikesBadge" class="stat-num">♥ 0</strong>
-          </div>
-        </div>
-
-        <div class="filter-controls">
-          <div class="search-box">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input type="text" id="searchInput" placeholder="작품명 검색..." aria-label="작품명 검색" />
-          </div>
-
-          <button type="button" id="btnRefreshGallery" class="icon-pill-btn" title="폴더 새로고침">
-            ↻ 새로고침
-          </button>
-        </div>
-      </div>
-
-      <!-- 하위 폴더(카테고리/공모전) 탭 바 -->
-      <div id="folderCategoryTabs" class="folder-category-tabs" role="tablist" aria-label="하위 폴더 선택"></div>
+  <!-- 미니멀 애플 키노트 스타일 히어로 -->
+  <section class="hero-stage">
+    <div class="hero-container">
+      <p class="hero-eyebrow">Archive Exhibition</p>
+      <h1 class="hero-title">각자의 프레임</h1>
+      <p class="hero-subtitle">
+        있는 그대로의 비율과 디테일로 기록된 컬렉션.<br />
+        <span id="photoCountBadge" class="hero-count-inline">컬렉션 불러오는 중</span>
+      </p>
     </div>
   </section>
 
-  <!-- 메인 갤러리 그리드 -->
-  <main class="gallery-main">
-    <div class="container">
+  <!-- 메인 벤토 & 매거진 갤러리 영역 -->
+  <main class="gallery-stage">
+    <div class="gallery-container">
       <div id="statusBanner" class="status-banner hidden"></div>
 
-      <!-- 반응형 사진 그리드 -->
-      <div id="photoGrid" class="photo-grid" aria-live="polite"></div>
+      <!-- 비율 보존형 비대칭 벤토/매거진 그리드 -->
+      <div id="photoGrid" class="bento-grid" aria-live="polite"></div>
     </div>
   </main>
 
-  <!-- 시네마틱 라이트박스 (모달) -->
-  <div id="lightboxModal" class="lightbox-backdrop hidden" role="dialog" aria-modal="true" aria-label="작품 크게 보기">
-    <!-- 현재 사진의 블러 배경 효과 -->
-    <div id="lightboxAmbientBg" class="lightbox-ambient-bg"></div>
+  <!-- 애플식 스프링 전환 라이트박스 모달 -->
+  <div id="lightboxModal" class="lightbox-root hidden" role="dialog" aria-modal="true" aria-label="사진 확대 보기">
+    <div id="lightboxAmbientBg" class="lightbox-ambient"></div>
 
-    <div class="lightbox-topbar">
+    <header class="lightbox-header">
       <div class="lightbox-meta">
-        <span id="lightboxCounter" class="lightbox-counter">01 / 01</span>
-        <div>
-          <h3 id="lightboxTitle" class="lightbox-title">작품 제목</h3>
-          <span id="lightboxResolution" class="lightbox-sub">원본 해상도 확인 중...</span>
-        </div>
+        <span id="lightboxFolderTag" class="lightbox-folder-pill">Collection</span>
+        <h2 id="lightboxTitle" class="lightbox-filename">Untitled</h2>
+        <span id="lightboxResolution" class="lightbox-dimensions"></span>
       </div>
 
-      <div class="lightbox-actions">
-        <button type="button" id="btnLightboxLike" class="lightbox-pill-btn">
-          <span class="heart-icon">♥</span>
-          <span id="lightboxLikeText">좋아요</span>
-          <strong id="lightboxLikeCount">0</strong>
+      <div class="lightbox-controls">
+        <span id="lightboxCounter" class="lightbox-index">1 / 1</span>
+        <button type="button" id="btnCloseLightbox" class="lightbox-close-btn" aria-label="닫기">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
-        <a
-          id="lightboxDriveLink"
-          href="#"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="lightbox-pill-btn"
-        >
-          원본 파일 열기 ↗
-        </a>
-        <button type="button" id="btnCloseLightbox" class="lightbox-close" aria-label="닫기">&times;</button>
       </div>
-    </div>
+    </header>
 
-    <div class="lightbox-stage" id="lightboxStage">
-      <button type="button" id="btnPrevPhoto" class="lightbox-nav prev" aria-label="이전 작품">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div class="lightbox-viewport" id="lightboxStage">
+      <button type="button" id="btnPrevPhoto" class="lightbox-arrow prev" aria-label="이전 사진">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
       </button>
 
-      <div class="lightbox-media-box">
-        <div id="lightboxSpinner" class="lightbox-spinner">
-          <div class="spinner-ring"></div>
-          <span>고해상도 작품을 불러오는 중...</span>
+      <div class="lightbox-figure-wrap">
+        <div id="lightboxSpinner" class="lightbox-loader">
+          <div class="apple-spinner"></div>
         </div>
-        <div class="lightbox-frame-mat">
-          <img id="lightboxImage" class="lightbox-img" src="" alt="" />
-        </div>
+        <img id="lightboxImage" class="lightbox-photo" src="" alt="" />
       </div>
 
-      <button type="button" id="btnNextPhoto" class="lightbox-nav next" aria-label="다음 작품">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button type="button" id="btnNextPhoto" class="lightbox-arrow next" aria-label="다음 사진">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
       </button>
     </div>
 
-    <!-- 하단 썸네일 필름스트립 -->
-    <div class="lightbox-filmstrip-bar">
-      <div id="lightboxFilmstrip" class="lightbox-filmstrip"></div>
+    <!-- 하단 플로팅 글래스 필름스트립 독(Dock) -->
+    <div class="lightbox-dock-wrap">
+      <div id="lightboxFilmstrip" class="lightbox-dock"></div>
     </div>
   </div>
 
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-left">
-        <strong>ATELIER DRIVE</strong>
-        <span>— Google Drive 공유 폴더 기반 무료 온라인 사진 전시관</span>
-      </div>
-      <div class="footer-right">
-        <span>Powered by Open Web Standards (100% Free, No Paid API)</span>
-      </div>
+  <!-- 애플 스타일 하단 반투명 글래스 토스트 알림 -->
+  <div id="appleToast" class="apple-toast" role="status" aria-live="polite">
+    <span class="toast-icon" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </span>
+    <span id="appleToastText">최신 목록으로 업데이트되었습니다</span>
+  </div>
+
+  <footer class="minimal-footer">
+    <div class="gallery-container footer-row">
+      <span>각자의 프레임 — Gallery Archive</span>
+      <span>Designed with Minimal Precision</span>
     </div>
   </footer>
 
+  <!-- 구글 드라이브 폴더 주소 설정 파일 -->
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

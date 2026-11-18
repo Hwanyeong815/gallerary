@@ -6,8 +6,17 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const { GOOGLE_DRIVE_FOLDER_URL } = require('./config.js');
 
-const DEFAULT_FOLDER_ID = process.env.DRIVE_FOLDER_ID || '1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw';
+function extractIdFromUrl(input) {
+  const s = String(input || '').trim();
+  const m1 = s.match(/\/folders\/([a-zA-Z0-9_-]{15,})/);
+  if (m1) return m1[1];
+  const m2 = s.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
+  if (m2) return m2[1];
+  return s || '1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw';
+}
+const DEFAULT_FOLDER_ID = process.env.DRIVE_FOLDER_ID || extractIdFromUrl(GOOGLE_DRIVE_FOLDER_URL);
 
 function fetchUrlText(targetUrl, redirectsLeft = 5) {
   return new Promise((resolve, reject) => {
@@ -82,7 +91,7 @@ async function buildCache(rootFolderId, maxDepth = 3) {
     if (visited.has(folderId) || depth > maxDepth) return;
     visited.add(folderId);
 
-    const embedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}#grid`;
+    const embedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}&t=${Date.now()}#grid`;
     const html = await fetchUrlText(embedUrl);
     const { subfolders, files } = parseEntriesFromEmbedHtml(html);
 

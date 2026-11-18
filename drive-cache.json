@@ -1,8 +1,8 @@
 {
   "ok": true,
   "folderId": "1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw",
-  "updatedAt": "2026-11-18T13:54:04.775Z",
-  "count": 10,
+  "updatedAt": "2026-11-18T14:14:59.119Z",
+  "count": 15,
   "folders": [
     {
       "id": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
@@ -11,12 +11,16 @@
     {
       "id": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
       "name": "공모전2"
+    },
+    {
+      "id": "1056n-q68TZQdKsy5nPxns5H8g6h1OfW0",
+      "name": "공모전 예시"
     }
   ],
   "photos": [
     {
       "id": "1wCeT3U1kWUsxkzATavQMImhhXDCMfmsm",
-      "name": "DSC05383.jpg",
+      "name": "작가이름_제목1.jpg",
       "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
       "folderName": "공모전 1",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1wCeT3U1kWUsxkzATavQMImhhXDCMfmsm&sz=w800",
@@ -25,7 +29,7 @@
     },
     {
       "id": "1y7F62wRg5qCISNBnW1jxtWokWkEWM6ej",
-      "name": "DSC05432.jpg",
+      "name": "작가이름_제목2.jpg",
       "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
       "folderName": "공모전 1",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1y7F62wRg5qCISNBnW1jxtWokWkEWM6ej&sz=w800",
@@ -34,7 +38,7 @@
     },
     {
       "id": "1JziKw_35A8evStvDufO1axWSAtneRips",
-      "name": "DSC05448.jpg",
+      "name": "작가이름_제목3.jpg",
       "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
       "folderName": "공모전 1",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1JziKw_35A8evStvDufO1axWSAtneRips&sz=w800",
@@ -43,7 +47,7 @@
     },
     {
       "id": "1RtdcQHWazE5vF9ssppanvOCG9NCNCf_4",
-      "name": "DSC05475.jpg",
+      "name": "작가이름_제목4.jpg",
       "folderId": "1Dk3LbcySCloc6dV76yrIXsLSxQqkGq2P",
       "folderName": "공모전 1",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1RtdcQHWazE5vF9ssppanvOCG9NCNCf_4&sz=w800",
@@ -52,7 +56,7 @@
     },
     {
       "id": "1FMYxY8mqg-YrTw--S16tw-PeIZ1Sjt-3",
-      "name": "DSC02009.jpg",
+      "name": "작가이름_제목1.jpg",
       "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
       "folderName": "공모전2",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1FMYxY8mqg-YrTw--S16tw-PeIZ1Sjt-3&sz=w800",
@@ -61,7 +65,7 @@
     },
     {
       "id": "1CelZTVIxJzi5ZJmNWT2bQGxxGxNKOWKU",
-      "name": "DSC02010.jpg",
+      "name": "작가이름_제목2.jpg",
       "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
       "folderName": "공모전2",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1CelZTVIxJzi5ZJmNWT2bQGxxGxNKOWKU&sz=w800",
@@ -70,7 +74,7 @@
     },
     {
       "id": "1j4ajTcAjqeTHLJrVntQmpxGblJ7yaq1J",
-      "name": "DSC02013.jpg",
+      "name": "작가이름_제목3.jpg",
       "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
       "folderName": "공모전2",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1j4ajTcAjqeTHLJrVntQmpxGblJ7yaq1J&sz=w800",
@@ -79,7 +83,7 @@
     },
     {
       "id": "1YQ8HcVMWC-ATEqDcQrQjoOvqGtcyw823",
-      "name": "DSC02014.jpg",
+      "name": "작가이름_제목4.jpg",
       "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
       "folderName": "공모전2",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1YQ8HcVMWC-ATEqDcQrQjoOvqGtcyw823&sz=w800",
@@ -88,7 +92,7 @@
     },
     {
       "id": "1fafvz-wSWDNkkilH4kATxHCqlYzDWBhc",
-      "name": "DSC02016.jpg",
+      "name": "작가이름_제목5.jpg",
       "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
       "folderName": "공모전2",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1fafvz-wSWDNkkilH4kATxHCqlYzDWBhc&sz=w800",
@@ -97,12 +101,57 @@
     },
     {
       "id": "1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m",
-      "name": "DSC02017.jpg",
+      "name": "작가이름_제목6_기기명.jpg",
       "folderId": "1s2Su2DUzH1busMmjensu1iyrHCfhdIAZ",
       "folderName": "공모전2",
       "thumbUrl": "https://drive.google.com/thumbnail?id=1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m&sz=w800",
       "fullUrl": "https://drive.google.com/thumbnail?id=1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m&sz=w2000",
       "driveUrl": "https://drive.google.com/file/d/1vHceFDfnl2X-Y7qso4imzwg9-rkg7L3m/view"
+    },
+    {
+      "id": "1mpH4TEr5tgpA6PV2F4qwV5jI3q0ROn4M",
+      "name": "마오_겨울_카메라이름 (1).jpg",
+      "folderId": "1056n-q68TZQdKsy5nPxns5H8g6h1OfW0",
+      "folderName": "공모전 예시",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1mpH4TEr5tgpA6PV2F4qwV5jI3q0ROn4M&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1mpH4TEr5tgpA6PV2F4qwV5jI3q0ROn4M&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1mpH4TEr5tgpA6PV2F4qwV5jI3q0ROn4M/view"
+    },
+    {
+      "id": "1owjhrm55zy2cKWD39JXulhoEybPARiZO",
+      "name": "마오_겨울_카메라이름 (2).jpg",
+      "folderId": "1056n-q68TZQdKsy5nPxns5H8g6h1OfW0",
+      "folderName": "공모전 예시",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1owjhrm55zy2cKWD39JXulhoEybPARiZO&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1owjhrm55zy2cKWD39JXulhoEybPARiZO&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1owjhrm55zy2cKWD39JXulhoEybPARiZO/view"
+    },
+    {
+      "id": "1scXre9IGv6smFPZCjo36Q0YzLRWuu6OR",
+      "name": "마오_겨울_카메라이름 (3).jpg",
+      "folderId": "1056n-q68TZQdKsy5nPxns5H8g6h1OfW0",
+      "folderName": "공모전 예시",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1scXre9IGv6smFPZCjo36Q0YzLRWuu6OR&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1scXre9IGv6smFPZCjo36Q0YzLRWuu6OR&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1scXre9IGv6smFPZCjo36Q0YzLRWuu6OR/view"
+    },
+    {
+      "id": "1CEOTJIe9TKjiPx5jmrJYGc05NpgSsLwX",
+      "name": "마오_겨울_카메라이름 (4).jpg",
+      "folderId": "1056n-q68TZQdKsy5nPxns5H8g6h1OfW0",
+      "folderName": "공모전 예시",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1CEOTJIe9TKjiPx5jmrJYGc05NpgSsLwX&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1CEOTJIe9TKjiPx5jmrJYGc05NpgSsLwX&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1CEOTJIe9TKjiPx5jmrJYGc05NpgSsLwX/view"
+    },
+    {
+      "id": "1v-XiW4ACEueR_innzFr_ORyCvVk-LYuo",
+      "name": "마오_겨울_카메라이름 (5).jpg",
+      "folderId": "1056n-q68TZQdKsy5nPxns5H8g6h1OfW0",
+      "folderName": "공모전 예시",
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1v-XiW4ACEueR_innzFr_ORyCvVk-LYuo&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1v-XiW4ACEueR_innzFr_ORyCvVk-LYuo&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1v-XiW4ACEueR_innzFr_ORyCvVk-LYuo/view"
     }
   ]
 }
