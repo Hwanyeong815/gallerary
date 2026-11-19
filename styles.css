@@ -365,6 +365,39 @@ textarea {
   border-color: var(--glass-border-highlight);
 }
 
+/* 1280px 이하: 폴더 탭(전체·공모전들)을 메뉴 아래 줄로 내리고,
+   칸이 모자라면 다음 줄로 넘겨 화면이 줄어도 탭이 잘리지 않게 함 */
+@media (max-width: 1280px) {
+  .nav-inner {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding-top: 8px;
+    padding-bottom: 10px;
+  }
+
+  .nav-pills {
+    order: 3;
+    flex: 0 0 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    gap: 6px;
+  }
+
+  .folder-tab-btn {
+    background: var(--glass-pill);
+    border: 1px solid var(--glass-border);
+  }
+
+  .folder-tab-btn.active {
+    border-color: transparent;
+  }
+}
+
 /* 모바일 상단 네비게이션 2단 분리 레이아웃 (768px 이하) */
 @media (max-width: 768px) {
   .global-nav {
@@ -449,13 +482,12 @@ textarea {
     grid-column: 1 / -1;
     grid-row: 3;
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px;
+    overflow: visible;
+    padding: 0;
     gap: 6px;
   }
 
