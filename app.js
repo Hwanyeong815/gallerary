@@ -1,25 +1,293 @@
-// config.js에서 설정된 GOOGLE_DRIVE_FOLDER_URL 사용
+/* ==========================================================================
+   각자의 프레임 — 사진 공모전 갤러리 스크립트
+   ========================================================================== */
+
+// config.js에서 설정한 값 (없으면 기본값)
 const CONFIGURED_FOLDER_URL =
   (typeof window !== 'undefined' && window.GOOGLE_DRIVE_FOLDER_URL) ||
   'https://drive.google.com/drive/folders/1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw?usp=sharing';
 
-// 게시판 구글 시트 CSV 주소 및 글쓰기 구글 폼 주소 (config.js의 전역 상수와 식별자 충돌 방지)
-const CONFIGURED_BOARD_CSV_URL =
-  (typeof window !== 'undefined' && window.GOOGLE_SHEET_CSV_URL) ||
-  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRSSnDF4kOkpdc395mcK_tVi4yYg5klJfL-iIkHco6Bn2F1VBJqB9Cmj-1eFPiofNKhK00UmIT8YJU5/pub?output=csv';
+// 카카오톡 오픈채팅방 주소 (config.js의 KAKAO_OPENCHAT_URL, 비어 있으면 링크 버튼 없이 안내 문구만)
+// config.js와 이름이 겹치지 않도록 여기서는 CONFIGURED_KAKAO_URL로 씀
+const CONFIGURED_KAKAO_URL = (() => {
+  const raw = typeof window !== 'undefined' ? String(window.KAKAO_OPENCHAT_URL || '').trim() : '';
+  return /^https:\/\//i.test(raw) ? raw : '';
+})();
 
-const CONFIGURED_BOARD_FORM_URL =
-  (typeof window !== 'undefined' && typeof window.BOARD_FORM_URL === 'string')
-    ? window.BOARD_FORM_URL
-    : '';
+/* ==========================================================================
+   1. 화면 문구 (한국어 / English) — 우측 상단 EN 버튼으로 전환
+   ========================================================================== */
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
-// 화면 고정 문구 (영문 표기 없이 한국어로만 표시)
-const I18N = {
-  allTab: '전체',
-  heroEyebrow: '전시 아카이브',
-  firstPrizeBadge: '👑 1등'
+const STRINGS = {
+  ko: {
+    navGallery: '갤러리',
+    navContests: '공모전 아카이브',
+    navMini: '소마대전',
+    navWinners: '역대 수상작',
+    langToggle: 'EN',
+    langToggleAria: '영어로 보기',
+    searchOpen: '검색창 열기',
+    refresh: '구글 드라이브 최신 목록 새로고침',
+    themeToggle: '어둡게 / 밝게 전환',
+    phGallery: '작품, 작가 검색...',
+    phContests: '공모전명, 연도, 참여 작가 검색...',
+    phMini: '회차, 연도, 참여 작가 검색...',
+    phWinners: '수상작 제목, 작가 검색...',
+
+    heroEyebrow: '전시 아카이브',
+    heroTitle: '각자의 프레임',
+    heroSubtitle: '잘 찍은 사진이 아니어도 괜찮아요.<br />초보와 고수의 경계 없이 각자의 시선으로 기록한 순간들의 컬렉션.',
+    loadingCollection: '컬렉션 불러오는 중',
+    syncing: '컬렉션 동기화 중...',
+    syncingLive: '최신 목록 동기화 중...',
+    photoCount: n => `${n}장의 사진`,
+    loadFailed: '폴더에서 사진을 불러오지 못했습니다. config.js의 드라이브 폴더 공유 권한이 "링크가 있는 모든 사용자"인지 확인해 주세요.',
+    connError: '연결 오류',
+    errorPrefix: msg => `오류가 발생했습니다: ${msg}`,
+    toastUpdated: '최신 목록으로 업데이트되었습니다',
+    lastUpdated: text => `최종 갱신: ${text}`,
+    footerMaker: '제작자: 웰컴',
+    footerOwner: '드라이브 소유자: 마오',
+
+    all: '전체',
+    miniGroup: '소마대전',
+    ongoingDotTitle: '진행중',
+    entryNumber: n => `${n}번`,
+    entry: '출품작',
+    unknownAuthor: '작가 미상',
+    viewLarge: label => `${label} 크게 보기`,
+    awardGrand: '대상',
+    awardBest: '최우수상',
+    awardFirst: '1등',
+    awardExcellence: '우수상',
+    awardHonor: '입선',
+
+    statusOngoing: '진행 중',
+    statusEnded: '종료',
+    voteNote: '투표는 카카오톡 오픈채팅방에서 해 주세요.',
+    kakaoLink: '오픈채팅방 열기',
+    ongoingDesc: '작가명과 제목은 투표가 끝난 뒤 공개됩니다.',
+
+    popupBadge: '진행중',
+    popupTitle: name => `현재 ${name} 진행 중입니다`,
+    popupDesc: '카카오톡 오픈채팅방에서 투표 진행 중인 사진입니다.<br />투표는 오픈채팅방에서 부탁드려요.',
+    popupViewNow: '작품 보러가기',
+    close: '닫기',
+    closePopup: '팝업 닫기',
+
+    contestsTitle: '공모전 아카이브',
+    contestsSubtitle: '지금까지 열린 공모전을 연도별로 모았습니다. 공모전을 누르면 출품작과 수상작을 볼 수 있어요.',
+    miniTitle: '소마대전',
+    miniSubtitle: '소마대전은 미니 공모전입니다. 회차를 누르면 출품작과 수상작을 볼 수 있어요.',
+    winnersTitle: '역대 수상작',
+    winnersSubtitle: '공모전마다 뽑힌 수상작을 모았습니다.',
+    filterAll: n => `전체 (${n})`,
+    filterLive: n => `진행 중 (${n})`,
+    filterEnded: n => `종료 (${n})`,
+    filterYear: y => `${y}년`,
+    noContests: '아직 공모전이 없습니다.',
+    noMini: '아직 소마대전이 없습니다.<br />드라이브에 \'소마대전\' 폴더를 만들고 회차별 폴더를 그 안에 넣으면 이곳에 모입니다.',
+    noMatchContests: '조건에 해당하는 공모전이 없습니다.',
+    yearCount: n => `공모전 ${n}개`,
+    statEntries: n => `출품 ${n}점`,
+    statAwards: n => `수상 ${n}점`,
+    statAuthors: n => `작가 ${n}명`,
+    viewExhibition: '전시 보기',
+    viewExhibitionOf: name => `${name} 전시 보기`,
+
+    detailLoading: '공모전 정보를 불러오는 중입니다...',
+    backToContests: '공모전 아카이브로 돌아가기',
+    backToMini: '소마대전으로 돌아가기',
+    kindMini: '소마대전',
+    cover: credit => `표지 · ${credit}`,
+    coverAlt: title => `${title} 표지 사진`,
+    statLabelEntries: '출품',
+    statLabelAwards: '수상',
+    statLabelAuthors: '참여 작가',
+    pieces: n => `${n}점`,
+    people: n => `${n}명`,
+    judging: '심사 중',
+    none: '없음',
+    revealAfterVote: '투표 후 공개',
+    sectionEntries: '출품작',
+    sectionAuthors: '참여 작가',
+    shownOf: (shown, total) => `${shown} / ${total}점`,
+    noMatchEntries: '검색어에 맞는 출품작이 없습니다.',
+    noWinners: '표시할 수상작이 없습니다. 파일명에 [1등] 태그가 붙은 작품이 이곳에 자동으로 모입니다.',
+
+    loadMore: '더보기',
+    lightboxLabel: '사진 크게 보기',
+    prevPhoto: '이전 사진',
+    nextPhoto: '다음 사진',
+    cursorView: '보기',
+    cursorOpen: '열기'
+  },
+
+  en: {
+    navGallery: 'Gallery',
+    navContests: 'Contests',
+    navMini: 'Mini contests',
+    navWinners: 'Winners',
+    langToggle: '한',
+    langToggleAria: 'View in Korean',
+    searchOpen: 'Open search',
+    refresh: 'Refresh from Google Drive',
+    themeToggle: 'Switch dark / light',
+    phGallery: 'Search works or photographers',
+    phContests: 'Search contests, years, photographers',
+    phMini: 'Search rounds, years, photographers',
+    phWinners: 'Search winners',
+
+    heroEyebrow: 'Exhibition archive',
+    heroTitle: 'Frames of Our Own',
+    heroSubtitle: 'It doesn’t have to be a perfect shot.<br />Moments seen through each person’s eyes, beginners and pros alike.',
+    loadingCollection: 'Loading the collection',
+    syncing: 'Syncing the collection…',
+    syncingLive: 'Syncing the latest list…',
+    photoCount: n => plural(n, 'photo', 'photos'),
+    loadFailed: 'Couldn’t load photos from the folder. Check that the Drive folder in config.js is shared with “Anyone with the link”.',
+    connError: 'Connection error',
+    errorPrefix: msg => `Something went wrong: ${msg}`,
+    toastUpdated: 'Updated to the latest list',
+    lastUpdated: text => `Last updated: ${text}`,
+    footerMaker: 'Made by 웰컴',
+    footerOwner: 'Drive owner: 마오',
+
+    all: 'All',
+    miniGroup: 'Mini',
+    ongoingDotTitle: 'Ongoing',
+    entryNumber: n => `No. ${n}`,
+    entry: 'Entry',
+    unknownAuthor: 'Unknown photographer',
+    viewLarge: label => `View ${label} larger`,
+    awardGrand: 'Grand prize',
+    awardBest: 'Best award',
+    awardFirst: '1st place',
+    awardExcellence: 'Excellence award',
+    awardHonor: 'Honorable mention',
+
+    statusOngoing: 'Ongoing',
+    statusEnded: 'Closed',
+    voteNote: 'Voting happens in our KakaoTalk open chat.',
+    kakaoLink: 'Open the chat room',
+    ongoingDesc: 'Photographers and titles are revealed after voting ends.',
+
+    popupBadge: 'Ongoing',
+    popupTitle: name => `${name} is now open`,
+    popupDesc: 'These photos are up for a vote in our KakaoTalk open chat.<br />Please cast your vote there.',
+    popupViewNow: 'See the entries',
+    close: 'Close',
+    closePopup: 'Close',
+
+    contestsTitle: 'Contest archive',
+    contestsSubtitle: 'Every contest so far, by year. Pick one to see its entries and winners.',
+    miniTitle: 'Mini contests',
+    miniSubtitle: '소마대전 is our mini contest series. Pick a round to see its entries and winners.',
+    winnersTitle: 'Winners',
+    winnersSubtitle: 'Award-winning photos from every contest.',
+    filterAll: n => `All (${n})`,
+    filterLive: n => `Ongoing (${n})`,
+    filterEnded: n => `Closed (${n})`,
+    filterYear: y => `${y}`,
+    noContests: 'No contests yet.',
+    noMini: 'No mini contests yet.<br />Create a “소마대전” folder in Drive and put each round’s folder inside it.',
+    noMatchContests: 'No contests match.',
+    yearCount: n => plural(n, 'contest', 'contests'),
+    statEntries: n => plural(n, 'entry', 'entries'),
+    statAwards: n => plural(n, 'award', 'awards'),
+    statAuthors: n => plural(n, 'photographer', 'photographers'),
+    viewExhibition: 'View exhibition',
+    viewExhibitionOf: name => `View ${name}`,
+
+    detailLoading: 'Loading the contest…',
+    backToContests: 'Back to contests',
+    backToMini: 'Back to mini contests',
+    kindMini: 'Mini contest',
+    cover: credit => `Cover · ${credit}`,
+    coverAlt: title => `${title} cover photo`,
+    statLabelEntries: 'Entries',
+    statLabelAwards: 'Awards',
+    statLabelAuthors: 'Photographers',
+    pieces: n => `${n}`,
+    people: n => `${n}`,
+    judging: 'Judging',
+    none: 'None',
+    revealAfterVote: 'After voting',
+    sectionEntries: 'Entries',
+    sectionAuthors: 'Photographers',
+    shownOf: (shown, total) => `${shown} / ${total}`,
+    noMatchEntries: 'No entries match your search.',
+    noWinners: 'No winners yet. Photos tagged [1등] in their file name show up here.',
+
+    loadMore: 'Show more',
+    lightboxLabel: 'Photo viewer',
+    prevPhoto: 'Previous photo',
+    nextPhoto: 'Next photo',
+    cursorView: 'View',
+    cursorOpen: 'Open'
+  }
 };
 
+let currentLang = (() => {
+  try {
+    return localStorage.getItem('gallery-lang') === 'en' ? 'en' : 'ko';
+  } catch (e) {
+    return 'ko';
+  }
+})();
+
+function t(key, ...args) {
+  const table = STRINGS[currentLang] || STRINGS.ko;
+  const entry = key in table ? table[key] : STRINGS.ko[key];
+  if (typeof entry === 'function') return entry(...args);
+  return entry !== undefined ? entry : key;
+}
+
+// HTML에 data-i18n(글자) / data-i18n-html(줄바꿈 포함) / data-i18n-aria / data-i18n-title 로 표시한 문구 바꾸기
+function applyStaticTexts() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    el.setAttribute('aria-label', t(el.dataset.i18nAria));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.setAttribute('title', t(el.dataset.i18nTitle));
+  });
+
+  const langBtn = document.getElementById('btnLangToggle');
+  if (langBtn) {
+    langBtn.textContent = t('langToggle');
+    langBtn.setAttribute('aria-label', t('langToggleAria'));
+  }
+
+  document.querySelectorAll('.hero-title, .archive-page-title').forEach(splitTitleChars);
+  renderFooterLastUpdated();
+}
+
+function setLanguage(lang) {
+  currentLang = lang === 'en' ? 'en' : 'ko';
+  try {
+    localStorage.setItem('gallery-lang', currentLang);
+  } catch (e) {}
+
+  applyStaticTexts();
+  renderFolderTabs();
+  switchMainView(currentMainView);
+
+  if (isOngoingModalOpen) updateOngoingPopup();
+  const lightbox = document.getElementById('lightboxModal');
+  if (lightbox && !lightbox.classList.contains('hidden')) updateLightboxContent();
+}
+
+/* ==========================================================================
+   날짜 · 맨 아래 최종 갱신
+   ========================================================================== */
 function formatDateYMD(dateObj) {
   const d = dateObj instanceof Date && !isNaN(dateObj) ? dateObj : new Date();
   const yyyy = d.getFullYear();
@@ -30,27 +298,28 @@ function formatDateYMD(dateObj) {
 
 function formatDateTimeYMDHM(dateObj) {
   const d = dateObj instanceof Date && !isNaN(dateObj) ? dateObj : new Date();
-  const ymd = formatDateYMD(d);
   const hh = String(d.getHours()).padStart(2, '0');
   const min = String(d.getMinutes()).padStart(2, '0');
-  return `${ymd} ${hh}:${min}`;
+  return `${formatDateYMD(d)} ${hh}:${min}`;
 }
+
+let footerUpdatedAt = { date: new Date(), withTime: false };
 
 function updateFooterLastUpdated(withTime = false, customDate = null) {
+  footerUpdatedAt = { date: customDate ? new Date(customDate) : new Date(), withTime };
+  renderFooterLastUpdated();
+}
+
+function renderFooterLastUpdated() {
   const el = document.getElementById('footerLastUpdated');
   if (!el) return;
-  const d = customDate ? new Date(customDate) : new Date();
-  const text = withTime ? formatDateTimeYMDHM(d) : formatDateYMD(d);
-  el.textContent = `최종 갱신: ${text}`;
+  const { date, withTime } = footerUpdatedAt;
+  el.textContent = t('lastUpdated', withTime ? formatDateTimeYMDHM(date) : formatDateYMD(date));
 }
 
-function applyLocaleTexts() {
-  const eyebrow = document.getElementById('heroEyebrow');
-
-  if (eyebrow) eyebrow.textContent = I18N.heroEyebrow;
-  updateFooterLastUpdated(false);
-}
-
+/* ==========================================================================
+   상태
+   ========================================================================== */
 let allPhotos = [];
 let folderCategories = [];
 let selectedSubfolderId = 'ALL';
@@ -60,164 +329,25 @@ let isOngoingModalOpen = false;
 let ongoingModalDismissedOnThisLoad = false;
 let filteredPhotos = [];
 let activePhotoIndex = 0;
+// 크게 보기에서 수상 표시를 할지 (공모전 아카이브 · 역대 수상작에서 열었을 때만)
+let lightboxShowAwards = false;
 let revealObserver = null;
-let currentThemeValue = 0.0;
-let targetThemeValue = 0.0;
 let toastTimer = null;
 
-// 메인 섹션 전환 및 구글 시트 연동 게시판 상태
-// 'gallery' | 'competitions' | 'competition-detail' | 'winners' | 'tips'
+// 메인 섹션 전환 상태: 'gallery' | 'competitions' | 'mini' | 'competition-detail' | 'winners'
 let currentMainView = 'gallery';
 let selectedCompetitionId = null;
-let selectedCompYearFilter = 'ALL';
-let activeTipPostId = null;
-let tipsPosts = [];
-let isBoardLoading = false;
+// 공모전 아카이브 / 소마대전 목록의 필터 선택 (각각 따로 기억)
+const compListFilter = { regular: 'ALL', mini: 'ALL' };
+// 공모전 상세에서 '돌아가기'를 누르면 갈 목록 ('competitions' 또는 'mini')
+let detailReturnView = 'competitions';
+
+const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia
+  ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  : false;
 
 /* ==========================================================================
-   1. WebGL 셰이더 배경 (다크/라이트 테마 대응 앰비언트 실크 오로라 & 마우스 빛 반사)
-   ========================================================================== */
-function initWebGLBackground() {
-  const canvas = document.getElementById('webglCanvas');
-  if (!canvas) return;
-
-  const gl = canvas.getContext('webgl', { alpha: false, antialias: false });
-  if (!gl) return;
-
-  const vsSource = `
-    attribute vec2 a_position;
-    void main() {
-      gl_Position = vec4(a_position, 0.0, 1.0);
-    }
-  `;
-
-  const fsSource = `
-    precision mediump float;
-    uniform vec2 u_resolution;
-    uniform vec2 u_mouse;
-    uniform float u_time;
-    uniform float u_lightMode;
-
-    void main() {
-      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-      vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
-      vec2 m = (u_mouse - 0.5) * vec2(u_resolution.x / min(u_resolution.x, u_resolution.y), 1.0);
-
-      float t = u_time * 0.18;
-      vec2 q = p;
-      q.x += 0.22 * sin(p.y * 2.1 + t) + 0.12 * cos(p.x * 3.0 - t * 0.7);
-      q.y += 0.22 * cos(p.x * 1.9 - t * 0.8) + 0.12 * sin(p.y * 2.7 + t * 0.6);
-
-      float wave1 = sin(q.x * 2.4 + q.y * 1.8 + t) * 0.5 + 0.5;
-      float wave2 = cos(q.x * 1.7 - q.y * 2.5 - t * 0.9) * 0.5 + 0.5;
-
-      float distToMouse = length(p - m);
-      float mouseGlow = exp(-distToMouse * 2.4) * 0.20;
-
-      // 무채색 다크 모드 (옵시디언 블랙 & 퓨어 실버 그레이 광택)
-      vec3 darkBase = vec3(0.012, 0.012, 0.014);
-      vec3 darkAurora1 = vec3(0.085, 0.085, 0.092);
-      vec3 darkAurora2 = vec3(0.055, 0.055, 0.060);
-      vec3 darkSpec = vec3(0.28, 0.28, 0.30);
-
-      vec3 darkCol = darkBase;
-      darkCol = mix(darkCol, darkAurora1, wave1 * 0.45 * (1.0 - uv.y * 0.4));
-      darkCol = mix(darkCol, darkAurora2, wave2 * 0.34);
-      darkCol += darkSpec * mouseGlow;
-
-      // 무채색 라이트 모드 (퓨어 실버 화이트 & 모노크롬 미스트 광택)
-      vec3 lightBase = vec3(0.980, 0.980, 0.985);
-      vec3 lightAurora1 = vec3(0.935, 0.935, 0.942);
-      vec3 lightAurora2 = vec3(0.955, 0.955, 0.962);
-      vec3 lightSpec = vec3(1.0, 1.0, 1.0);
-
-      vec3 lightCol = lightBase;
-      lightCol = mix(lightCol, lightAurora1, wave1 * 0.55);
-      lightCol = mix(lightCol, lightAurora2, wave2 * 0.45);
-      lightCol = mix(lightCol, lightSpec, mouseGlow * 1.4);
-
-      vec3 finalCol = mix(darkCol, lightCol, u_lightMode);
-      gl_FragColor = vec4(finalCol, 1.0);
-    }
-  `;
-
-  function compileShader(type, source) {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      gl.deleteShader(shader);
-      return null;
-    }
-    return shader;
-  }
-
-  const vs = compileShader(gl.VERTEX_SHADER, vsSource);
-  const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
-  if (!vs || !fs) return;
-
-  const program = gl.createProgram();
-  gl.attachShader(program, vs);
-  gl.attachShader(program, fs);
-  gl.linkProgram(program);
-  gl.useProgram(program);
-
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  );
-
-  const posLoc = gl.getAttribLocation(program, 'a_position');
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-
-  const uRes = gl.getUniformLocation(program, 'u_resolution');
-  const uMouse = gl.getUniformLocation(program, 'u_mouse');
-  const uTime = gl.getUniformLocation(program, 'u_time');
-  const uLightMode = gl.getUniformLocation(program, 'u_lightMode');
-
-  let targetMouseX = 0.5;
-  let targetMouseY = 0.65;
-  let curMouseX = 0.5;
-  let curMouseY = 0.65;
-
-  function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    canvas.width = Math.floor(window.innerWidth * dpr);
-    canvas.height = Math.floor(window.innerHeight * dpr);
-    gl.viewport(0, 0, canvas.width, canvas.height);
-  }
-
-  window.addEventListener('resize', resize);
-  resize();
-
-  window.addEventListener('pointermove', (e) => {
-    targetMouseX = e.clientX / window.innerWidth;
-    targetMouseY = 1.0 - e.clientY / window.innerHeight;
-  }, { passive: true });
-
-  const startTime = performance.now();
-  function render(now) {
-    curMouseX += (targetMouseX - curMouseX) * 0.05;
-    curMouseY += (targetMouseY - curMouseY) * 0.05;
-    currentThemeValue += (targetThemeValue - currentThemeValue) * 0.08;
-
-    gl.uniform2f(uRes, canvas.width, canvas.height);
-    gl.uniform2f(uMouse, curMouseX, curMouseY);
-    gl.uniform1f(uTime, (now - startTime) * 0.001);
-    gl.uniform1f(uLightMode, currentThemeValue);
-
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
-    requestAnimationFrame(render);
-  }
-  requestAnimationFrame(render);
-}
-
-/* ==========================================================================
-   2. [진행중] 공모전 폴더 감지
+   2. [진행중] 공모전 · 소마대전 폴더
    ========================================================================== */
 function isOngoingFolder(folderName) {
   return /(?:\[\s*진행\s*중\s*\]|진행\s*중)/i.test(String(folderName || ''));
@@ -231,6 +361,33 @@ function cleanOngoingFolderName(folderName) {
     .trim() || '공모전';
 }
 
+/* 소마대전(미니 공모전)
+   폴더 이름에 '소마대전'이 들어가거나 드라이브의 '소마대전' 폴더 안에 넣은 폴더는
+   공모전 아카이브와 따로 '소마대전' 메뉴에 모임 (하위 폴더 이름은 '소마대전 / 회차'로 들어옴) */
+const MINI_CONTEST_NAME = '소마대전';
+
+function isMiniFolder(folderName) {
+  return String(folderName || '').includes(MINI_CONTEST_NAME);
+}
+
+// 목록 안에서 쓸 짧은 이름: [진행중] 표시를 빼고, '소마대전 / 회차'는 회차 이름만
+function getFolderShortName(folderName) {
+  const clean = cleanOngoingFolderName(folderName);
+  const parts = clean.split(/\s+\/\s+/).map(s => s.trim()).filter(Boolean);
+  if (parts.length > 1 && parts[0].includes(MINI_CONTEST_NAME)) {
+    return parts.slice(1).join(' / ');
+  }
+  return clean;
+}
+
+// 여러 공모전이 섞여 보이는 곳(갤러리 캡션, 수상작, 크게 보기, 팝업)에 쓸 이름: 소마대전이면 앞에 붙임
+function getFolderFullName(folderName) {
+  const short = getFolderShortName(folderName);
+  return isMiniFolder(folderName) && !short.includes(MINI_CONTEST_NAME)
+    ? `${MINI_CONTEST_NAME} ${short}`
+    : short;
+}
+
 // [진행중]이 포함된 폴더를 항상 첫 번째 순서로 정렬
 function sortFoldersOngoingFirst(folders) {
   return [...folders].sort((a, b) => {
@@ -238,6 +395,31 @@ function sortFoldersOngoingFirst(folders) {
     const bOngoing = isOngoingFolder(b.name) ? 1 : 0;
     return bOngoing - aOngoing;
   });
+}
+
+// 목차와 갤러리에서 쓰는 폴더 순서: 일반 공모전(진행중 먼저) → 소마대전
+function getOrderedFolders() {
+  return [
+    ...folderCategories.filter(f => !isMiniFolder(f.name)),
+    ...folderCategories.filter(f => isMiniFolder(f.name))
+  ];
+}
+
+// 공모전 설명: 드라이브 폴더 안 txt 파일 내용 (영어 화면에서는 영어 txt가 있으면 그것)
+function getFolderDescription(folder) {
+  if (!folder) return '';
+  if (currentLang === 'en' && folder.descriptionEn) return folder.descriptionEn;
+  return folder.description || '';
+}
+
+// 카카오톡 오픈채팅방 링크 버튼 (config.js에 주소가 있을 때만)
+function kakaoLinkHtml() {
+  if (!CONFIGURED_KAKAO_URL) return '';
+  return `<a class="kakao-link-btn" href="${escapeHtml(CONFIGURED_KAKAO_URL)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('kakaoLink'))} &nearr;</a>`;
+}
+
+function voteNoteHtml() {
+  return `<p class="vote-note"><span>${escapeHtml(t('voteNote'))}</span>${kakaoLinkHtml()}</p>`;
 }
 
 function navigateToOngoingFolder(folder) {
@@ -274,6 +456,7 @@ function updateOngoingPopup() {
   const backdrop = document.getElementById('ongoingModalBackdrop');
   const popupTitle = document.getElementById('ongoingPopupTitle');
   const previewGrid = document.getElementById('ongoingModalPreviewGrid');
+  const linkWrap = document.getElementById('ongoingVoteLinkWrap');
 
   const ongoingFolder = folderCategories.find(f => isOngoingFolder(f.name)) || null;
   currentOngoingFolder = ongoingFolder;
@@ -288,14 +471,14 @@ function updateOngoingPopup() {
     return;
   }
 
-  const cleanName = cleanOngoingFolderName(ongoingFolder.name);
+  if (linkWrap) linkWrap.innerHTML = kakaoLinkHtml();
 
   if (previewGrid) {
     const ongoingPhotos = allPhotos.filter(p => p.folderId === ongoingFolder.id);
     previewGrid.innerHTML = ongoingPhotos.map(photo => {
       const meta = getDisplayMeta(photo);
       return `
-        <button type="button" class="ongoing-preview-item" data-photo-id="${escapeHtml(photo.id)}" aria-label="${escapeHtml(meta.title)} 크게 보기">
+        <button type="button" class="ongoing-preview-item" data-photo-id="${escapeHtml(photo.id)}" aria-label="${escapeHtml(t('viewLarge', meta.title))}">
           <div class="ongoing-preview-thumb-wrap">
             <img class="ongoing-preview-thumb" src="${photo.thumbUrl}" alt="${escapeHtml(meta.title)}" loading="lazy" referrerpolicy="no-referrer" />
           </div>
@@ -320,6 +503,7 @@ function updateOngoingPopup() {
 
         const targetIndex = filteredPhotos.findIndex(p => p.id === targetId);
         if (targetIndex !== -1) {
+          lightboxShowAwards = false;
           openLightbox(targetIndex);
         }
       });
@@ -328,9 +512,9 @@ function updateOngoingPopup() {
 
   // 한 번 닫은 뒤에는 새로고침 전까지 다시 뜨지 않음
   if (backdrop && popupTitle) {
+    popupTitle.textContent = t('popupTitle', getFolderFullName(ongoingFolder.name));
     if (!ongoingModalDismissedOnThisLoad) {
       isOngoingModalOpen = true;
-      popupTitle.textContent = `현재 ${cleanName} 진행 중입니다`;
       backdrop.classList.remove('hidden');
       requestAnimationFrame(() => {
         if (!ongoingModalDismissedOnThisLoad) {
@@ -346,14 +530,14 @@ function updateOngoingPopup() {
 }
 
 /* ==========================================================================
-   3. 애플 스타일 토스트 알림 & 3D 틸트 인터랙션
+   3. 알림 · 화면에 들어올 때 나타나기
    ========================================================================== */
-function showAppleToast(message = '최신 목록으로 업데이트되었습니다') {
+function showAppleToast(message) {
   const toast = document.getElementById('appleToast');
   const textEl = document.getElementById('appleToastText');
   if (!toast || !textEl) return;
 
-  textEl.textContent = message;
+  textEl.textContent = message || t('toastUpdated');
   toast.classList.add('visible');
 
   if (toastTimer) clearTimeout(toastTimer);
@@ -362,58 +546,33 @@ function showAppleToast(message = '최신 목록으로 업데이트되었습니�
   }, 2800);
 }
 
-function setupScrollRevealObserver() {
-  if (revealObserver) revealObserver.disconnect();
-
-  revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.08, rootMargin: '0px 0px -30px 0px' }
-  );
+// 한 화면에 그리드가 여러 개 있어도 모두 지켜보도록 관찰자는 하나만 두고, 화면을 새로 그릴 때만 비움
+function getRevealObserver() {
+  if (!revealObserver) {
+    revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -30px 0px' }
+    );
+  }
+  return revealObserver;
 }
 
-function attachAppleCardInteractions(card) {
-  let rafId = null;
-
-  card.addEventListener('pointerenter', (e) => {
-    if (e.pointerType === 'touch') return;
-    card.classList.add('is-tilting');
-  });
-
-  card.addEventListener('pointermove', (e) => {
-    if (e.pointerType === 'touch') return;
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = requestAnimationFrame(() => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const px = x / rect.width;
-      const py = y / rect.height;
-
-      const rotateY = (px - 0.5) * 11;
-      const rotateX = (0.5 - py) * 11;
-
-      card.style.transform = `perspective(1100px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.015, 1.015, 1.015)`;
-      card.style.setProperty('--glare-x', `${(px * 100).toFixed(1)}%`);
-      card.style.setProperty('--glare-y', `${(py * 100).toFixed(1)}%`);
-    });
-  });
-
-  card.addEventListener('pointerleave', () => {
-    if (rafId) cancelAnimationFrame(rafId);
-    card.classList.remove('is-tilting');
-    card.style.transform = '';
-  });
+function resetRevealObserver() {
+  if (revealObserver) {
+    revealObserver.disconnect();
+    revealObserver = null;
+  }
 }
 
 /* ==========================================================================
-   4. 수상작 자동 인식 & 키워드 완벽 제거 & 진행중 폴더 작가명 블라인드(익명) 처리
+   4. 파일 이름 읽기: 수상 표시 · 작가 · 제목 · 순번 (진행중 폴더는 번호만)
    ========================================================================== */
 function stripExtension(filename) {
   return String(filename || 'Untitled')
@@ -425,19 +584,19 @@ function stripExtension(filename) {
 function getAwardTierInfo(filename) {
   const s = stripExtension(filename);
   if (/(?:\[\s*대상\s*\]|(?:^|[_\s-])대상(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'GRAND', rankOrder: 1, label: '👑 대상', shortLabel: '👑 대상', isTopWinner: true };
+    return { tier: 'GRAND', rankOrder: 1, label: t('awardGrand'), shortLabel: t('awardGrand'), isTopWinner: true };
   }
   if (/(?:\[\s*최우수(?:상)?\s*\]|(?:^|[_\s-])최우수(?:상)?(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'BEST', rankOrder: 2, label: '👑 최우수상', shortLabel: '👑 최우수상', isTopWinner: true };
+    return { tier: 'BEST', rankOrder: 2, label: t('awardBest'), shortLabel: t('awardBest'), isTopWinner: true };
   }
   if (/(?:\[\s*(?:1등|우승)\s*\]|(?:^|[_\s-])(?:1등|우승)(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'FIRST', rankOrder: 3, label: '👑 1등', shortLabel: '👑 1등', isTopWinner: true };
+    return { tier: 'FIRST', rankOrder: 3, label: t('awardFirst'), shortLabel: t('awardFirst'), isTopWinner: true };
   }
   if (/(?:\[\s*(?:우수(?:상)?|2등|3등)\s*\]|(?:^|[_\s-])(?:우수(?:상)?|2등|3등)(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'EXCELLENCE', rankOrder: 4, label: '✦ 우수상', shortLabel: '✦ 우수상', isTopWinner: false };
+    return { tier: 'EXCELLENCE', rankOrder: 4, label: t('awardExcellence'), shortLabel: t('awardExcellence'), isTopWinner: false };
   }
   if (/(?:\[\s*(?:장려(?:상)?|입선)\s*\]|(?:^|[_\s-])(?:장려(?:상)?|입선)(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'HONOR', rankOrder: 5, label: '• 입선', shortLabel: '• 입선', isTopWinner: false };
+    return { tier: 'HONOR', rankOrder: 5, label: t('awardHonor'), shortLabel: t('awardHonor'), isTopWinner: false };
   }
   return null;
 }
@@ -500,7 +659,7 @@ function extractAuthorFromFilename(filename) {
 }
 
 // 순수 작품 제목 추출 (언더바 뒤 작품 제목 부분만 추출 + 끝의 카메라 기종 제외 + 끝의 중복 (1), (2) 제거)
-function extractWorkTitleOnly(filename, hideCamera = false) {
+function extractWorkTitleOnly(filename) {
   const cleaned = removeAwardAndLeadingNumber(filename);
   const withoutParen = cleanDuplicateTrailingNumber(cleaned);
   const parts = withoutParen.split('_').map(s => s.trim()).filter(Boolean);
@@ -514,12 +673,8 @@ function extractWorkTitleOnly(filename, hideCamera = false) {
   return withoutParen;
 }
 
-// 사진 정렬 비교 함수: [1등] 최상단 -> 1순위 파일명 숫자 오름차순 -> 2순위 업로드(수정) 시간 오름차순
-function comparePhotosByPriority(a, b) {
-  const aWin = isFirstPrize(a.name) ? 1 : 0;
-  const bWin = isFirstPrize(b.name) ? 1 : 0;
-  if (aWin !== bWin) return bWin - aWin;
-
+// 파일 순서: 파일명 숫자 오름차순 → 업로드(수정) 시간 오름차순
+function compareByFileOrder(a, b) {
   const numA = extractExplicitOrderNumber(a.name);
   const numB = extractExplicitOrderNumber(b.name);
   if (numA !== null && numB !== null && numA !== numB) {
@@ -533,6 +688,14 @@ function comparePhotosByPriority(a, b) {
   if (timeA !== timeB) return timeA - timeB;
 
   return (a._originalIdx || 0) - (b._originalIdx || 0);
+}
+
+// 공모전(아카이브) 안 순서: 수상작 먼저 → 파일 순서
+function comparePhotosByPriority(a, b) {
+  const aWin = isFirstPrize(a.name) ? 1 : 0;
+  const bWin = isFirstPrize(b.name) ? 1 : 0;
+  if (aWin !== bWin) return bWin - aWin;
+  return compareByFileOrder(a, b);
 }
 
 // 폴더별 사진들을 정렬 원칙으로 정렬하고 진행중 폴더 사진에 고정 번호(1번, 2번...) 부여
@@ -549,73 +712,65 @@ function sortAndNumberOngoingPhotos(photos) {
     const ongoing = group.length > 0 && isOngoingFolder(group[0].folderName);
     group.sort(comparePhotosByPriority);
 
-    if (ongoing) {
-      group.forEach((p, idx) => {
-        p.contestNumber = idx + 1;
-      });
-    } else {
-      group.forEach((p) => {
-        p.contestNumber = null;
-      });
-    }
+    group.forEach((p, idx) => {
+      p.contestNumber = ongoing ? idx + 1 : null;
+    });
     result.push(...group);
   });
 
   return result;
 }
 
-// 사진 객체별로 화면에 표시할 제목, 순번 배지, 작가명, 수상 등급 반환 (카메라 기종은 표시하지 않음)
+// 사진 객체별로 화면에 표시할 제목, 순번, 작가명, 수상 등급 반환 (카메라 기종은 표시하지 않음)
 function getDisplayMeta(photo) {
   const inOngoing = isOngoingFolder(photo.folderName);
-  const rawAuthor = extractAuthorFromFilename(photo.name);
-  const pureWorkTitle = extractWorkTitleOnly(photo.name, inOngoing);
-  const fullCleanTitle = cleanDuplicateTrailingNumber(removeAwardAndLeadingNumber(photo.name));
-  const awardInfo = getAwardTierInfo(photo.name);
 
   if (inOngoing) {
     // 진행중 공모전 작품은 번호만 표시 (제목·작가명 모두 숨김)
-    const numLabel = photo.contestNumber ? `${photo.contestNumber}번` : '';
+    const numLabel = photo.contestNumber ? t('entryNumber', photo.contestNumber) : '';
     return {
-      title: numLabel || '출품작',
+      title: numLabel || t('entry'),
       pureTitle: '',
       numLabel: numLabel,
-      authorName: '',
       authorLabel: '',
       awardInfo: null,
       isAnonymous: true
     };
   }
 
+  const rawAuthor = extractAuthorFromFilename(photo.name);
+  const fullCleanTitle = cleanDuplicateTrailingNumber(removeAwardAndLeadingNumber(photo.name));
   return {
     title: fullCleanTitle,
-    pureTitle: pureWorkTitle || fullCleanTitle,
+    pureTitle: extractWorkTitleOnly(photo.name) || fullCleanTitle,
     numLabel: '',
-    authorName: rawAuthor || '미상',
     authorLabel: rawAuthor || '',
-    awardInfo: awardInfo,
+    awardInfo: getAwardTierInfo(photo.name),
     isAnonymous: false
   };
 }
 
-// 검색어 매칭 검사 (진행중 폴더는 실제 작가명/카메라 기종 검색을 차단하고 오직 노출된 제목 및 번호로만 검색 허용)
+// 대체 텍스트·접근성 라벨용 짧은 이름 (숨긴 기종 등은 빼고 제목, 작가만)
+function getPhotoLabel(meta) {
+  if (meta.isAnonymous) return meta.title;
+  return [meta.pureTitle, meta.authorLabel].filter(Boolean).join(', ') || meta.title;
+}
+
+// 검색: 진행중 작품은 화면에 보이는 번호로만, 나머지는 제목 · 작가 · 폴더명으로
 function matchesSearchQuery(photo, query) {
   if (!query) return true;
   const q = query.toLowerCase();
   const meta = getDisplayMeta(photo);
 
   if (meta.isAnonymous) {
-    // 진행중 작품: 화면에 표시된 번호('1번', '1')로만 검색 허용
-    const searchable = `${meta.numLabel}`.toLowerCase();
-    return searchable.includes(q);
+    return `${meta.numLabel} ${photo.contestNumber || ''}`.toLowerCase().includes(q);
   }
 
-  // 일반 마감 폴더 작품: 작품 제목, 작가명, 카메라 기종(파일명 전체), 폴더명 모두 검색 허용
-  const fullSearchable = `${meta.title} ${photo.name} ${photo.folderName || ''}`.toLowerCase();
-  return fullSearchable.includes(q);
+  return `${meta.title} ${photo.name} ${photo.folderName || ''}`.toLowerCase().includes(q);
 }
 
 /* ==========================================================================
-   5. 구글 드라이브 폴더 & 하위 폴더 파싱
+   5. 구글 드라이브 폴더 & 하위 폴더 읽기 (서버·캐시가 없을 때 브라우저에서 직접)
    ========================================================================== */
 function extractFolderId(input) {
   const trimmed = String(input || '').trim();
@@ -629,17 +784,18 @@ function extractFolderId(input) {
   return '1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw';
 }
 
-function renderSkeletonGrid(count = 6) {
+function renderSkeletonGrid(count = 8) {
   const grid = document.getElementById('photoGrid');
-  const heights = ['', 'tall', 'short', 'tall', '', 'short'];
+  const moreWrap = document.getElementById('photoGridMore');
+  if (moreWrap) moreWrap.innerHTML = '';
   let html = '';
   for (let i = 0; i < count; i++) {
     html += `
-      <div class="photo-card in-view">
-        <div class="photo-media-wrap skeleton-card-box ${heights[i % heights.length]}">
-          <div class="skeleton-shimmer">
-            <div class="apple-spinner"></div>
-          </div>
+      <div class="photo-card is-skeleton in-view" aria-hidden="true">
+        <div class="photo-media-wrap"></div>
+        <div class="card-caption">
+          <span class="skeleton-line"></span>
+          <span class="skeleton-line is-short"></span>
         </div>
       </div>
     `;
@@ -656,8 +812,32 @@ function decodeEntities(str) {
     .replace(/&#39;/g, "'");
 }
 
+function isTextFile(name) {
+  return /\.txt$/i.test(name);
+}
+
 function isNonImageFile(name) {
   return /\.(pdf|zip|rar|7z|mp4|mov|avi|mkv|doc|docx|xls|xlsx|ppt|pptx|txt|csv|json|js|css|html)$/i.test(name);
+}
+
+// 영어 설명 파일: 이름에 en / eng / english 가 따로 들어간 txt (예: 설명_en.txt, description.en.txt)
+function isEnglishTextFile(name) {
+  const base = String(name || '').replace(/\.txt$/i, '');
+  return /(^|[^a-z])(en|eng|english)(?=[^a-z]|$)/i.test(base);
+}
+
+// 폴더 안 txt 중 설명으로 쓸 파일 고르기 (한국어용 / 영어용)
+function pickDescriptionFiles(texts) {
+  const en = texts.find(f => isEnglishTextFile(f.name)) || null;
+  const koCandidates = texts.filter(f => !isEnglishTextFile(f.name));
+  const ko = koCandidates.find(f => /설명|소개|description|about/i.test(f.name)) || koCandidates[0] || null;
+  return { ko, en };
+}
+
+function cleanDescriptionText(text) {
+  const s = String(text || '').replace(/^﻿/, '').replace(/\r\n?/g, '\n').trim();
+  if (!s || /^<!doctype html|^<html/i.test(s)) return '';
+  return s.slice(0, 3000);
 }
 
 function parseDriveModifiedTime(chunk, index) {
@@ -670,6 +850,7 @@ function parseDriveModifiedTime(chunk, index) {
 function parseEntriesFromEmbedHtml(html) {
   const subfolders = [];
   const files = [];
+  const texts = [];
   const seen = new Set();
 
   const parts = String(html || '').split(/class="flip-entry"/i);
@@ -690,31 +871,41 @@ function parseEntriesFromEmbedHtml(html) {
 
     if (href.includes('/folders/') || chunk.includes('drive/folders/')) {
       subfolders.push({ id, name });
+    } else if (isTextFile(name)) {
+      texts.push({ id, name });
     } else if (!isNonImageFile(name)) {
       files.push({ id, name, modifiedTime, uploadIndex: i });
     }
   }
 
-  return { subfolders, files };
+  return { subfolders, files, texts };
 }
 
-async function fetchSingleFolderEmbedHtml(folderId, bustCache = false) {
+// 외부 중계 서버를 차례로 시도해 주소의 내용을 가져옴 (브라우저에서 드라이브를 직접 못 읽기 때문)
+async function fetchViaProxies(targetUrl, bustCache = false, isValid = () => true) {
   const cb = bustCache ? `&cb=${Date.now()}` : '';
-  const embedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}${cb}#grid`;
   const proxyUrls = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(embedUrl)}${cb}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(embedUrl)}`,
-    `https://corsproxy.io/?${encodeURIComponent(embedUrl)}`
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}${cb}`,
+    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+    `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
   ];
 
   for (const pUrl of proxyUrls) {
     try {
       const res = await fetch(pUrl, { cache: 'no-store' });
       if (!res.ok) continue;
-      const html = await res.text();
-      if (html && html.includes('flip-entry')) return html;
+      const text = await res.text();
+      if (text && isValid(text)) return text;
     } catch (e) {}
   }
+  return '';
+}
+
+async function fetchSingleFolderEmbedHtml(folderId, bustCache = false) {
+  const cb = bustCache ? `&cb=${Date.now()}` : '';
+  const embedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}${cb}#grid`;
+  const html = await fetchViaProxies(embedUrl, bustCache, text => text.includes('flip-entry'));
+  if (html) return html;
 
   try {
     const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(embedUrl)}${cb}`, { cache: 'no-store' });
@@ -725,6 +916,11 @@ async function fetchSingleFolderEmbedHtml(folderId, bustCache = false) {
   } catch (e) {}
 
   return '';
+}
+
+async function fetchDriveText(fileId, bustCache = false) {
+  const url = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
+  return cleanDescriptionText(await fetchViaProxies(url, bustCache));
 }
 
 async function fetchFolderTreeViaPublicEmbed(rootFolderId, bustCache = false, maxDepth = 3) {
@@ -739,12 +935,19 @@ async function fetchFolderTreeViaPublicEmbed(rootFolderId, bustCache = false, ma
     const html = await fetchSingleFolderEmbedHtml(folderId, bustCache);
     if (!html) return;
 
-    const { subfolders, files } = parseEntriesFromEmbedHtml(html);
+    const { subfolders, files, texts } = parseEntriesFromEmbedHtml(html);
 
     if (files.length > 0) {
-      if (!folders.some(f => f.id === folderId)) {
-        folders.push({ id: folderId, name: folderName });
-      }
+      const folder = { id: folderId, name: folderName };
+      const { ko, en } = pickDescriptionFiles(texts);
+      const [description, descriptionEn] = await Promise.all([
+        ko ? fetchDriveText(ko.id, bustCache) : '',
+        en ? fetchDriveText(en.id, bustCache) : ''
+      ]);
+      if (description) folder.description = description;
+      if (descriptionEn) folder.descriptionEn = descriptionEn;
+      if (!folders.some(f => f.id === folderId)) folders.push(folder);
+
       files.forEach(file => {
         photos.push({
           id: file.id,
@@ -776,6 +979,9 @@ async function fetchFolderTreeViaPublicEmbed(rootFolderId, bustCache = false, ma
   return { folders, photos };
 }
 
+/* ==========================================================================
+   6. 폴더 목차 · 갤러리 (갤러리는 감상용: 수상 표시 없음)
+   ========================================================================== */
 function renderFolderTabs() {
   const tabsContainer = document.getElementById('folderCategoryTabs');
   if (!tabsContainer) return;
@@ -787,20 +993,28 @@ function renderFolderTabs() {
 
   let html = `
     <button type="button" class="folder-tab-btn ${selectedSubfolderId === 'ALL' ? 'active' : ''}" data-folder-id="ALL">
-      ${escapeHtml(I18N.allTab)}<span class="folder-tab-count">${allPhotos.length}</span>
+      ${escapeHtml(t('all'))}<span class="folder-tab-count">${allPhotos.length}</span>
     </button>
   `;
 
-  folderCategories.forEach(folder => {
+  const renderTab = folder => {
     const count = allPhotos.filter(p => p.folderId === folder.id).length;
     const ongoing = isOngoingFolder(folder.name);
-    const label = ongoing ? cleanOngoingFolderName(folder.name) : folder.name;
-    html += `
+    return `
       <button type="button" class="folder-tab-btn ${selectedSubfolderId === folder.id ? 'active' : ''}" data-folder-id="${folder.id}">
-        ${ongoing ? '<span class="tab-live-dot" title="진행중"></span>' : ''}${escapeHtml(label)}<span class="folder-tab-count">${count}</span>
+        ${ongoing ? `<span class="tab-live-dot" title="${escapeHtml(t('ongoingDotTitle'))}"></span>` : ''}${escapeHtml(getFolderShortName(folder.name))}<span class="folder-tab-count">${count}</span>
       </button>
     `;
-  });
+  };
+
+  // 일반 공모전 먼저, 소마대전은 '소마대전' 머리말 뒤에 따로 묶음
+  const regularFolders = folderCategories.filter(f => !isMiniFolder(f.name));
+  const miniFolders = folderCategories.filter(f => isMiniFolder(f.name));
+  html += regularFolders.map(renderTab).join('');
+  if (miniFolders.length > 0) {
+    html += `<span class="folder-tab-group">${escapeHtml(t('miniGroup'))}</span>`;
+    html += miniFolders.map(renderTab).join('');
+  }
 
   tabsContainer.innerHTML = html;
 
@@ -820,24 +1034,22 @@ function applyFiltersAndRender() {
     return matchesSearchQuery(p, searchQuery);
   });
 
-  // 1등 수상작 우선 배치 + 진행중 폴더 번호순 / 일반 폴더 우선순위 유지
+  // 갤러리 순서: 목차 순서대로 공모전별로 모으고, 공모전 안에서는 번호 · 올린 순서 (수상작을 앞에 두지 않음)
+  const folderOrder = new Map(getOrderedFolders().map((f, i) => [f.id, i]));
   filteredPhotos = [...matched].sort((a, b) => {
-    const aWin = isFirstPrize(a.name) ? 1 : 0;
-    const bWin = isFirstPrize(b.name) ? 1 : 0;
-    if (aWin !== bWin) return bWin - aWin;
-
-    if (a.folderId === b.folderId && a.contestNumber && b.contestNumber) {
-      return a.contestNumber - b.contestNumber;
-    }
-    return comparePhotosByPriority(a, b);
+    const fa = folderOrder.has(a.folderId) ? folderOrder.get(a.folderId) : 999;
+    const fb = folderOrder.has(b.folderId) ? folderOrder.get(b.folderId) : 999;
+    if (fa !== fb) return fa - fb;
+    if (a.contestNumber && b.contestNumber) return a.contestNumber - b.contestNumber;
+    return compareByFileOrder(a, b);
   });
 
   const badge = document.getElementById('photoCountBadge');
   if (badge) {
     const activeFolder = folderCategories.find(f => f.id === selectedSubfolderId);
-    const cleanFolder = activeFolder ? cleanOngoingFolderName(activeFolder.name) : '';
+    const cleanFolder = activeFolder ? getFolderFullName(activeFolder.name) : '';
     const prefix = cleanFolder ? `${cleanFolder} · ` : '';
-    badge.textContent = `${prefix}${filteredPhotos.length}장의 사진`;
+    badge.textContent = `${prefix}${t('photoCount', filteredPhotos.length)}`;
   }
 
   renderPhotoGrid(filteredPhotos);
@@ -850,12 +1062,12 @@ async function loadDriveFolder(folderInput, forceLive = false) {
   const refreshBtn = document.getElementById('btnRefreshGallery');
 
   if (statusBanner) statusBanner.classList.add('hidden');
-  if (badge) badge.textContent = forceLive ? '최신 목록 동기화 중...' : '컬렉션 동기화 중...';
+  if (badge) badge.textContent = forceLive ? t('syncingLive') : t('syncing');
 
   if (forceLive && refreshBtn) {
     refreshBtn.classList.add('is-spinning');
   } else {
-    renderSkeletonGrid(6);
+    renderSkeletonGrid(8);
   }
 
   try {
@@ -866,7 +1078,7 @@ async function loadDriveFolder(folderInput, forceLive = false) {
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1';
 
-    // 1순위: 강제 새로고침이 아닐 때는 정적 캐시(drive-cache.json)를 먼저 즉시 로드하여 "컬렉션 불러오는 중" 멈춤 현상 원천 차단
+    // 1순위: 강제 새로고침이 아닐 때는 저장해 둔 목록(drive-cache.json)을 먼저 읽음
     if (!forceLive) {
       try {
         const cacheRes = await fetch(`./drive-cache.json?t=${Date.now()}`);
@@ -880,7 +1092,7 @@ async function loadDriveFolder(folderInput, forceLive = false) {
       } catch (cacheErr) {}
     }
 
-    // 2순위: 로컬 서버 API (/api/folder) 호출 (강제 새로고침이거나 캐시가 비어 있을 때)
+    // 2순위: 내 PC 서버 (/api/folder)
     if ((photos.length === 0 || forceLive) && isLocalServer) {
       try {
         const liveParam = forceLive ? '&live=1' : '';
@@ -897,7 +1109,7 @@ async function loadDriveFolder(folderInput, forceLive = false) {
       } catch (localErr) {}
     }
 
-    // 3순위: 공개 임베드 뷰 직접 파싱 폴백
+    // 3순위: 드라이브 공개 화면을 직접 읽기
     if (photos.length === 0) {
       const result = await fetchFolderTreeViaPublicEmbed(folderId, forceLive);
       photos = result.photos;
@@ -905,7 +1117,7 @@ async function loadDriveFolder(folderInput, forceLive = false) {
     }
 
     folderCategories = sortFoldersOngoingFirst(folders);
-    // 진행중 폴더 작품들을 정렬하고 1번, 2번... 고유 번호를 부여 (All 탭 및 라이트박스에서도 동일 번호 유지)
+    // 진행중 폴더 작품들을 정렬하고 1번, 2번... 고유 번호를 부여 (전체 탭 및 크게 보기에서도 동일 번호 유지)
     allPhotos = sortAndNumberOngoingPhotos(photos);
 
     if (selectedSubfolderId !== 'ALL' && !folderCategories.some(f => f.id === selectedSubfolderId)) {
@@ -917,27 +1129,28 @@ async function loadDriveFolder(folderInput, forceLive = false) {
 
     if (photos.length === 0) {
       document.getElementById('photoGrid').innerHTML = '';
-      if (badge) badge.textContent = '0장의 사진';
+      if (badge) badge.textContent = t('photoCount', 0);
       if (statusBanner) {
-        statusBanner.textContent = '폴더에서 사진을 불러오지 못했습니다. config.js의 드라이브 폴더 공유 권한이 "링크가 있는 모든 사용자"인지 확인해 주세요.';
+        statusBanner.textContent = t('loadFailed');
         statusBanner.classList.remove('hidden');
       }
       return;
     }
 
     applyFiltersAndRender();
-    if (currentMainView === 'competitions') renderCompetitionsArchiveView();
+    if (currentMainView === 'competitions') renderCompetitionsArchiveView('regular');
+    if (currentMainView === 'mini') renderCompetitionsArchiveView('mini');
     if (currentMainView === 'competition-detail') renderCompetitionDetailView(selectedCompetitionId);
     if (currentMainView === 'winners') renderWinnersHallView();
     updateFooterLastUpdated(true);
 
     if (forceLive) {
-      showAppleToast('최신 목록으로 업데이트되었습니다');
+      showAppleToast(t('toastUpdated'));
     }
   } catch (err) {
-    if (badge) badge.textContent = '연결 오류';
+    if (badge) badge.textContent = t('connError');
     if (statusBanner) {
-      statusBanner.textContent = `오류가 발생했습니다: ${err.message}`;
+      statusBanner.textContent = t('errorPrefix', err.message);
       statusBanner.classList.remove('hidden');
     }
   } finally {
@@ -948,81 +1161,73 @@ async function loadDriveFolder(folderInput, forceLive = false) {
 }
 
 /* ==========================================================================
-   6. 사진 그리드 렌더링 & 라이트박스 (모바일 터치 스와이프/드래그 닫기 제스처 포함)
+   7. 사진 카드 · 크게 보기 (모바일: 좌우로 밀어 넘기기, 아래로 당겨 닫기)
    ========================================================================== */
-function renderPhotoCardHtml(photo, idx, forceWinnerGlow = false) {
-  const awardInfo = getAwardTierInfo(photo.name);
-  const winner = Boolean(awardInfo && awardInfo.isTopWinner);
-  // 1등 수상작 카드에도 은은한 골드 1px 외곽선과 부드러운 후광 적용
-  const showWinnerGlow = forceWinnerGlow || winner;
+// 사진 카드: 가로 프레임 + 아래 캡션. showAward는 공모전 아카이브(상세)에서만 true
+// delayIdx: 화면에 차례로 나타날 때의 순서 (더보기로 붙인 묶음은 그 묶음 안에서 다시 0부터)
+function renderPhotoCardHtml(photo, idx, showAward = false, delayIdx = idx) {
   const meta = getDisplayMeta(photo);
+  const award = showAward ? meta.awardInfo : null;
   const rawFolder = photo.folderName && photo.folderName !== '기본 폴더' ? photo.folderName : '';
-  const folderLabel = rawFolder ? cleanOngoingFolderName(rawFolder) : '';
-  const numBadgeHtml = meta.numLabel
-    ? `<span class="vote-num-badge">${escapeHtml(meta.numLabel)}</span>`
-    : '';
-  const badgeLabel = awardInfo ? awardInfo.shortLabel : I18N.firstPrizeBadge;
+  const folderLabel = rawFolder ? getFolderFullName(rawFolder) : '';
+  const label = getPhotoLabel(meta);
+
+  let captionHtml;
+  if (meta.isAnonymous) {
+    captionHtml = `
+      <p class="caption-title"><span class="vote-num-badge">${escapeHtml(meta.title)}</span></p>
+      ${folderLabel ? `<p class="caption-meta-row">${escapeHtml(folderLabel)}</p>` : ''}
+    `;
+  } else {
+    const metaLine = [meta.authorLabel, folderLabel].filter(Boolean).map(escapeHtml).join(' · ');
+    captionHtml = `
+      ${award ? `<p class="caption-award">${escapeHtml(award.shortLabel)}</p>` : ''}
+      <p class="caption-title">${escapeHtml(meta.pureTitle)}</p>
+      ${metaLine ? `<p class="caption-meta-row">${metaLine}</p>` : ''}
+    `;
+  }
 
   return `
     <article
-      class="photo-card ${showWinnerGlow ? 'is-winner' : ''}"
+      class="photo-card ${award && award.isTopWinner ? 'is-winner' : ''}"
       data-index="${idx}"
       data-photo-id="${escapeHtml(photo.id)}"
       tabindex="0"
       role="button"
-      aria-label="${escapeHtml(meta.title)} 크게 보기"
-      style="transition-delay: ${Math.min(idx * 45, 270)}ms"
+      aria-label="${escapeHtml(t('viewLarge', label))}"
+      style="--d: ${Math.min(delayIdx * 55, 330)}ms"
     >
-      <div class="card-glare" aria-hidden="true"></div>
       <div class="photo-media-wrap">
-        ${awardInfo ? `<span class="winner-glass-badge ${awardInfo.isTopWinner ? '' : 'is-silver-tier'}">${escapeHtml(badgeLabel)}</span>` : ''}
-        <div class="skeleton-shimmer">
-          <div class="apple-spinner"></div>
-        </div>
         <img
           class="photo-thumb"
           src="${photo.thumbUrl}"
-          alt="${escapeHtml(meta.title)}"
+          alt="${escapeHtml(label)}"
           loading="lazy"
           referrerpolicy="no-referrer"
         />
-        <div class="card-glass-caption">
-          <div class="caption-text-group">
-            <div class="caption-meta-row">
-              ${folderLabel ? `<span>${escapeHtml(folderLabel)}</span>` : ''}
-              ${folderLabel && meta.authorLabel ? `<span>·</span>` : ''}
-              ${meta.authorLabel ? `<span class="caption-author">${escapeHtml(meta.authorLabel)}</span>` : ''}
-            </div>
-            <h3 class="caption-title">${numBadgeHtml}${escapeHtml(meta.pureTitle)}</h3>
-          </div>
-          <span class="caption-expand-icon" aria-hidden="true">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <polyline points="9 21 3 21 3 15"></polyline>
-              <line x1="21" y1="3" x2="14" y2="10"></line>
-              <line x1="3" y1="21" x2="10" y2="14"></line>
-            </svg>
-          </span>
-        </div>
       </div>
+      <div class="card-caption">${captionHtml}</div>
     </article>
   `;
 }
 
-function bindPhotoCardEvents(container, photoList) {
+function bindPhotoCardEvents(container, photoList, showAward = false) {
   if (!container) return;
-  setupScrollRevealObserver();
+  const observer = getRevealObserver();
 
   container.querySelectorAll('.photo-card').forEach(card => {
+    // 더보기로 카드를 덧붙여도 이미 연결한 카드는 다시 연결하지 않음
+    if (card.dataset.bound) return;
+    card.dataset.bound = '1';
+
     const img = card.querySelector('.photo-thumb');
     const idx = Number(card.getAttribute('data-index'));
 
-    revealObserver.observe(card);
+    observer.observe(card);
+    // 처음 한 번 순서대로 나타난 뒤에는 마우스 반응이 늦지 않도록 지연을 없앰
     setTimeout(() => {
-      card.style.transitionDelay = '0ms';
-    }, 650);
-
-    attachAppleCardInteractions(card);
+      card.style.setProperty('--d', '0ms');
+    }, 1300);
 
     const markLoaded = () => card.classList.add('loaded');
     if (img && img.complete && img.naturalWidth > 0) {
@@ -1043,6 +1248,7 @@ function bindPhotoCardEvents(container, photoList) {
 
     const openFromList = () => {
       filteredPhotos = photoList;
+      lightboxShowAwards = showAward;
       openLightbox(idx);
     };
 
@@ -1056,11 +1262,67 @@ function bindPhotoCardEvents(container, photoList) {
   });
 }
 
+/* 더보기: 처음엔 5줄만 보여 주고, 버튼을 누를 때마다 5줄씩 더 붙임
+   (크게 보기에서는 아직 안 붙인 사진까지 전부 넘겨 볼 수 있음) */
+const ROWS_PER_PAGE = 5;
+
+// 지금 그리드의 열 수 × 5줄 (화면에 안 보이는 그리드는 'repeat(4, …)' 형태로 알려 주므로 둘 다 처리)
+function getGridPageSize(grid) {
+  const value = getComputedStyle(grid).gridTemplateColumns || '';
+  const repeat = value.match(/repeat\(\s*(\d+)/);
+  const columns = repeat ? Number(repeat[1]) : value.split(' ').filter(Boolean).length;
+  return Math.max(1, columns || 4) * ROWS_PER_PAGE;
+}
+
+function renderPagedPhotoGrid(grid, moreWrap, photos, showAward = false) {
+  if (!grid) return;
+  grid._paged = { photos, showAward, moreWrap, shown: 0 };
+  grid.innerHTML = '';
+  appendPhotoPage(grid);
+}
+
+function appendPhotoPage(grid) {
+  const state = grid._paged;
+  if (!state) return;
+  const start = state.shown;
+  const end = Math.min(state.photos.length, start + getGridPageSize(grid));
+  const html = state.photos
+    .slice(start, end)
+    .map((photo, i) => renderPhotoCardHtml(photo, start + i, state.showAward, i))
+    .join('');
+  grid.insertAdjacentHTML('beforeend', html);
+  state.shown = end;
+  bindPhotoCardEvents(grid, state.photos, state.showAward);
+  renderLoadMoreButton(grid);
+}
+
+function renderLoadMoreButton(grid) {
+  const { moreWrap, shown, photos } = grid._paged;
+  if (!moreWrap) return;
+  if (shown >= photos.length) {
+    moreWrap.innerHTML = '';
+    return;
+  }
+  moreWrap.innerHTML = `
+    <button type="button" class="load-more-btn">
+      <span>${escapeHtml(t('loadMore'))}</span>
+      <span class="load-more-count">${shown} / ${photos.length}</span>
+    </button>
+  `;
+  moreWrap.querySelector('.load-more-btn').addEventListener('click', () => {
+    const firstNewIndex = grid._paged.shown;
+    appendPhotoPage(grid);
+    // 키보드로 누른 경우 새로 붙은 첫 사진으로 이어서 이동할 수 있게
+    const firstNew = grid.querySelector(`.photo-card[data-index="${firstNewIndex}"]`);
+    if (firstNew) firstNew.focus({ preventScroll: true });
+  });
+}
+
 function renderPhotoGrid(photos) {
   const grid = document.getElementById('photoGrid');
   if (!grid) return;
-  grid.innerHTML = photos.map((photo, idx) => renderPhotoCardHtml(photo, idx)).join('');
-  bindPhotoCardEvents(grid, photos);
+  resetRevealObserver();
+  renderPagedPhotoGrid(grid, document.getElementById('photoGridMore'), photos, false);
 }
 
 function openLightbox(index) {
@@ -1105,22 +1367,20 @@ function updateLightboxContent() {
   if (!photo) return;
 
   const meta = getDisplayMeta(photo);
-  const winner = isFirstPrize(photo.name);
   const img = document.getElementById('lightboxImage');
   const spinner = document.getElementById('lightboxSpinner');
   const counter = document.getElementById('lightboxCounter');
   const title = document.getElementById('lightboxTitle');
   const authorEl = document.getElementById('lightboxAuthor');
   const folderTag = document.getElementById('lightboxFolderTag');
-  const resText = document.getElementById('lightboxResolution');
-  const ambientBg = document.getElementById('lightboxAmbientBg');
 
   img.setAttribute('referrerpolicy', 'no-referrer');
 
   counter.textContent = `${activePhotoIndex + 1} / ${filteredPhotos.length}`;
-  const winnerInline = winner ? `<span class="winner-badge-inline">${escapeHtml(I18N.firstPrizeBadge)}</span>` : '';
+  const award = lightboxShowAwards ? meta.awardInfo : null;
+  const awardInline = award ? `<span class="winner-badge-inline">${escapeHtml(award.shortLabel)}</span>` : '';
   const numInline = meta.numLabel ? `<span class="vote-num-badge">${escapeHtml(meta.numLabel)}</span>` : '';
-  title.innerHTML = `${winnerInline}${numInline}${escapeHtml(meta.pureTitle)}`;
+  title.innerHTML = `${awardInline}${numInline}${escapeHtml(meta.pureTitle)}`;
 
   if (authorEl) {
     authorEl.textContent = meta.authorLabel || '';
@@ -1128,14 +1388,11 @@ function updateLightboxContent() {
   }
 
   if (photo.folderName && photo.folderName !== '기본 폴더') {
-    folderTag.textContent = cleanOngoingFolderName(photo.folderName);
+    folderTag.textContent = getFolderFullName(photo.folderName);
     folderTag.classList.remove('hidden');
   } else {
     folderTag.classList.add('hidden');
   }
-
-  resText.textContent = '';
-  ambientBg.style.backgroundImage = `url('${photo.thumbUrl}')`;
 
   document.querySelectorAll('.film-thumb').forEach((el, idx) => {
     el.classList.toggle('active', idx === activePhotoIndex);
@@ -1147,9 +1404,6 @@ function updateLightboxContent() {
   img.onload = () => {
     spinner.classList.add('hidden');
     img.classList.add('loaded');
-    if (img.naturalWidth && img.naturalHeight) {
-      resText.textContent = `${img.naturalWidth} × ${img.naturalHeight}`;
-    }
   };
 
   img.onerror = () => {
@@ -1163,7 +1417,7 @@ function updateLightboxContent() {
   };
 
   img.src = photo.fullUrl;
-  img.alt = meta.title;
+  img.alt = getPhotoLabel(meta);
 }
 
 function closeLightbox() {
@@ -1193,7 +1447,7 @@ function showNextPhoto() {
   updateLightboxContent();
 }
 
-// 모바일 라이트박스 터치 제스처 (좌우 스와이프 이전/다음, 아래로 당겨서 닫기)
+// 모바일 크게 보기 터치 (좌우로 밀어 이전/다음, 아래로 당겨서 닫기)
 function setupLightboxTouchGestures() {
   const stage = document.getElementById('lightboxStage');
   const wrap = document.getElementById('lightboxFigureWrap');
@@ -1220,7 +1474,6 @@ function setupLightboxTouchGestures() {
     deltaX = e.touches[0].clientX - startX;
     deltaY = e.touches[0].clientY - startY;
 
-    // 아래로 당기는 제스처 시각 피드백
     if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY > 0) {
       const progress = Math.min(deltaY / 240, 1);
       wrap.style.transform = `translateY(${deltaY * 0.75}px) scale(${1 - progress * 0.12})`;
@@ -1233,7 +1486,6 @@ function setupLightboxTouchGestures() {
     isTracking = false;
     wrap.style.transition = '';
 
-    // 좌우 스와이프 (이전/다음 사진 전환)
     if (Math.abs(deltaX) > 48 && Math.abs(deltaX) > Math.abs(deltaY)) {
       wrap.style.transform = '';
       wrap.style.opacity = '';
@@ -1245,7 +1497,6 @@ function setupLightboxTouchGestures() {
       return;
     }
 
-    // 아래로 당겨서 닫기 (Swipe Down to Close)
     if (deltaY > 85 && Math.abs(deltaY) > Math.abs(deltaX)) {
       closeLightbox();
       setTimeout(() => {
@@ -1261,59 +1512,49 @@ function setupLightboxTouchGestures() {
 }
 
 /* ==========================================================================
-   6-B. 공모전 아카이브 & 공모전 상세 전시관 & 역대 수상작 큐레이션
+   8. 공모전 아카이브 · 소마대전 · 공모전 상세 · 역대 수상작 (수상 표시는 여기서만)
    ========================================================================== */
-
-// 폴더명 및 사진 메타데이터로부터 공모전 상세 정보(연도, 개최 기간, 상태, 대표 이미지, 수상작, 출품작, 참여 작가) 생성
 function buildCompetitionMetadata(folder) {
   const ongoing = isOngoingFolder(folder.name);
-  const title = cleanOngoingFolderName(folder.name);
+  const isMini = isMiniFolder(folder.name);
+  const title = getFolderShortName(folder.name);
+  // 연도는 폴더 이름의 20xx에서 읽고, 없으면 올해로 묶음
   const yearMatch = folder.name.match(/(20\d{2})/);
-  const year = yearMatch ? yearMatch[1] : '2026';
-
-  let period = `${year} 시즌 아카이브`;
-  if (/겨울/i.test(title)) period = `${year}.11 — 진행 중`;
-  else if (/봄/i.test(title)) period = `${year} 봄 시즌 전시`;
-  else if (/여름/i.test(title)) period = `${year} 여름 시즌 전시`;
-  else if (/가을/i.test(title)) period = `${year} 가을 시즌 전시`;
-  else if (ongoing) period = `${year} 현재 투표 및 전시 진행 중`;
-  else period = `${year} 공식 마감 · 영구 보존 전시`;
+  const year = yearMatch ? yearMatch[1] : String(new Date().getFullYear());
 
   const photos = allPhotos.filter(p => p.folderId === folder.id);
   const winners = photos.filter(p => Boolean(getAwardTierInfo(p.name)));
   const coverPhoto = winners[0] || photos[0] || null;
 
-  // 참여 작가 목록 추출 (진행중 공모전은 익명 블라인드 보호)
+  // 참여 작가 목록 (진행중 공모전은 투표가 끝날 때까지 공개하지 않음)
   const authorSet = new Set();
-  if (ongoing) {
-    authorSet.add(`익명 참여 작가 (${photos.length}출품 · 블라인드 투표 중)`);
-  } else {
+  if (!ongoing) {
     photos.forEach(p => {
       const a = extractAuthorFromFilename(p.name);
       if (a) authorSet.add(a);
     });
   }
-  const authors = Array.from(authorSet);
 
-  const description = ongoing
-    ? `현재 실시간 블라인드 투표가 진행 중인 「${title}」 전시입니다. 공정한 심사를 위해 모든 출품작의 작가명이 익명으로 보호되며, 종료 후 수상작과 작가명이 영구 아카이브에 기록됩니다.`
-    : `「${title}」에 출품된 총 ${photos.length}점의 작품과 수상작을 보존한 공식 디지털 전시관입니다. 공모전 종료 이후에도 각 작가의 시선과 기록을 언제든 감상할 수 있습니다.`;
+  // 설명: 드라이브 txt가 있으면 그 내용, 없으면 진행중일 때만 기본 안내
+  const customDescription = getFolderDescription(folder);
+  const description = customDescription || (ongoing ? t('ongoingDesc') : '');
 
   return {
     id: folder.id,
     rawName: folder.name,
     title,
     year,
-    period,
     ongoing,
-    statusLabel: ongoing ? '진행 중' : '전시 종료',
+    isMini,
+    statusLabel: ongoing ? t('statusOngoing') : t('statusEnded'),
     photoCount: photos.length,
     winnerCount: winners.length,
     coverPhoto,
     photos,
     winners,
-    authors,
-    description
+    authors: Array.from(authorSet),
+    description,
+    customDescription
   };
 }
 
@@ -1323,58 +1564,64 @@ function getAllCompetitionsMeta() {
     .map(buildCompetitionMetadata);
 }
 
-// 2. 공모전 아카이브 페이지 렌더링 (연도별 분류, 진행 중/종료 상태, 개최 기간, 작품 수)
-function renderCompetitionsArchiveView() {
-  const filterBar = document.getElementById('compYearFilterBar');
-  const container = document.getElementById('competitionsListContainer');
+function statusPillHtml(comp) {
+  return `<span class="comp-status-pill ${comp.ongoing ? 'is-live' : 'is-ended'}">${comp.ongoing ? '<span class="live-dot"></span>' : ''}${escapeHtml(comp.statusLabel)}</span>`;
+}
+
+// 공모전 목록 (연도별) — kind: 'regular' = 공모전 아카이브, 'mini' = 소마대전
+function renderCompetitionsArchiveView(kind = 'regular') {
+  const isMiniList = kind === 'mini';
+  const filterBar = document.getElementById(isMiniList ? 'miniYearFilterBar' : 'compYearFilterBar');
+  const container = document.getElementById(isMiniList ? 'miniContestsListContainer' : 'competitionsListContainer');
   if (!container || !filterBar) return;
 
-  const comps = getAllCompetitionsMeta();
+  const comps = getAllCompetitionsMeta().filter(c => c.isMini === isMiniList);
+
+  if (comps.length === 0) {
+    filterBar.innerHTML = '';
+    container.innerHTML = `<div class="archive-empty-state">${isMiniList ? t('noMini') : escapeHtml(t('noContests'))}</div>`;
+    return;
+  }
+
+  const selectedFilter = compListFilter[kind] || 'ALL';
   const years = Array.from(new Set(comps.map(c => c.year))).sort((a, b) => b.localeCompare(a));
 
   const filterOptions = [
-    { id: 'ALL', label: `전체 (${comps.length})` },
-    { id: 'LIVE', label: `진행 중 (${comps.filter(c => c.ongoing).length})` },
-    { id: 'ENDED', label: `종료된 전시 (${comps.filter(c => !c.ongoing).length})` },
-    ...years.map(y => ({ id: `YEAR_${y}`, label: `${y}년` }))
+    { id: 'ALL', label: t('filterAll', comps.length) },
+    { id: 'LIVE', label: t('filterLive', comps.filter(c => c.ongoing).length) },
+    { id: 'ENDED', label: t('filterEnded', comps.filter(c => !c.ongoing).length) },
+    ...years.map(y => ({ id: `YEAR_${y}`, label: t('filterYear', y) }))
   ];
 
   filterBar.innerHTML = filterOptions.map(opt => `
-    <button type="button" class="comp-filter-chip ${selectedCompYearFilter === opt.id ? 'active' : ''}" data-comp-filter="${opt.id}">
+    <button type="button" class="comp-filter-chip ${selectedFilter === opt.id ? 'active' : ''}" data-comp-filter="${opt.id}">
       ${escapeHtml(opt.label)}
     </button>
   `).join('');
 
   filterBar.querySelectorAll('.comp-filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
-      selectedCompYearFilter = btn.getAttribute('data-comp-filter');
-      renderCompetitionsArchiveView();
+      compListFilter[kind] = btn.getAttribute('data-comp-filter');
+      renderCompetitionsArchiveView(kind);
     });
   });
 
   const q = searchQuery.toLowerCase();
   const filteredComps = comps.filter(c => {
-    if (selectedCompYearFilter === 'LIVE' && !c.ongoing) return false;
-    if (selectedCompYearFilter === 'ENDED' && c.ongoing) return false;
-    if (selectedCompYearFilter.startsWith('YEAR_')) {
-      const targetY = selectedCompYearFilter.replace('YEAR_', '');
-      if (c.year !== targetY) return false;
-    }
+    if (selectedFilter === 'LIVE' && !c.ongoing) return false;
+    if (selectedFilter === 'ENDED' && c.ongoing) return false;
+    if (selectedFilter.startsWith('YEAR_') && c.year !== selectedFilter.replace('YEAR_', '')) return false;
     if (q) {
-      const searchable = `${c.title} ${c.year} ${c.period} ${c.authors.join(' ')}`.toLowerCase();
-      return searchable.includes(q);
+      return `${c.title} ${c.year} ${c.customDescription} ${c.authors.join(' ')}`.toLowerCase().includes(q);
     }
     return true;
   });
 
   if (filteredComps.length === 0) {
-    container.innerHTML = `
-      <div class="archive-empty-state">조건에 해당하는 공모전 아카이브가 없습니다.</div>
-    `;
+    container.innerHTML = `<div class="archive-empty-state">${escapeHtml(t('noMatchContests'))}</div>`;
     return;
   }
 
-  // 연도별 그룹화
   const groupedByYear = new Map();
   filteredComps.forEach(c => {
     if (!groupedByYear.has(c.year)) groupedByYear.set(c.year, []);
@@ -1384,52 +1631,43 @@ function renderCompetitionsArchiveView() {
   let html = '';
   groupedByYear.forEach((group, year) => {
     html += `
-      <div class="comp-year-section">
+      <section class="comp-year-section">
         <div class="comp-year-header">
           <h2 class="comp-year-title">${escapeHtml(year)}</h2>
-          <span class="comp-year-count">${group.length}개의 공모전 아카이브</span>
+          <span class="comp-year-count">${escapeHtml(t('yearCount', group.length))}</span>
         </div>
         <div class="comp-cards-grid">
           ${group.map(comp => {
             const coverUrl = comp.coverPhoto ? comp.coverPhoto.thumbUrl : '';
             const topWinner = comp.winners[0];
             const topWinnerMeta = topWinner ? getDisplayMeta(topWinner) : null;
+            const stats = [t('statEntries', comp.photoCount)];
+            if (comp.winnerCount > 0) stats.push(t('statAwards', comp.winnerCount));
+            if (!comp.ongoing && comp.authors.length > 0) stats.push(t('statAuthors', comp.authors.length));
             return `
-              <article class="comp-archive-card ${comp.ongoing ? 'is-ongoing-card' : ''}" data-comp-id="${escapeHtml(comp.id)}" tabindex="0" role="button" aria-label="${escapeHtml(comp.title)} 상세 페이지 열기">
+              <article class="comp-archive-card ${comp.ongoing ? 'is-ongoing-card' : ''}" data-comp-id="${escapeHtml(comp.id)}" tabindex="0" role="button" aria-label="${escapeHtml(t('viewExhibitionOf', comp.title))}">
                 <div class="comp-card-cover-wrap">
-                  ${coverUrl ? `<img class="comp-card-cover" src="${coverUrl}" alt="${escapeHtml(comp.title)}" loading="lazy" referrerpolicy="no-referrer" />` : ''}
-                  <div class="comp-card-cover-overlay"></div>
-                  <div class="comp-card-top-badges">
-                    <span class="comp-status-pill ${comp.ongoing ? 'is-live' : 'is-ended'}">
-                      ${comp.ongoing ? '<span class="live-dot"></span>' : ''}${escapeHtml(comp.statusLabel)}
-                    </span>
-                    ${comp.winnerCount > 0 ? `<span class="comp-winner-count-pill">👑 수상작 ${comp.winnerCount}점</span>` : ''}
-                  </div>
+                  ${coverUrl ? `<img class="comp-card-cover" src="${coverUrl}" alt="" loading="lazy" referrerpolicy="no-referrer" />` : ''}
                 </div>
                 <div class="comp-card-body">
-                  <div class="comp-card-period">${escapeHtml(comp.period)}</div>
+                  <p class="comp-card-period">${statusPillHtml(comp)}</p>
                   <h3 class="comp-card-title">${escapeHtml(comp.title)}</h3>
-                  <p class="comp-card-desc">${escapeHtml(comp.description)}</p>
-                  ${topWinnerMeta ? `
-                    <div class="comp-card-winner-highlight">
-                      <span class="winner-highlight-label">대표 수상작</span>
-                      <span class="winner-highlight-val">${escapeHtml(topWinnerMeta.pureTitle || topWinnerMeta.title)}${topWinnerMeta.authorLabel ? ` (${escapeHtml(topWinnerMeta.authorLabel)})` : ''}</span>
-                    </div>
+                  ${comp.customDescription ? `<p class="comp-card-desc">${escapeHtml(comp.customDescription)}</p>` : ''}
+                  ${comp.ongoing ? voteNoteHtml() : ''}
+                  <p class="comp-card-meta-stats">${escapeHtml(stats.join(' · '))}</p>
+                  ${topWinnerMeta && !topWinnerMeta.isAnonymous ? `
+                    <p class="comp-card-winner-highlight">
+                      <span class="winner-highlight-label">${escapeHtml(topWinnerMeta.awardInfo ? topWinnerMeta.awardInfo.shortLabel : '')}</span>
+                      <span class="winner-highlight-val">${escapeHtml(topWinnerMeta.pureTitle)}${topWinnerMeta.authorLabel ? ` — ${escapeHtml(topWinnerMeta.authorLabel)}` : ''}</span>
+                    </p>
                   ` : ''}
-                  <div class="comp-card-footer">
-                    <div class="comp-card-meta-stats">
-                      <span>출품작 <strong>${comp.photoCount}</strong>점</span>
-                      <span>·</span>
-                      <span>참여 작가 <strong>${comp.ongoing ? '익명' : `${comp.authors.length}명`}</strong></span>
-                    </div>
-                    <span class="comp-card-enter-link">전시 관람하기 &rarr;</span>
-                  </div>
+                  <span class="comp-card-enter-link">${escapeHtml(t('viewExhibition'))} &rarr;</span>
                 </div>
               </article>
             `;
           }).join('')}
         </div>
-      </div>
+      </section>
     `;
   });
 
@@ -1444,132 +1682,118 @@ function renderCompetitionsArchiveView() {
         openDetail();
       }
     });
+    // 오픈채팅방 링크는 카드 열기와 따로 동작
+    card.querySelectorAll('.kakao-link-btn').forEach(a => a.addEventListener('click', e => e.stopPropagation()));
   });
 }
 
-// 3. 공모전 상세 페이지 이동 및 렌더링 (공모전 제목/소개, 개최 기간, 대표 이미지, 수상작 모음, 전체 출품작, 참여 작가 목록)
 function openCompetitionDetail(folderId) {
   if (!folderId) return;
   selectedCompetitionId = folderId;
+  const folder = folderCategories.find(f => f.id === folderId);
+  detailReturnView = folder && isMiniFolder(folder.name) ? 'mini' : 'competitions';
   switchMainView('competition-detail');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// 공모전 상세: 표지 + 소개 + 출품작(수상 표시 포함) + 참여 작가
 function renderCompetitionDetailView(folderId) {
   const container = document.getElementById('competitionDetailContent');
   if (!container) return;
 
   const targetFolder = folderCategories.find(f => f.id === folderId) || folderCategories[0];
   if (!targetFolder) {
-    container.innerHTML = `<div class="archive-empty-state">공모전 정보를 불러오는 중입니다...</div>`;
+    container.innerHTML = `<div class="archive-empty-state">${escapeHtml(t('detailLoading'))}</div>`;
     return;
   }
 
+  resetRevealObserver();
+
   const comp = buildCompetitionMetadata(targetFolder);
-  const coverUrl = comp.coverPhoto ? comp.coverPhoto.thumbUrl : '';
+  const coverUrl = comp.coverPhoto ? (comp.coverPhoto.fullUrl || comp.coverPhoto.thumbUrl) : '';
   const coverMeta = comp.coverPhoto ? getDisplayMeta(comp.coverPhoto) : null;
+  const coverCredit = coverMeta && !coverMeta.isAnonymous
+    ? [coverMeta.pureTitle, coverMeta.authorLabel].filter(Boolean).join(', ')
+    : '';
+  // 상세 화면에서도 상단 검색어로 출품작을 거를 수 있게 함
+  const shownPhotos = searchQuery
+    ? comp.photos.filter(p => matchesSearchQuery(p, searchQuery))
+    : comp.photos;
+  const shownCount = searchQuery ? t('shownOf', shownPhotos.length, comp.photoCount) : t('pieces', comp.photoCount);
 
   container.innerHTML = `
-    <!-- 공모전 대표 이미지 & 에디토리얼 헤더 -->
-    <div class="comp-detail-hero">
-      <div class="comp-detail-hero-media">
-        ${coverUrl ? `<img src="${coverUrl}" alt="${escapeHtml(comp.title)} 대표 이미지" referrerpolicy="no-referrer" />` : ''}
-        <div class="comp-detail-hero-gradient"></div>
-      </div>
+    <header class="comp-detail-hero">
+      <figure class="comp-detail-hero-media">
+        ${coverUrl ? `<img src="${coverUrl}" alt="${escapeHtml(t('coverAlt', comp.title))}" referrerpolicy="no-referrer" />` : ''}
+        ${coverCredit ? `<figcaption class="comp-cover-caption">${escapeHtml(t('cover', coverCredit))}</figcaption>` : ''}
+      </figure>
       <div class="comp-detail-hero-content">
-        <div class="comp-detail-badges">
-          <span class="comp-status-pill ${comp.ongoing ? 'is-live' : 'is-ended'}">
-            ${comp.ongoing ? '<span class="live-dot"></span>' : ''}${escapeHtml(comp.statusLabel)}
-          </span>
-          <span class="comp-period-tag">${escapeHtml(comp.period)}</span>
-        </div>
+        <p class="comp-detail-badges">
+          ${statusPillHtml(comp)}
+          ${comp.isMini ? `<span class="comp-kind-tag">${escapeHtml(t('kindMini'))}</span>` : ''}
+        </p>
         <h1 class="comp-detail-title">${escapeHtml(comp.title)}</h1>
-        <p class="comp-detail-desc">${escapeHtml(comp.description)}</p>
-        <div class="comp-detail-QuickStats">
+        ${comp.description ? `<p class="comp-detail-desc">${escapeHtml(comp.description)}</p>` : ''}
+        ${comp.ongoing ? voteNoteHtml() : ''}
+        <dl class="comp-detail-QuickStats">
           <div class="detail-stat-item">
-            <span class="detail-stat-label">개최 연도</span>
-            <strong class="detail-stat-value">${escapeHtml(comp.year)}년</strong>
+            <dt class="detail-stat-label">${escapeHtml(t('statLabelEntries'))}</dt>
+            <dd class="detail-stat-value">${escapeHtml(t('pieces', comp.photoCount))}</dd>
           </div>
           <div class="detail-stat-item">
-            <span class="detail-stat-label">총 출품작</span>
-            <strong class="detail-stat-value">${comp.photoCount}점</strong>
+            <dt class="detail-stat-label">${escapeHtml(t('statLabelAwards'))}</dt>
+            <dd class="detail-stat-value">${escapeHtml(comp.winnerCount > 0 ? t('pieces', comp.winnerCount) : (comp.ongoing ? t('judging') : t('none')))}</dd>
           </div>
           <div class="detail-stat-item">
-            <span class="detail-stat-label">수상작</span>
-            <strong class="detail-stat-value">${comp.winnerCount > 0 ? `${comp.winnerCount}점` : (comp.ongoing ? '심사 진행 중' : '-')}</strong>
+            <dt class="detail-stat-label">${escapeHtml(t('statLabelAuthors'))}</dt>
+            <dd class="detail-stat-value">${escapeHtml(comp.ongoing ? t('revealAfterVote') : t('people', comp.authors.length))}</dd>
           </div>
-          <div class="detail-stat-item">
-            <span class="detail-stat-label">참여 작가</span>
-            <strong class="detail-stat-value">${comp.ongoing ? '블라인드 익명' : `${comp.authors.length}명`}</strong>
-          </div>
-        </div>
-        ${coverMeta ? `<div class="comp-cover-caption">대표 전시작: ${escapeHtml(coverMeta.pureTitle || coverMeta.title)}${coverMeta.authorLabel ? ` (${escapeHtml(coverMeta.authorLabel)})` : ''}</div>` : ''}
+        </dl>
       </div>
-    </div>
+    </header>
 
-    <!-- 참여 작가 아카이브 목록 -->
     <section class="comp-detail-section">
       <div class="comp-section-head">
-        <div>
-          <h2 class="comp-section-title">참여 작가 목록</h2>
-        </div>
+        <h2 class="comp-section-title">${escapeHtml(t('sectionEntries'))}</h2>
+        <span class="comp-section-count">${escapeHtml(shownCount)}</span>
       </div>
-      <div class="comp-authors-list">
-        ${comp.authors.map(author => `
-          <span class="comp-author-chip">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            ${escapeHtml(author)}
-          </span>
-        `).join('')}
-      </div>
+      ${shownPhotos.length > 0 ? `
+        <div id="compDetailAllPhotosGrid" class="bento-grid"></div>
+        <div id="compDetailAllPhotosMore" class="load-more-wrap"></div>
+      ` : `<div class="archive-empty-state">${escapeHtml(t('noMatchEntries'))}</div>`}
     </section>
 
-    <!-- 수상작 모음 섹션 (수상작이 있는 경우 강조 전시) -->
-    ${comp.winners.length > 0 ? `
+    ${comp.authors.length > 0 ? `
       <section class="comp-detail-section">
         <div class="comp-section-head">
-          <div>
-            <h2 class="comp-section-title">수상작 모음</h2>
-          </div>
-          <span class="comp-section-count">총 ${comp.winners.length}점</span>
+          <h2 class="comp-section-title">${escapeHtml(t('sectionAuthors'))}</h2>
+          <span class="comp-section-count">${escapeHtml(t('people', comp.authors.length))}</span>
         </div>
-        <div id="compDetailWinnersGrid" class="comp-winners-spotlight-grid">
-          ${comp.winners.map((photo, idx) => renderPhotoCardHtml(photo, idx, true)).join('')}
-        </div>
+        <p class="comp-authors-list">
+          ${comp.authors.map(author => `<span class="comp-author-chip">${escapeHtml(author)}</span>`).join('')}
+        </p>
       </section>
     ` : ''}
-
-    <!-- 전체 출품작 아카이브 그리드 -->
-    <section class="comp-detail-section">
-      <div class="comp-section-head">
-        <div>
-          <h2 class="comp-section-title">전체 출품작 (${comp.photoCount})</h2>
-        </div>
-      </div>
-      <div id="compDetailAllPhotosGrid" class="bento-grid">
-        ${comp.photos.map((photo, idx) => renderPhotoCardHtml(photo, idx, true)).join('')}
-      </div>
-    </section>
   `;
 
-  if (comp.winners.length > 0) {
-    bindPhotoCardEvents(document.getElementById('compDetailWinnersGrid'), comp.winners);
+  if (shownPhotos.length > 0) {
+    renderPagedPhotoGrid(
+      document.getElementById('compDetailAllPhotosGrid'),
+      document.getElementById('compDetailAllPhotosMore'),
+      shownPhotos,
+      true
+    );
   }
-  bindPhotoCardEvents(document.getElementById('compDetailAllPhotosGrid'), comp.photos);
 }
 
-// 4. 역대 수상작 (Hall of Fame) 큐레이션 뷰 렌더링
-// 역대 수상작: 등급 구분 없이 모든 수상작을 한 목록으로 표시 (현재 수상은 1등만 있음)
+// 역대 수상작: 모든 공모전의 수상작을 한 목록으로
 function renderWinnersHallView() {
   const container = document.getElementById('winnersHallContainer');
   if (!container) return;
 
   const allWinners = allPhotos
     .map(p => ({ photo: p, award: getAwardTierInfo(p.name), meta: getDisplayMeta(p) }))
-    .filter(item => item.award !== null)
+    .filter(item => item.award !== null && !item.meta.isAnonymous)
     .sort((a, b) => a.award.rankOrder - b.award.rankOrder);
 
   const filteredWinners = searchQuery
@@ -1577,9 +1801,7 @@ function renderWinnersHallView() {
     : allWinners;
 
   if (filteredWinners.length === 0) {
-    container.innerHTML = `
-      <div class="archive-empty-state">표시할 수상작이 없습니다. 파일명에 [1등] 태그가 붙은 작품이 이곳에 자동으로 모입니다.</div>
-    `;
+    container.innerHTML = `<div class="archive-empty-state">${escapeHtml(t('noWinners'))}</div>`;
     return;
   }
 
@@ -1589,23 +1811,18 @@ function renderWinnersHallView() {
     <div class="winners-curation-grid">
       ${filteredWinners.map((item, idx) => {
         const { photo, award, meta } = item;
-        const compTitle = cleanOngoingFolderName(photo.folderName || '공모전');
+        const compTitle = getFolderFullName(photo.folderName || '공모전');
+        const label = getPhotoLabel(meta);
         return `
-          <article class="winner-pedestal-card" data-winner-idx="${idx}" tabindex="0" role="button" aria-label="${escapeHtml(meta.pureTitle)} 수상작 크게 보기">
+          <article class="winner-pedestal-card" data-winner-idx="${idx}" tabindex="0" role="button" aria-label="${escapeHtml(t('viewLarge', label))}">
             <div class="winner-pedestal-media">
-              <span class="winner-glass-badge">${escapeHtml(award.label)}</span>
-              <img src="${photo.thumbUrl}" alt="${escapeHtml(meta.pureTitle)}" loading="lazy" referrerpolicy="no-referrer" />
+              <img src="${photo.fullUrl || photo.thumbUrl}" alt="${escapeHtml(label)}" loading="lazy" referrerpolicy="no-referrer" />
             </div>
             <div class="winner-pedestal-info">
-              <div class="winner-pedestal-header">
-                <div>
-                  <span class="winner-pedestal-comp" data-comp-jump="${escapeHtml(photo.folderId)}">${escapeHtml(compTitle)} &rarr;</span>
-                  <h2 class="winner-pedestal-title">${escapeHtml(meta.pureTitle)}</h2>
-                </div>
-                <div class="winner-pedestal-author-box">
-                  <span class="winner-pedestal-author">${escapeHtml(meta.authorLabel || '작가 미상')}</span>
-                </div>
-              </div>
+              <p class="winner-pedestal-award">${escapeHtml(award.label)}</p>
+              <h2 class="winner-pedestal-title">${escapeHtml(meta.pureTitle)}</h2>
+              <p class="winner-pedestal-author">${escapeHtml(meta.authorLabel || t('unknownAuthor'))}</p>
+              <span class="winner-pedestal-comp" data-comp-jump="${escapeHtml(photo.folderId)}">${escapeHtml(t('viewExhibitionOf', compTitle))} &rarr;</span>
             </div>
           </article>
         `;
@@ -1617,6 +1834,7 @@ function renderWinnersHallView() {
     const idx = Number(card.getAttribute('data-winner-idx'));
     const openWinnerModal = () => {
       filteredPhotos = winnerPhotosList;
+      lightboxShowAwards = true;
       openLightbox(idx);
     };
     card.addEventListener('click', openWinnerModal);
@@ -1637,392 +1855,54 @@ function renderWinnersHallView() {
   });
 }
 
-/* ==========================================================================
-   7. 구글 시트 CSV 연동 일반 커뮤니티 게시판 & 상세/안내 모달 (로컬 전용 표시)
-   ========================================================================== */
-
-// 정식 RFC 4180 CSV 파서 (셀 내부 줄바꿈, 쉼표, 이스케이프 따옴표 완벽 지원)
-function parseCSVRows(csvText) {
-  const rows = [];
-  let row = [];
-  let field = '';
-  let inQuotes = false;
-  const text = String(csvText || '').replace(/^\uFEFF/, '');
-
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    const next = text[i + 1];
-
-    if (inQuotes) {
-      if (ch === '"' && next === '"') {
-        field += '"';
-        i++;
-      } else if (ch === '"') {
-        inQuotes = false;
-      } else {
-        field += ch;
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true;
-      } else if (ch === ',') {
-        row.push(field);
-        field = '';
-      } else if (ch === '\r' && next === '\n') {
-        row.push(field);
-        rows.push(row);
-        row = [];
-        field = '';
-        i++;
-      } else if (ch === '\n' || ch === '\r') {
-        row.push(field);
-        rows.push(row);
-        row = [];
-        field = '';
-      } else {
-        field += ch;
-      }
-    }
-  }
-
-  if (field.length > 0 || row.length > 0) {
-    row.push(field);
-    rows.push(row);
-  }
-
-  return rows;
-}
-
-// 한국어/표준 타임스탬프 문자열을 비교 가능한 밀리초 숫자와 YYYY.MM.DD 표시 문자열로 변환
-function parseSheetTimestamp(rawTs, fallbackOrder) {
-  const s = String(rawTs || '').trim();
-  if (!s) return { timeValue: fallbackOrder, displayDate: '-' };
-
-  // 예: "2026. 11. 19. 오전 12:15:30" 또는 "2026-11-19" 또는 "2026.11.19"
-  const m = s.match(/(\d{4})[.\-/]\s*(\d{1,2})[.\-/]\s*(\d{1,2})/);
-  if (m) {
-    const yyyy = m[1];
-    const mm = String(m[2]).padStart(2, '0');
-    const dd = String(m[3]).padStart(2, '0');
-    const displayDate = `${yyyy}.${mm}.${dd}`;
-
-    let hour = 0;
-    let min = 0;
-    let sec = 0;
-    const timeMatch = s.match(/(오전|오후|AM|PM)?\s*(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/i);
-    if (timeMatch) {
-      const ampm = (timeMatch[1] || '').toUpperCase();
-      hour = parseInt(timeMatch[2], 10);
-      min = parseInt(timeMatch[3], 10);
-      sec = parseInt(timeMatch[4] || '0', 10);
-      if ((ampm === '오후' || ampm === 'PM') && hour < 12) hour += 12;
-      if ((ampm === '오전' || ampm === 'AM') && hour === 12) hour = 0;
-    }
-
-    const timeValue = new Date(Number(yyyy), Number(mm) - 1, Number(dd), hour, min, sec).getTime();
-    return {
-      timeValue: !isNaN(timeValue) ? timeValue + fallbackOrder * 0.001 : fallbackOrder,
-      displayDate
-    };
-  }
-
-  const parsed = Date.parse(s);
-  if (!isNaN(parsed)) {
-    const d = new Date(parsed);
-    const displayDate = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
-    return { timeValue: parsed + fallbackOrder * 0.001, displayDate };
-  }
-
-  return { timeValue: fallbackOrder, displayDate: s };
-}
-
-function normalizeUrl(rawUrl) {
-  const s = String(rawUrl || '').trim();
-  if (!s) return '';
-  if (/^https?:\/\//i.test(s)) return s;
-  return `https://${s}`;
-}
-
-function parseBoardCsvToPosts(csvText) {
-  const rows = parseCSVRows(csvText);
-  if (rows.length <= 1) return [];
-
-  // 1행 헤더 인덱스 매핑 (타임스탬프, 작성자, 제목, 내용, 사진 첨부, 참고 링크, 상태)
-  const headers = rows[0].map(h => String(h || '').trim());
-  const findCol = (keywords, fallbackIdx) => {
-    const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));
-    return idx !== -1 ? idx : fallbackIdx;
-  };
-
-  const colTimestamp = findCol(['타임스탬프', '날짜', '작성일', 'timestamp'], 0);
-  const colAuthor = findCol(['작성자', '이름', '닉네임', 'author'], 1);
-  const colTitle = findCol(['제목', 'title'], 2);
-  const colContent = findCol(['내용', '본문', 'content'], 3);
-  // 사진 첨부(col 4)는 무시
-  const colLink = findCol(['참고 링크', '참고링크', '링크', 'link'], 5);
-  const colStatus = findCol(['상태', 'status'], 6);
-
-  const validItems = [];
-
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i];
-    if (!r || r.length === 0) continue;
-
-    const status = String(r[colStatus] || '').trim();
-    // 상태 열이 '숨김' 또는 '삭제'인 행은 제외
-    if (status === '숨김' || status === '삭제') continue;
-
-    const title = String(r[colTitle] || '').trim();
-    const content = String(r[colContent] || '').trim();
-    const author = String(r[colAuthor] || '').trim() || '익명';
-    const rawTs = String(r[colTimestamp] || '').trim();
-    const rawLink = String(r[colLink] || '').trim();
-
-    if (!title && !content) continue;
-
-    const { timeValue, displayDate } = parseSheetTimestamp(rawTs, i);
-
-    validItems.push({
-      id: `sheet-post-${i}`,
-      title: title || '(제목 없음)',
-      content,
-      author,
-      date: displayDate,
-      timeValue,
-      rowOrder: i,
-      linkUrl: normalizeUrl(rawLink)
-    });
-  }
-
-  // 타임스탬프 오름차순(오래된 글 -> 최신 글)으로 먼저 정렬하여 1번부터 번호 부여
-  validItems.sort((a, b) => {
-    if (a.timeValue !== b.timeValue) return a.timeValue - b.timeValue;
-    return a.rowOrder - b.rowOrder;
-  });
-
-  validItems.forEach((item, idx) => {
-    item.boardNumber = idx + 1;
-  });
-
-  // 최신 글(가장 큰 번호)이 맨 위에 오도록 내림차순 정렬
-  validItems.sort((a, b) => b.boardNumber - a.boardNumber);
-
-  return validItems;
-}
-
-async function fetchBoardPostsFromSheet() {
-  try {
-    const cleanCsvUrl = String(CONFIGURED_BOARD_CSV_URL || '').trim();
-    if (!cleanCsvUrl || !/^https?:\/\//i.test(cleanCsvUrl)) {
-      isBoardLoading = false;
-      if (currentMainView === 'tips') renderTipsBoard();
-      return;
-    }
-
-    isBoardLoading = true;
-    if (currentMainView === 'tips') {
-      renderTipsBoard();
-    }
-
-    const sep = cleanCsvUrl.includes('?') ? '&' : '?';
-    const liveCsvUrl = `${cleanCsvUrl}${sep}t=${Date.now()}`;
-
-    const isLocalServer =
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
-
-    let csvText = '';
-
-    // 1순위: 구글 시트 웹 게시 CSV URL 직접 호출
-    try {
-      const res = await fetch(liveCsvUrl, { cache: 'no-store' });
-      if (res.ok) {
-        csvText = await res.text();
-      }
-    } catch (err) {}
-
-    // 2순위: 로컬 서버 프록시 (/api/board-csv)
-    if (!csvText && isLocalServer) {
-      try {
-        const res = await fetch(`./api/board-csv?t=${Date.now()}`, { cache: 'no-store' });
-        if (res.ok) {
-          csvText = await res.text();
-        }
-      } catch (err) {}
-    }
-
-    // 3순위: 공개 CORS 프록시 폴백
-    if (!csvText) {
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(liveCsvUrl)}`;
-        const res = await fetch(proxyUrl, { cache: 'no-store' });
-        if (res.ok) {
-          csvText = await res.text();
-        }
-      } catch (err) {}
-    }
-
-    isBoardLoading = false;
-    if (csvText) {
-      tipsPosts = parseBoardCsvToPosts(csvText);
-      updateFooterLastUpdated(true);
-    }
-
-    if (currentMainView === 'tips') {
-      renderTipsBoard();
-    }
-  } catch (outerErr) {
-    isBoardLoading = false;
-    if (currentMainView === 'tips') {
-      renderTipsBoard();
-    }
-  }
-}
-
 function switchMainView(viewName) {
-  const validViews = ['gallery', 'competitions', 'competition-detail', 'winners', 'tips'];
+  const validViews = ['gallery', 'competitions', 'mini', 'competition-detail', 'winners'];
   currentMainView = validViews.includes(viewName) ? viewName : 'gallery';
 
-  const galleryContainer = document.getElementById('galleryViewContainer');
-  const compsArchiveView = document.getElementById('competitionsArchiveView');
-  const compDetailView = document.getElementById('competitionDetailView');
-  const winnersView = document.getElementById('winnersHallView');
-  const tipsView = document.getElementById('tipsBoardView');
-  const folderTabs = document.getElementById('folderCategoryTabs');
+  const views = {
+    gallery: document.getElementById('galleryViewContainer'),
+    competitions: document.getElementById('competitionsArchiveView'),
+    mini: document.getElementById('miniContestsView'),
+    'competition-detail': document.getElementById('competitionDetailView'),
+    winners: document.getElementById('winnersHallView')
+  };
+  Object.entries(views).forEach(([name, el]) => {
+    if (el) el.classList.toggle('hidden', currentMainView !== name);
+  });
+  document.getElementById('folderCategoryTabs')?.classList.toggle('hidden', currentMainView !== 'gallery');
 
-  const btnGallery = document.getElementById('navViewGallery');
-  const btnComps = document.getElementById('navViewCompetitions');
-  const btnWinners = document.getElementById('navViewWinners');
-  const btnTips = document.getElementById('navViewTips');
+  const inDetail = currentMainView === 'competition-detail';
+  document.getElementById('navViewGallery')?.classList.toggle('active', currentMainView === 'gallery');
+  document.getElementById('navViewCompetitions')?.classList.toggle('active', currentMainView === 'competitions' || (inDetail && detailReturnView === 'competitions'));
+  document.getElementById('navViewMini')?.classList.toggle('active', currentMainView === 'mini' || (inDetail && detailReturnView === 'mini'));
+  document.getElementById('navViewWinners')?.classList.toggle('active', currentMainView === 'winners');
+
+  const backLabel = document.querySelector('#btnBackToArchive span');
+  if (backLabel) {
+    backLabel.textContent = detailReturnView === 'mini' ? t('backToMini') : t('backToContests');
+  }
+
   const searchInput = document.getElementById('searchInput');
+  const setPlaceholder = key => {
+    if (searchInput) searchInput.placeholder = t(key);
+  };
 
-  if (galleryContainer) galleryContainer.classList.toggle('hidden', currentMainView !== 'gallery');
-  if (folderTabs) folderTabs.classList.toggle('hidden', currentMainView !== 'gallery');
-  if (compsArchiveView) compsArchiveView.classList.toggle('hidden', currentMainView !== 'competitions');
-  if (compDetailView) compDetailView.classList.toggle('hidden', currentMainView !== 'competition-detail');
-  if (winnersView) winnersView.classList.toggle('hidden', currentMainView !== 'winners');
-  if (tipsView) tipsView.classList.toggle('hidden', currentMainView !== 'tips');
-
-  if (btnGallery) btnGallery.classList.toggle('active', currentMainView === 'gallery');
-  if (btnComps) btnComps.classList.toggle('active', currentMainView === 'competitions' || currentMainView === 'competition-detail');
-  if (btnWinners) btnWinners.classList.toggle('active', currentMainView === 'winners');
-  if (btnTips) btnTips.classList.toggle('active', currentMainView === 'tips');
-
-  if (currentMainView === 'tips') {
-    if (searchInput) searchInput.placeholder = '제목, 내용, 작성자 검색...';
-    renderTipsBoard();
-  } else if (currentMainView === 'competitions') {
-    if (searchInput) searchInput.placeholder = '공모전명, 연도, 참여 작가 검색...';
-    renderCompetitionsArchiveView();
+  if (currentMainView === 'competitions') {
+    setPlaceholder('phContests');
+    renderCompetitionsArchiveView('regular');
+  } else if (currentMainView === 'mini') {
+    setPlaceholder('phMini');
+    renderCompetitionsArchiveView('mini');
   } else if (currentMainView === 'competition-detail') {
-    if (searchInput) searchInput.placeholder = '작품, 작가 검색...';
+    setPlaceholder('phGallery');
     renderCompetitionDetailView(selectedCompetitionId);
   } else if (currentMainView === 'winners') {
-    if (searchInput) searchInput.placeholder = '수상작 제목, 작가 검색...';
+    setPlaceholder('phWinners');
     renderWinnersHallView();
   } else {
-    if (searchInput) searchInput.placeholder = '작품, 작가 검색...';
+    setPlaceholder('phGallery');
     applyFiltersAndRender();
   }
-}
-
-function renderTipsBoard() {
-  const grid = document.getElementById('tipsCardGrid');
-  if (!grid) return;
-
-  if (isBoardLoading && tipsPosts.length === 0) {
-    grid.innerHTML = `
-      <div style="text-align: center; padding: 64px 20px; color: var(--text-secondary); border-bottom: 1px solid var(--glass-border);">
-        게시글 목록을 불러오는 중입니다...
-      </div>
-    `;
-    return;
-  }
-
-  const q = searchQuery.toLowerCase();
-  const filtered = tipsPosts.filter(post => {
-    if (!q) return true;
-    const text = `${post.title} ${post.content} ${post.author}`.toLowerCase();
-    return text.includes(q);
-  });
-
-  if (filtered.length === 0) {
-    grid.innerHTML = `
-      <div style="text-align: center; padding: 64px 20px; color: var(--text-secondary); border-bottom: 1px solid var(--glass-border);">
-        등록된 게시글이 없습니다.
-      </div>
-    `;
-    return;
-  }
-
-  grid.innerHTML = filtered.map((post) => {
-    return `
-      <div class="board-row" data-tip-id="${escapeHtml(post.id)}" tabindex="0" role="listitem" aria-label="${escapeHtml(post.title)} 상세 보기">
-        <span class="col-num">${post.boardNumber}</span>
-        <div class="col-title">
-          <span class="board-row-title-text">${escapeHtml(post.title)}</span>
-        </div>
-        <div class="board-mobile-meta">
-          <span class="col-author">${escapeHtml(post.author)}</span>
-          <span class="col-date">${escapeHtml(post.date)}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  grid.querySelectorAll('.board-row').forEach(row => {
-    const openPost = () => openTipDetailModal(row.getAttribute('data-tip-id'));
-    row.addEventListener('click', openPost);
-    row.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        openPost();
-      }
-    });
-  });
-}
-
-function openTipDetailModal(postId) {
-  const post = tipsPosts.find(p => p.id === postId);
-  if (!post) return;
-
-  activeTipPostId = postId;
-  document.getElementById('tipDetailTitle').textContent = post.title;
-  document.getElementById('tipDetailMeta').textContent = `${post.author} · ${post.date}`;
-  document.getElementById('tipDetailBody').textContent = post.content;
-
-  const linkWrap = document.getElementById('tipDetailLinkWrap');
-  const linkEl = document.getElementById('tipDetailLink');
-  if (post.linkUrl && post.linkUrl.trim()) {
-    linkEl.href = post.linkUrl;
-    linkWrap.classList.remove('hidden');
-  } else {
-    linkWrap.classList.add('hidden');
-  }
-
-  document.getElementById('tipDetailModalBackdrop').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeTipDetailModal() {
-  activeTipPostId = null;
-  document.getElementById('tipDetailModalBackdrop').classList.add('hidden');
-  document.body.style.overflow = '';
-}
-
-function openTipWriteModal() {
-  const formUrl = String(CONFIGURED_BOARD_FORM_URL || '').trim();
-  if (formUrl) {
-    window.open(formUrl, '_blank', 'noopener,noreferrer');
-    return;
-  }
-  document.getElementById('tipWriteModalBackdrop').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeTipWriteModal() {
-  document.getElementById('tipWriteModalBackdrop').classList.add('hidden');
-  document.body.style.overflow = '';
 }
 
 function escapeHtml(str) {
@@ -2033,58 +1913,112 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+/* ==========================================================================
+   9. 인터랙션: 제목 글자 등장 · 첫머리 조명 · 따라다니는 빨간 점
+   ========================================================================== */
+// 제목을 글자 단위로 나눠 한 자씩 올라오게 함 (읽기 도구에는 원래 문장 그대로 전달)
+function splitTitleChars(el) {
+  if (!el) return;
+  const text = el.textContent.replace(/\s+/g, ' ').trim();
+  if (!text) return;
+  el.setAttribute('aria-label', text);
+  let i = 0;
+  el.innerHTML = text.split(' ').map(word => {
+    const chars = [...word].map(ch => `<span class="char" style="--i:${i++}">${escapeHtml(ch)}</span>`).join('');
+    i += 1;
+    return `<span class="word" aria-hidden="true">${chars}</span>`;
+  }).join(' ');
+  el.classList.add('split-chars');
+}
+
+// 어두운 모드: 첫머리의 조명이 마우스를 따라 좌우로 움직임
+function initHeroSpotlight() {
+  const hero = document.querySelector('.hero-stage');
+  if (!hero || prefersReducedMotion) return;
+
+  let rafId = null;
+  hero.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const rect = hero.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      hero.style.setProperty('--spot-x', `${x.toFixed(1)}%`);
+    });
+  });
+  hero.addEventListener('pointerleave', () => {
+    hero.style.removeProperty('--spot-x');
+  });
+}
+
+// 데스크톱: 마우스를 따라다니는 빨간 점. 사진 위에서는 '보기', 공모전 표지 위에서는 '열기'로 커짐
+function initCursorFollower() {
+  const finePointer = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (!finePointer || prefersReducedMotion) return;
+
+  const dot = document.createElement('div');
+  dot.className = 'cursor-follower is-hidden';
+  dot.setAttribute('aria-hidden', 'true');
+  dot.innerHTML = '<span class="cursor-label"></span>';
+  document.body.appendChild(dot);
+  const label = dot.firstElementChild;
+
+  let x = -100;
+  let y = -100;
+  let targetX = -100;
+  let targetY = -100;
+  let running = false;
+
+  const step = () => {
+    x += (targetX - x) * 0.22;
+    y += (targetY - y) * 0.22;
+    dot.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+    if (Math.abs(targetX - x) > 0.2 || Math.abs(targetY - y) > 0.2) {
+      requestAnimationFrame(step);
+    } else {
+      running = false;
+    }
+  };
+
+  window.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    targetX = e.clientX;
+    targetY = e.clientY;
+    dot.classList.remove('is-hidden');
+
+    const target = e.target instanceof Element
+      ? e.target.closest('.photo-card:not(.is-skeleton), .winner-pedestal-card, .ongoing-preview-item, .comp-archive-card')
+      : null;
+    const text = target ? (target.classList.contains('comp-archive-card') ? t('cursorOpen') : t('cursorView')) : '';
+    dot.classList.toggle('is-active', Boolean(text));
+    if (text) label.textContent = text;
+
+    if (!running) {
+      running = true;
+      requestAnimationFrame(step);
+    }
+  }, { passive: true });
+
+  document.documentElement.addEventListener('mouseleave', () => dot.classList.add('is-hidden'));
+  window.addEventListener('blur', () => dot.classList.add('is-hidden'));
+}
+
+/* ==========================================================================
+   10. 시작 · 버튼 연결
+   ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
-  applyLocaleTexts();
-  try {
-    initWebGLBackground();
-  } catch (e) {}
+  applyStaticTexts();
   setupLightboxTouchGestures();
+  initHeroSpotlight();
+  initCursorFollower();
   loadDriveFolder(CONFIGURED_FOLDER_URL, false);
 
-  const isLocalHost =
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1';
-
-  // 게시판 메뉴는 수정 중이므로 로컬(localhost/127.0.0.1)에서만 표시하고 외부 배포에서는 숨김
-  const navTipsBtn = document.getElementById('navViewTips');
-  if (navTipsBtn) {
-    if (isLocalHost) {
-      navTipsBtn.classList.remove('hidden');
-      fetchBoardPostsFromSheet();
-    } else {
-      navTipsBtn.classList.add('hidden');
-    }
-  }
-
-  // 상단 메인 섹션 전환 메뉴 (갤러리 / 공모전 아카이브 / 역대 수상작 / 로컬 전용 게시판)
+  // 상단 메인 섹션 전환 메뉴
   document.getElementById('navViewGallery')?.addEventListener('click', () => switchMainView('gallery'));
   document.getElementById('navViewCompetitions')?.addEventListener('click', () => switchMainView('competitions'));
+  document.getElementById('navViewMini')?.addEventListener('click', () => switchMainView('mini'));
   document.getElementById('navViewWinners')?.addEventListener('click', () => switchMainView('winners'));
-  document.getElementById('btnBackToArchive')?.addEventListener('click', () => switchMainView('competitions'));
-  if (navTipsBtn) {
-    navTipsBtn.addEventListener('click', () => switchMainView('tips'));
-  }
-
-  // 게시판 상세 모달 닫기 이벤트
-  const tipDetailBackdrop = document.getElementById('tipDetailModalBackdrop');
-  const tipDetailDialog = document.getElementById('tipDetailDialog');
-  document.getElementById('btnCloseTipDetailTop')?.addEventListener('click', closeTipDetailModal);
-  document.getElementById('btnCloseTipDetailBottom')?.addEventListener('click', closeTipDetailModal);
-  tipDetailDialog?.addEventListener('click', e => e.stopPropagation());
-  tipDetailBackdrop?.addEventListener('click', e => {
-    if (e.target === tipDetailBackdrop) closeTipDetailModal();
-  });
-
-  // 게시판 작성 안내 모달 이벤트
-  const tipWriteBackdrop = document.getElementById('tipWriteModalBackdrop');
-  const tipWriteDialog = document.getElementById('tipWriteDialog');
-  document.getElementById('btnOpenTipWrite')?.addEventListener('click', openTipWriteModal);
-  document.getElementById('btnCloseTipWriteTop')?.addEventListener('click', closeTipWriteModal);
-  document.getElementById('btnCancelTipWrite')?.addEventListener('click', closeTipWriteModal);
-  tipWriteDialog?.addEventListener('click', e => e.stopPropagation());
-  tipWriteBackdrop?.addEventListener('click', e => {
-    if (e.target === tipWriteBackdrop) closeTipWriteModal();
-  });
+  document.getElementById('btnBackToArchive')?.addEventListener('click', () => switchMainView(detailReturnView));
 
   document.getElementById('btnResetFilter').addEventListener('click', (e) => {
     e.preventDefault();
@@ -2121,10 +2055,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value.trim();
-      if (currentMainView === 'tips') {
-        renderTipsBoard();
-      } else if (currentMainView === 'competitions') {
-        renderCompetitionsArchiveView();
+      if (currentMainView === 'competitions') {
+        renderCompetitionsArchiveView('regular');
+      } else if (currentMainView === 'mini') {
+        renderCompetitionsArchiveView('mini');
+      } else if (currentMainView === 'competition-detail') {
+        renderCompetitionDetailView(selectedCompetitionId);
       } else if (currentMainView === 'winners') {
         renderWinnersHallView();
       } else {
@@ -2155,20 +2091,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === ongoingModalBackdrop) dismissOngoingPopup();
   });
 
-  // 새로고침(↻) 버튼: 캐시 무시하고 구글 드라이브 최신 폴더명/파일명 및 구글 시트 게시글 즉시 반영
+  // 새로고침(↻) 버튼: 저장해 둔 목록 대신 구글 드라이브를 바로 다시 읽음
   document.getElementById('btnRefreshGallery').addEventListener('click', () => {
     loadDriveFolder(CONFIGURED_FOLDER_URL, true);
-    fetchBoardPostsFromSheet();
   });
 
-  // 다크 / 라이트 테마 토글
+  // 한국어 / English 전환
+  document.getElementById('btnLangToggle')?.addEventListener('click', () => {
+    setLanguage(currentLang === 'en' ? 'ko' : 'en');
+  });
+
+  // 어둡게 / 밝게 (기본은 어둡게)
   document.getElementById('btnThemeToggle').addEventListener('click', () => {
     const html = document.documentElement;
-    const isLight = html.getAttribute('data-theme') === 'light';
-    const next = isLight ? 'dark' : 'light';
+    const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
     html.setAttribute('data-theme', next);
-    targetThemeValue = next === 'light' ? 1.0 : 0.0;
-
     document.getElementById('iconSun').classList.toggle('hidden', next === 'light');
     document.getElementById('iconMoon').classList.toggle('hidden', next === 'dark');
   });
@@ -2190,16 +2127,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && isOngoingModalOpen) {
       dismissOngoingPopup();
-      return;
-    }
-    const tipDetailBackdrop = document.getElementById('tipDetailModalBackdrop');
-    if (e.key === 'Escape' && tipDetailBackdrop && !tipDetailBackdrop.classList.contains('hidden')) {
-      closeTipDetailModal();
-      return;
-    }
-    const tipWriteBackdrop = document.getElementById('tipWriteModalBackdrop');
-    if (e.key === 'Escape' && tipWriteBackdrop && !tipWriteBackdrop.classList.contains('hidden')) {
-      closeTipWriteModal();
       return;
     }
     const modal = document.getElementById('lightboxModal');

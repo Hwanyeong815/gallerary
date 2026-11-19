@@ -1,178 +1,16 @@
+/**
+ * 내 PC에서 사이트 미리보기: `node server.js` → http://localhost:3000
+ * - /api/folder : 드라이브 사진 목록 (live=1 이면 저장된 목록 대신 드라이브를 바로 읽음)
+ * - /api/image  : 드라이브 사진 미리보기 중계
+ */
 const http = require('http');
-const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
-const { GOOGLE_DRIVE_FOLDER_URL, GOOGLE_SHEET_CSV_URL } = require('./config.js');
+const { GOOGLE_DRIVE_FOLDER_URL } = require('./config.js');
+const { fetchUrlBuffer, extractIdFromUrl, readDriveFolderTree } = require('./drive-reader.js');
 
-const PORT = 3000;
-function extractIdFromUrl(input) {
-  const s = String(input || '').trim();
-  const m1 = s.match(/\/folders\/([a-zA-Z0-9_-]{15,})/);
-  if (m1) return m1[1];
-  const m2 = s.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
-  if (m2) return m2[1];
-  return s || '1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw';
-}
+const PORT = Number(process.env.PORT) || 3000;
 const DEFAULT_FOLDER_ID = extractIdFromUrl(GOOGLE_DRIVE_FOLDER_URL);
-const DEFAULT_CSV_URL = GOOGLE_SHEET_CSV_URL || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRSSnDF4kOkpdc395mcK_tVi4yYg5klJfL-iIkHco6Bn2F1VBJqB9Cmj-1eFPiofNKhK00UmIT8YJU5/pub?output=csv';
-
-// HTTPS GET helper that follows redirects
-function fetchUrlBuffer(targetUrl, redirectsLeft = 5) {
-  return new Promise((resolve, reject) => {
-    const parsed = url.parse(targetUrl);
-    const options = {
-      hostname: parsed.hostname,
-      path: parsed.path,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
-      }
-    };
-
-    https.get(options, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && redirectsLeft > 0) {
-        const nextUrl = url.resolve(targetUrl, res.headers.location);
-        res.resume();
-        return resolve(fetchUrlBuffer(nextUrl, redirectsLeft - 1));
-      }
-
-      const chunks = [];
-      res.on('data', (chunk) => chunks.push(chunk));
-      res.on('end', () => {
-        resolve({
-          statusCode: res.statusCode,
-          headers: res.headers,
-          buffer: Buffer.concat(chunks)
-        });
-      });
-    }).on('error', reject);
-  });
-}
-
-function decodeHtmlEntities(str) {
-  return String(str || '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-}
-
-function isNonImageFile(name) {
-  return /\.(pdf|zip|rar|7z|mp4|mov|avi|mkv|doc|docx|xls|xlsx|ppt|pptx|txt|csv|json|js|css|html)$/i.test(name);
-}
-
-function parseDriveModifiedTime(chunk, index) {
-  const m = chunk.match(/class="flip-entry-last-modified"[\s\S]*?<div>([^<]+)<\/div>/i);
-  if (!m) return index;
-  const raw = m[1].trim();
-  const parsed = Date.parse(raw);
-  if (!isNaN(parsed)) return parsed;
-  return index;
-}
-
-// 단일 embeddedfolderview HTML에서 하위 폴더 목록과 이미지 파일 목록을 분리 추출
-function parseEntriesFromEmbedHtml(html) {
-  const subfolders = [];
-  const files = [];
-  const seen = new Set();
-
-  // 각 flip-entry 블록 단위로 분리
-  const parts = html.split(/class="flip-entry"/i);
-  for (let i = 1; i < parts.length; i++) {
-    const chunk = parts[i];
-    const idMatch = chunk.match(/id="entry-([a-zA-Z0-9_-]{15,})"/);
-    const titleMatch = chunk.match(/<div class="flip-entry-title">([^<]+)<\/div>/);
-    const hrefMatch = chunk.match(/href="([^"]+)"/);
-
-    if (!idMatch || !titleMatch) continue;
-    const id = idMatch[1];
-    if (seen.has(id)) continue;
-    seen.add(id);
-
-    const name = decodeHtmlEntities(titleMatch[1].trim());
-    const href = hrefMatch ? hrefMatch[1] : '';
-    const modifiedTime = parseDriveModifiedTime(chunk, i);
-
-    // 링크가 /drive/folders/ 를 포함하면 하위 폴더
-    if (href.includes('/folders/') || chunk.includes('drive/folders/')) {
-      subfolders.push({ id, name });
-    } else if (!isNonImageFile(name)) {
-      files.push({ id, name, modifiedTime, uploadIndex: i });
-    }
-  }
-
-  return { subfolders, files };
-}
-
-// 하위 폴더까지 재귀적으로 탐색하여 폴더 구조와 사진들을 모두 가져옴
-async function parseDriveFolderTree(rootFolderId, maxDepth = 3) {
-  const allPhotos = [];
-  const folderCategories = [];
-  const visitedFolders = new Set();
-
-  async function traverse(folderId, folderName, depth) {
-    if (visitedFolders.has(folderId) || depth > maxDepth) return;
-    visitedFolders.add(folderId);
-
-    const embedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}&t=${Date.now()}#grid`;
-    const embedRes = await fetchUrlBuffer(embedUrl);
-    const html = embedRes.buffer.toString('utf8');
-
-    const { subfolders, files } = parseEntriesFromEmbedHtml(html);
-
-    if (files.length > 0) {
-      if (!folderCategories.some(f => f.id === folderId)) {
-        folderCategories.push({
-          id: folderId,
-          name: folderName
-        });
-      }
-
-      files.forEach(file => {
-        allPhotos.push({
-          id: file.id,
-          name: file.name,
-          folderId: folderId,
-          folderName: folderName,
-          modifiedTime: file.modifiedTime || 0,
-          uploadIndex: file.uploadIndex || 0,
-          thumbUrl: `/api/image?id=${encodeURIComponent(file.id)}&sz=w800`,
-          fullUrl: `/api/image?id=${encodeURIComponent(file.id)}&sz=w2000`,
-          driveUrl: `https://drive.google.com/file/d/${file.id}/view`
-        });
-      });
-    }
-
-    // 하위 폴더들을 병렬로 재귀 탐색
-    if (subfolders.length > 0 && depth < maxDepth) {
-      await Promise.all(
-        subfolders.map(sub => {
-          const subLabel = folderName && folderName !== '기본 폴더'
-            ? `${folderName} / ${sub.name}`
-            : sub.name;
-          return traverse(sub.id, subLabel, depth + 1);
-        })
-      );
-    }
-  }
-
-  await traverse(rootFolderId, '기본 폴더', 0);
-
-  // [진행중] 폴더가 가장 먼저 나오도록 정렬
-  folderCategories.sort((a, b) => {
-    const aLive = /\[\s*진행\s*중\s*\]/i.test(a.name) ? 1 : 0;
-    const bLive = /\[\s*진행\s*중\s*\]/i.test(b.name) ? 1 : 0;
-    return bLive - aLive;
-  });
-
-  return {
-    folders: folderCategories,
-    photos: allPhotos
-  };
-}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -185,45 +23,31 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml'
 };
 
+function sendJson(res, status, data) {
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*'
+  });
+  res.end(JSON.stringify(data));
+}
+
 const server = http.createServer(async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
+  const requestUrl = new URL(req.url, `http://localhost:${PORT}`);
+  const pathname = requestUrl.pathname;
 
-  // API 0: 구글 시트 게시판 CSV 프록시 조회
-  if (pathname === '/api/board-csv') {
-    try {
-      const sep = DEFAULT_CSV_URL.includes('?') ? '&' : '?';
-      const csvUrl = `${DEFAULT_CSV_URL}${sep}t=${Date.now()}`;
-      const csvRes = await fetchUrlBuffer(csvUrl);
-      res.writeHead(200, {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Cache-Control': 'no-store',
-        'Access-Control-Allow-Origin': '*'
-      });
-      res.end(csvRes.buffer);
-    } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('');
-    }
-    return;
-  }
-
-  // API 1: 하위 폴더 포함 전체 사진 및 폴더 카테고리 조회
+  // 사진 목록 (하위 폴더 · 공모전 설명 txt 포함)
   if (pathname === '/api/folder') {
-    const folderId = parsedUrl.query.id || DEFAULT_FOLDER_ID;
-    const forceLive = parsedUrl.query.live === '1';
+    const folderId = requestUrl.searchParams.get('id') || DEFAULT_FOLDER_ID;
+    const forceLive = requestUrl.searchParams.get('live') === '1';
 
     if (!forceLive) {
       try {
         const cachePath = path.join(__dirname, 'drive-cache.json');
         if (fs.existsSync(cachePath)) {
           const cached = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
-          if (cached && cached.ok && Array.isArray(cached.photos) && cached.photos.length > 0) {
-            res.writeHead(200, {
-              'Content-Type': 'application/json; charset=utf-8',
-              'Access-Control-Allow-Origin': '*'
-            });
-            res.end(JSON.stringify(cached));
+          // 드라이브 링크를 바꾼 뒤라면 예전 폴더의 저장 목록은 쓰지 않고 새 폴더를 바로 읽음
+          if (cached && cached.ok && cached.folderId === folderId && Array.isArray(cached.photos) && cached.photos.length > 0) {
+            sendJson(res, 200, cached);
             return;
           }
         }
@@ -231,29 +55,23 @@ const server = http.createServer(async (req, res) => {
     }
 
     try {
-      const { folders, photos } = await parseDriveFolderTree(folderId);
-      res.writeHead(200, {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Access-Control-Allow-Origin': '*'
+      const { folders, photos } = await readDriveFolderTree(folderId, {
+        photoUrls: id => ({
+          thumbUrl: `/api/image?id=${encodeURIComponent(id)}&sz=w800`,
+          fullUrl: `/api/image?id=${encodeURIComponent(id)}&sz=w2000`
+        })
       });
-      res.end(JSON.stringify({
-        ok: true,
-        folderId,
-        count: photos.length,
-        folders,
-        photos
-      }));
+      sendJson(res, 200, { ok: true, folderId, count: photos.length, folders, photos });
     } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: err.message }));
+      sendJson(res, 500, { ok: false, error: err.message });
     }
     return;
   }
 
-  // API 2: 구글 드라이브 썸네일 / 원본 이미지 프록시
+  // 드라이브 사진 미리보기 중계
   if (pathname === '/api/image') {
-    const fileId = parsedUrl.query.id;
-    const sz = parsedUrl.query.sz || 'w800';
+    const fileId = requestUrl.searchParams.get('id');
+    const sz = requestUrl.searchParams.get('sz') || 'w800';
     if (!fileId) {
       res.writeHead(400);
       res.end('Missing id');
@@ -263,9 +81,8 @@ const server = http.createServer(async (req, res) => {
     try {
       const thumbUrl = `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=${encodeURIComponent(sz)}`;
       const imgRes = await fetchUrlBuffer(thumbUrl);
-      const contentType = imgRes.headers['content-type'] || 'image/jpeg';
       res.writeHead(200, {
-        'Content-Type': contentType,
+        'Content-Type': imgRes.headers['content-type'] || 'image/jpeg',
         'Cache-Control': 'public, max-age=3600',
         'Access-Control-Allow-Origin': '*'
       });
@@ -277,11 +94,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 정적 파일 서빙
-  let safePath = pathname === '/' ? '/index.html' : pathname;
+  // 정적 파일 (점으로 시작하는 폴더·파일은 내보내지 않음)
+  const safePath = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
   const filePath = path.join(__dirname, safePath);
 
-  if (!filePath.startsWith(__dirname)) {
+  if (!filePath.startsWith(__dirname) || safePath.split('/').some(part => part.startsWith('.'))) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
