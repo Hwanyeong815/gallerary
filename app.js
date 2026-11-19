@@ -940,7 +940,7 @@ function renderSkeletonGrid(count = 8) {
   let html = '';
   for (let i = 0; i < count; i++) {
     html += `
-      <div class="photo-card is-skeleton in-view" aria-hidden="true">
+      <div class="photo-card is-skeleton in-view" aria-hidden="true" style="--ratio: ${[1.5, 0.67, 1.5, 0.8, 1.33][i % 5]}">
         <div class="photo-media-wrap"></div>
         <div class="card-caption">
           <span class="skeleton-line"></span>
@@ -1136,7 +1136,7 @@ async function driveApiListChildren(folderId, apiKey) {
   do {
     const params = new URLSearchParams({
       q: `'${folderId}' in parents and trashed = false`,
-      fields: 'nextPageToken, files(id, name, mimeType)',
+      fields: 'nextPageToken, files(id, name, mimeType, imageMediaMetadata(width, height, rotation))',
       pageSize: '1000',
       orderBy: 'folder,name',
       supportsAllDrives: 'true',
@@ -1194,11 +1194,15 @@ async function fetchFolderTreeViaDriveApi(rootFolderId, apiKey, maxDepth = 3) {
       folders.push({ folder, orderKey });
 
       files.forEach((file, i) => {
+        // 사진 크기 (90° · 270° 돌려 찍은 사진은 가로세로를 바꿈)
+        const meta = file.imageMediaMetadata || {};
+        const turned = meta.rotation === 1 || meta.rotation === 3;
         photos.push({
           id: file.id,
           name: file.name,
           folderId,
           folderName,
+          ...(meta.width && meta.height ? { width: turned ? meta.height : meta.width, height: turned ? meta.width : meta.height } : {}),
           modifiedTime: i + 1,
           uploadIndex: i + 1,
           thumbUrl: `https://drive.google.com/thumbnail?id=${file.id}&sz=w1000`,
@@ -1522,7 +1526,7 @@ function renderPhotoCardHtml(photo, idx, showAward = false, delayIdx = idx) {
       tabindex="0"
       role="button"
       aria-label="${escapeHtml(t('viewLarge', label))}"
-      style="--d: ${Math.min(delayIdx * 55, 330)}ms"
+      style="--d: ${Math.min(delayIdx * 55, 330)}ms; --ratio: ${getPhotoRatio(photo).toFixed(4)}"
     >
       <div class="photo-media-wrap">
         <img
@@ -1536,6 +1540,13 @@ function renderPhotoCardHtml(photo, idx, showAward = false, delayIdx = idx) {
       <div class="card-caption">${captionHtml}</div>
     </article>
   `;
+}
+
+// 사진 비율(가로÷세로): 저장된 목록의 크기 → 화면에서 읽은 크기 → 모르면 가로 3:2
+function getPhotoRatio(photo) {
+  if (photo && photo.width > 0 && photo.height > 0) return photo.width / photo.height;
+  if (photo && photo._ratio > 0) return photo._ratio;
+  return 1.5;
 }
 
 function bindPhotoCardEvents(container, photoList, showAward = false) {
@@ -1556,7 +1567,18 @@ function bindPhotoCardEvents(container, photoList, showAward = false) {
       card.style.setProperty('--d', '0ms');
     }, 1300);
 
-    const markLoaded = () => card.classList.add('loaded');
+    const markLoaded = () => {
+      card.classList.add('loaded');
+      // 크기를 미리 몰랐던 사진은 불러온 그림의 실제 비율로 줄을 다시 맞춤
+      const photo = photoList[idx];
+      if (img && img.naturalWidth > 0 && img.naturalHeight > 0 && photo && !(photo.width > 0)) {
+        const ratio = img.naturalWidth / img.naturalHeight;
+        if (Math.abs(ratio - getPhotoRatio(photo)) > 0.01) {
+          photo._ratio = ratio;
+          card.style.setProperty('--ratio', ratio.toFixed(4));
+        }
+      }
+    };
     if (img && img.complete && img.naturalWidth > 0) {
       markLoaded();
     } else if (img) {
@@ -1593,12 +1615,12 @@ function bindPhotoCardEvents(container, photoList, showAward = false) {
    (크게 보기에서는 아직 안 붙인 사진까지 전부 넘겨 볼 수 있음) */
 const ROWS_PER_PAGE = 5;
 
-// 지금 그리드의 열 수 × 5줄 (화면에 안 보이는 그리드는 'repeat(4, …)' 형태로 알려 주므로 둘 다 처리)
+// 한 번에 붙일 장수: 한 줄에 대략 몇 장 걸리는지(줄 높이와 화면 너비로 어림) × 5줄
 function getGridPageSize(grid) {
-  const value = getComputedStyle(grid).gridTemplateColumns || '';
-  const repeat = value.match(/repeat\(\s*(\d+)/);
-  const columns = repeat ? Number(repeat[1]) : value.split(' ').filter(Boolean).length;
-  return Math.max(1, columns || 4) * ROWS_PER_PAGE;
+  const rowH = parseFloat(getComputedStyle(grid).getPropertyValue('--row-h')) || 210;
+  const width = grid.clientWidth || (grid.parentElement && grid.parentElement.clientWidth) || window.innerWidth;
+  const perRow = Math.max(2, Math.round(width / (rowH * 1.15)));
+  return perRow * ROWS_PER_PAGE;
 }
 
 function renderPagedPhotoGrid(grid, moreWrap, photos, showAward = false) {

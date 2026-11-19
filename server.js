@@ -7,10 +7,19 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { GOOGLE_DRIVE_FOLDER_URL } = require('./config.js');
-const { fetchUrlBuffer, extractIdFromUrl, readDriveFolderTree } = require('./drive-reader.js');
+const { fetchUrlBuffer, extractIdFromUrl, readDriveFolderTree, fillPhotoSizes } = require('./drive-reader.js');
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEFAULT_FOLDER_ID = extractIdFromUrl(GOOGLE_DRIVE_FOLDER_URL);
+
+// 사진 가로·세로 크기 기억 (drive-cache.json에 있던 값 + 서버를 켠 뒤 새로 읽은 값)
+const knownSizes = new Map();
+try {
+  const saved = JSON.parse(fs.readFileSync(path.join(__dirname, 'drive-cache.json'), 'utf8'));
+  (saved.photos || []).forEach(p => {
+    if (p.width && p.height) knownSizes.set(p.id, { width: p.width, height: p.height });
+  });
+} catch (e) {}
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -61,6 +70,7 @@ const server = http.createServer(async (req, res) => {
           fullUrl: `/api/image?id=${encodeURIComponent(id)}&sz=w2000`
         })
       });
+      await fillPhotoSizes(photos, knownSizes);
       sendJson(res, 200, { ok: true, folderId, count: photos.length, folders, photos });
     } catch (err) {
       sendJson(res, 500, { ok: false, error: err.message });

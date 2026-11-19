@@ -28,6 +28,9 @@ html[data-theme="dark"] {
   /* 조명: 어두운 모드에서만 켜짐 */
   --spot: rgba(255, 238, 214, 0.16);
   --spot-soft: rgba(255, 238, 214, 0.06);
+
+  --on-key-hover: rgba(255, 255, 255, 0.08); /* 먹색 띠 위 단추에 마우스를 올렸을 때 */
+  --print-shadow: 0 0 0 transparent;         /* 밝은 모드에서만 사진 아래 그림자 */
 }
 
 /* 글꼴 · 여백 · 움직임: 테마(어둡게/밝게)와 상관없이 같은 값.
@@ -47,23 +50,32 @@ html[data-theme="dark"] {
   --glass-border: var(--rule);
 }
 
+/* 밝은 모드 = 밝은 사진전: 흰 벽, 먹색 글자, 사진은 벽에 건 인화지처럼 살짝 그림자
+   (상단 메뉴 · 첫머리 제목 띠 · 맨 아래도 함께 밝아짐) */
 html[data-theme="light"] {
-  --key: #161616;
+  --key: #ffffff;
+  --on-key: #161616;
+  --on-key-2: #4a4a47;
+  --on-key-3: #78776f;
+  --on-key-rule: #e2e1dc;
+  --on-key-hover: rgba(0, 0, 0, 0.05);
   --accent: #d7261e;
   --accent-text: #c21f18;
+  --accent-on-key: #c21f18;
 
-  --bg: #f4f4f2;
-  --surface: #e3e3e0;
-  --surface-2: #d8d8d4;
+  --bg: #f6f5f1;
+  --surface: #ebeae5;
+  --surface-2: #e0dfd9;
   --ink: #161616;
   --ink-2: #4a4a47;
   --ink-3: #6b6b67;
-  --rule: #d6d6d2;
+  --rule: #e0dfda;
   --rule-strong: #161616;
   --overlay: rgba(16, 16, 16, 0.6);
 
   --spot: transparent;
   --spot-soft: transparent;
+  --print-shadow: 0 1px 2px rgba(20, 20, 20, 0.06), 0 16px 30px -14px rgba(20, 20, 20, 0.32);
 }
 
 * {
@@ -320,7 +332,7 @@ img {
 }
 
 .nav-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--on-key-hover);
   color: var(--on-key);
 }
 
@@ -420,7 +432,7 @@ img {
   }
 
   .search-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--on-key-hover);
   }
 
   .search-pill input {
@@ -532,7 +544,13 @@ img {
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.045em;
-  color: #fff;
+  color: var(--on-key);
+}
+
+/* 밝은 모드 첫머리: 흰 벽에 위에서 들어오는 자연광 */
+html[data-theme="light"] .hero-stage {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
+  border-bottom: 1px solid var(--rule);
 }
 
 .hero-subtitle {
@@ -613,28 +631,40 @@ img {
   font-size: 0.95rem;
 }
 
+/* 줄 맞춰 걸기: 한 줄의 사진 높이를 맞추고, 가로 사진은 넓게 세로 사진은 좁게 (사진 원래 비율 그대로)
+   각 사진의 --ratio(가로÷세로)만큼 늘어나서 줄 끝이 딱 맞음. 마지막 줄은 억지로 늘이지 않음 */
 .bento-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 40px 24px;
+  --row-h: 210px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px 20px;
+}
+
+.bento-grid::after {
+  content: "";
+  flex: 999999 1 0;
+}
+
+.bento-grid > .photo-card {
+  flex: var(--ratio, 1.5) 1 calc(var(--ratio, 1.5) * var(--row-h));
 }
 
 @media (min-width: 1440px) {
   .bento-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    --row-h: 240px;
   }
 }
 
 @media (max-width: 1024px) {
   .bento-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 32px 18px;
+    --row-h: 180px;
+    gap: 32px 16px;
   }
 }
 
 @media (max-width: 600px) {
   .bento-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --row-h: 125px;
     gap: 24px 10px;
   }
 
@@ -683,16 +713,18 @@ img {
 
 .photo-media-wrap {
   position: relative;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: var(--ratio, 1.5);
   background: var(--surface);
+  box-shadow: var(--print-shadow);
   overflow: hidden;
-  clip-path: inset(100% 0 0 0);
+  clip-path: inset(100% -48px -48px -48px);
   transition: clip-path 0.95s var(--ease-wipe), background 0.25s ease;
   transition-delay: var(--d, 0ms), 0s;
 }
 
+/* 다 나타난 뒤에는 바깥쪽 여유(-48px)까지 보여서 밝은 모드의 사진 그림자가 잘리지 않음 */
 .photo-card.in-view .photo-media-wrap {
-  clip-path: inset(0 0 0 0);
+  clip-path: inset(-48px -48px -48px -48px);
 }
 
 .photo-thumb {
@@ -732,7 +764,7 @@ img {
 
 /* 수상 표시는 공모전 아카이브(상세 화면)에서만 */
 .photo-card.is-winner .photo-media-wrap {
-  box-shadow: inset 0 0 0 2px var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent), var(--print-shadow);
 }
 
 .card-caption {
@@ -906,7 +938,7 @@ img {
   font-weight: 800;
   line-height: 1.04;
   letter-spacing: -0.045em;
-  color: #fff;
+  color: var(--on-key);
 }
 
 .archive-page-subtitle {
@@ -1864,6 +1896,12 @@ img {
 .apple-toast.visible {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+html[data-theme="light"] .apple-toast {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  box-shadow: 0 12px 30px rgba(20, 20, 20, 0.12);
 }
 
 .toast-icon {

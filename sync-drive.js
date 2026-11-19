@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { GOOGLE_DRIVE_FOLDER_URL } = require('./config.js');
-const { extractIdFromUrl, readDriveFolderTree } = require('./drive-reader.js');
+const { extractIdFromUrl, readDriveFolderTree, fillPhotoSizes } = require('./drive-reader.js');
 
 const DEFAULT_FOLDER_ID = process.env.DRIVE_FOLDER_ID || extractIdFromUrl(GOOGLE_DRIVE_FOLDER_URL);
 const CACHE_PATH = path.join(__dirname, 'drive-cache.json');
@@ -38,6 +38,18 @@ async function buildCache(rootFolderId) {
     return;
   }
 
+  // 사진 가로·세로 크기: 예전 목록에 있던 사진은 그대로 쓰고, 새 사진만 드라이브에서 읽음
+  let previous = null;
+  try {
+    previous = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
+  } catch (e) {}
+  const knownSizes = new Map(
+    ((previous && previous.photos) || [])
+      .filter(p => p.width && p.height)
+      .map(p => [p.id, { width: p.width, height: p.height }])
+  );
+  await fillPhotoSizes(photos, knownSizes);
+
   const output = {
     ok: true,
     folderId: rootFolderId,
@@ -47,13 +59,10 @@ async function buildCache(rootFolderId) {
     photos
   };
 
-  try {
-    const previous = JSON.parse(fs.readFileSync(CACHE_PATH, 'utf8'));
-    if (contentKey(previous) === contentKey(output)) {
-      console.log(`No changes on Drive (${photos.length} photos across ${folders.length} folders); drive-cache.json left as is.`);
-      return;
-    }
-  } catch (e) {}
+  if (previous && contentKey(previous) === contentKey(output)) {
+    console.log(`No changes on Drive (${photos.length} photos across ${folders.length} folders); drive-cache.json left as is.`);
+    return;
+  }
 
   fs.writeFileSync(CACHE_PATH, JSON.stringify(output, null, 2), 'utf8');
   const described = folders.filter(f => f.description || f.descriptionEn).length;
