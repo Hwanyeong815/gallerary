@@ -6,6 +6,7 @@
   <title>각자의 프레임 — 사진 아카이브</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./moods.css" />
 </head>
 <body>
   <!-- 상단 메뉴 (먹색 띠). 화면 문구는 data-i18n 키로 한국어 / English 전환 -->
@@ -29,7 +30,6 @@
           <button type="button" id="navViewGallery" class="nav-switch-btn active" data-i18n="navGallery">갤러리</button>
           <button type="button" id="navViewCompetitions" class="nav-switch-btn" data-i18n="navContests">공모전 아카이브</button>
           <button type="button" id="navViewMini" class="nav-switch-btn" data-i18n="navMini">소마대전</button>
-          <button type="button" id="navViewWinners" class="nav-switch-btn" data-i18n="navWinners">역대 수상작</button>
         </div>
       </div>
 
@@ -149,20 +149,6 @@
     </div>
   </section>
 
-  <!-- [뷰 4] 역대 수상작 -->
-  <section id="winnersHallView" class="winners-hall-stage hidden">
-    <div class="gallery-container">
-      <div class="archive-page-header">
-        <h1 class="archive-page-title" data-i18n="winnersTitle">역대 수상작</h1>
-        <p class="archive-page-subtitle" data-i18n="winnersSubtitle">
-          공모전마다 뽑힌 수상작을 모았습니다.
-        </p>
-      </div>
-
-      <div id="winnersHallContainer" class="winners-hall-container" aria-live="polite"></div>
-    </div>
-  </section>
-
   <!-- 사진 크게 보기 (좌우로 밀어 넘기기, 아래로 당겨 닫기) -->
   <div id="lightboxModal" class="lightbox-root hidden" role="dialog" aria-modal="true" data-i18n-aria="lightboxLabel" aria-label="사진 크게 보기">
     <header class="lightbox-header">
@@ -255,12 +241,14 @@
       <span class="footer-sep" aria-hidden="true">·</span>
       <span class="footer-item" data-i18n="footerMaker">제작자: 웰컴</span>
       <span class="footer-sep" aria-hidden="true">·</span>
-      <span class="footer-item" data-i18n="footerOwner">드라이브 소유자: 마오</span>
+      <!-- 기분전환: 누를 때마다 사이트 분위기가 차례로 바뀜 (moods.js), 새로고침하면 원래대로 -->
+      <button type="button" id="btnMood" class="mood-btn" data-i18n="moodBtn" data-i18n-aria="moodBtnAria" aria-label="사이트 분위기 바꾸기 (누를 때마다 다음 분위기, 새로고침하면 원래대로)">기분전환</button>
     </div>
   </footer>
 
   <!-- 구글 드라이브 폴더 주소 · 카카오톡 오픈채팅방 주소 설정 파일 -->
   <script src="./config.js"></script>
   <script src="./app.js"></script>
+  <script src="./moods.js"></script>
 </body>
 </html>

@@ -147,13 +147,29 @@ async function readDriveFolderTree(rootFolderId, { photoUrls, maxDepth = 3 } = {
   const photos = [];
   const folders = [];
   const visited = new Set();
+  // 읽지 못한 폴더 (공유가 꺼졌거나 드라이브 오류) — 하나라도 있으면 목록 일부가 빠졌을 수 있음
+  const failures = [];
 
-  async function traverse(folderId, folderName, depth) {
+  // orderKey: 드라이브에 나온 순서. 하위 폴더를 동시에 읽어도 결과 순서가 매번 같도록 마지막에 이 값으로 정렬
+  const folderOrder = new Map();
+
+  async function traverse(folderId, folderName, depth, orderKey) {
     if (visited.has(folderId) || depth > maxDepth) return;
+    folderOrder.set(folderId, orderKey);
     visited.add(folderId);
 
     const embedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}&t=${Date.now()}#grid`;
-    const embedRes = await fetchUrlBuffer(embedUrl);
+    let embedRes;
+    try {
+      embedRes = await fetchUrlBuffer(embedUrl);
+    } catch (err) {
+      failures.push({ folderId, folderName, reason: err.message });
+      return;
+    }
+    if (embedRes.statusCode !== 200) {
+      failures.push({ folderId, folderName, reason: `HTTP ${embedRes.statusCode}` });
+      return;
+    }
     const { subfolders, files, texts } = parseEntriesFromEmbedHtml(embedRes.buffer.toString('utf8'));
 
     if (files.length > 0) {
@@ -183,26 +199,29 @@ async function readDriveFolderTree(rootFolderId, { photoUrls, maxDepth = 3 } = {
 
     if (subfolders.length > 0 && depth < maxDepth) {
       await Promise.all(
-        subfolders.map(sub => {
+        subfolders.map((sub, i) => {
           const subLabel = folderName && folderName !== '기본 폴더'
             ? `${folderName} / ${sub.name}`
             : sub.name;
-          return traverse(sub.id, subLabel, depth + 1);
+          return traverse(sub.id, subLabel, depth + 1, `${orderKey}.${String(i).padStart(4, '0')}`);
         })
       );
     }
   }
 
-  await traverse(rootFolderId, '기본 폴더', 0);
+  await traverse(rootFolderId, '기본 폴더', 0, '0');
 
-  // [진행중] 폴더가 가장 먼저 나오도록 정렬
+  const keyOf = id => folderOrder.get(id) || '';
+  const byKey = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  // [진행중] 폴더가 가장 먼저, 나머지는 드라이브에 나온 순서
   folders.sort((a, b) => {
     const aLive = /\[\s*진행\s*중\s*\]/i.test(a.name) ? 1 : 0;
     const bLive = /\[\s*진행\s*중\s*\]/i.test(b.name) ? 1 : 0;
-    return bLive - aLive;
+    return (bLive - aLive) || byKey(keyOf(a.id), keyOf(b.id));
   });
+  photos.sort((a, b) => byKey(keyOf(a.folderId), keyOf(b.folderId)) || (a.uploadIndex - b.uploadIndex));
 
-  return { folders, photos };
+  return { folders, photos, failures };
 }
 
 module.exports = {

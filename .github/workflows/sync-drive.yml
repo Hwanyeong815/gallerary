@@ -1,0 +1,50 @@
+# 구글 드라이브 사진 목록(drive-cache.json) 자동 갱신
+# - 약 10분마다 드라이브를 읽어서 사진 · 폴더 · 설명이 바뀌었을 때만 커밋 → GitHub Pages가 새 목록으로 다시 배포
+# - config.js(드라이브 링크)를 바꿔 push 해도 바로 실행
+# - Actions 탭 → '드라이브 사진 목록 갱신' → Run workflow 로 지금 바로 돌릴 수도 있음
+name: 드라이브 사진 목록 갱신
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    paths:
+      - config.js
+      - drive-reader.js
+      - sync-drive.js
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-drive
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 드라이브 읽어서 drive-cache.json 만들기
+        run: node sync-drive.js
+
+      - name: 바뀐 경우에만 커밋
+        run: |
+          if git diff --quiet -- drive-cache.json; then
+            echo "드라이브 변경 없음"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add drive-cache.json
+          git commit -m "chore: 드라이브 사진 목록 자동 갱신"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

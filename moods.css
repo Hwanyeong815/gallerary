@@ -1,0 +1,1371 @@
+/* ==========================================================================
+   기분전환 (moods.js) — html[data-mood="..."] 일 때만 적용
+   win98 · hacker · gravity · viewfinder · homepage
+   ========================================================================== */
+
+/* ---------- 맨 아래 '기분전환' 버튼 ---------- */
+.mood-btn {
+  appearance: none;
+  padding: 3px 12px;
+  border: 1px solid var(--on-key-rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--on-key-2);
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.mood-btn:hover {
+  color: var(--on-key);
+  border-color: var(--accent);
+}
+
+/* ---------- 오른쪽 아래 분위기 막대 (이름 · 다음 · 원래대로) ---------- */
+.mood-pill {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + var(--mood-pill-lift, 0px));
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100vw - 32px);
+  padding: 5px 5px 5px 14px;
+  background: var(--key);
+  color: var(--on-key);
+  border: 1px solid var(--on-key-rule);
+  border-radius: 999px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.mood-pill-name {
+  margin-right: 6px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mood-pill-step {
+  margin-left: 6px;
+  font-weight: 500;
+  color: var(--on-key-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.mood-pill button {
+  appearance: none;
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mood-pill button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mood-pill .mood-pill-off {
+  width: 30px;
+  padding: 7px 0;
+}
+
+/* 분위기가 켜지면 빨간 점 커서는 숨기고, 알림은 막대 위로 */
+html[data-mood] .cursor-follower {
+  display: none !important;
+}
+
+html[data-mood] .apple-toast {
+  bottom: calc(76px + var(--mood-pill-lift, 0px));
+}
+
+@media (max-width: 600px) {
+  .mood-pill {
+    left: 12px;
+    right: 12px;
+    justify-content: flex-end;
+  }
+
+  .mood-pill-name {
+    margin-right: auto;
+  }
+}
+
+/* ==========================================================================
+   1. 윈도우 98
+   ========================================================================== */
+html[data-mood="win98"] {
+  --w98-face: #c0c0c0;
+  --w98-hi: #dfdfdf;
+  --w98-shadow: #808080;
+  --w98-raised: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  --w98-sunken: inset -1px -1px #ffffff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+  --w98-title: linear-gradient(90deg, #000080, #1084d0);
+  --w98-title-off: linear-gradient(90deg, #808080, #b5b5b5);
+
+  --key: #c0c0c0;
+  --on-key: #000;
+  --on-key-2: #000;
+  --on-key-3: #404040;
+  --on-key-rule: #808080;
+  --accent: #000080;
+  --accent-text: #000080;
+  --accent-on-key: #000080;
+  --bg: #008080;
+  --surface: #ffffff;
+  --surface-2: #c0c0c0;
+  --ink: #000;
+  --ink-2: #202020;
+  --ink-3: #404040;
+  --rule: #808080;
+  --rule-strong: #000;
+  --spot: transparent;
+  --spot-soft: transparent;
+  --font-sans: 'Galmuri11', 'Dotum', '돋움', 'Tahoma', sans-serif;
+  --mood-pill-lift: 34px;
+  scrollbar-color: #c0c0c0 #dfdfdf;
+}
+
+html[data-mood="win98"] body {
+  padding-bottom: 32px;
+  letter-spacing: 0;
+  -webkit-font-smoothing: none;
+}
+
+/* 상단 메뉴 = 회색 도구 모음, 버튼은 볼록한 98 버튼 */
+html[data-mood="win98"] .global-nav {
+  background: var(--w98-face);
+  border-bottom: 0;
+  box-shadow: var(--w98-raised);
+}
+
+html[data-mood="win98"] .nav-section-switch,
+html[data-mood="win98"] .nav-pills {
+  gap: 6px;
+}
+
+html[data-mood="win98"] .nav-pills {
+  border-top: 1px solid #808080;
+  box-shadow: 0 -1px 0 #fff inset;
+}
+
+html[data-mood="win98"] .nav-switch-btn,
+html[data-mood="win98"] .folder-tab-btn,
+html[data-mood="win98"] .comp-filter-chip,
+html[data-mood="win98"] .load-more-btn,
+html[data-mood="win98"] .comp-back-btn,
+html[data-mood="win98"] .mood-btn,
+html[data-mood="win98"] .ongoing-btn-primary,
+html[data-mood="win98"] .ongoing-btn-secondary,
+html[data-mood="win98"] .mood-pill button {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--w98-face);
+  color: #000;
+  box-shadow: var(--w98-raised);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+html[data-mood="win98"] .nav-switch-btn.active,
+html[data-mood="win98"] .folder-tab-btn.active,
+html[data-mood="win98"] .comp-filter-chip.active,
+html[data-mood="win98"] .nav-switch-btn:active,
+html[data-mood="win98"] .load-more-btn:active,
+html[data-mood="win98"] .mood-pill button:active {
+  box-shadow: var(--w98-sunken);
+  background: repeating-conic-gradient(#c0c0c0 0% 25%, #ffffff 0% 50%) 0 0 / 2px 2px;
+  font-weight: 700;
+}
+
+html[data-mood="win98"] .nav-switch-btn::after,
+html[data-mood="win98"] .folder-tab-btn::after,
+html[data-mood="win98"] .comp-filter-chip::after,
+html[data-mood="win98"] .photo-media-wrap::after {
+  display: none;
+}
+
+html[data-mood="win98"] .nav-icon-btn {
+  width: 30px;
+  height: 28px;
+  border-radius: 0;
+  background: var(--w98-face);
+  color: #000;
+  box-shadow: var(--w98-raised);
+}
+
+html[data-mood="win98"] .lang-toggle-btn {
+  width: auto;
+  border: 0;
+}
+
+html[data-mood="win98"] .search-pill {
+  padding: 3px 6px;
+  border: 0;
+  background: #fff;
+  box-shadow: var(--w98-sunken);
+  color: #000;
+}
+
+html[data-mood="win98"] .search-pill input {
+  color: #000;
+  font-size: 12px;
+}
+
+html[data-mood="win98"] .brand-aperture {
+  color: #000080;
+}
+
+/* 첫머리 = 탐색기 창 하나 */
+html[data-mood="win98"] .hero-stage {
+  background: transparent;
+  color: #000;
+}
+
+html[data-mood="win98"] .hero-container {
+  position: relative;
+  padding: 44px 24px 24px;
+  background: var(--w98-face);
+  box-shadow: var(--w98-raised);
+}
+
+html[data-mood="win98"] .hero-container::before {
+  content: var(--mood-win-title, "Gallery");
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: 22px;
+  padding: 0 60px 0 8px;
+  background: var(--w98-title);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 창 오른쪽 위 _ □ × 단추 */
+html[data-mood="win98"] .hero-container::after {
+  content: "_  □  ×";
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--w98-face);
+  box-shadow: var(--w98-raised);
+  color: #000;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: pre;
+}
+
+html[data-mood="win98"] .hero-title {
+  color: #000;
+  letter-spacing: -0.02em;
+}
+
+html[data-mood="win98"] .hero-eyebrow {
+  color: #000080;
+}
+
+html[data-mood="win98"] .hero-subtitle,
+html[data-mood="win98"] .hero-count-inline {
+  color: #000;
+}
+
+/* 사진 카드 = 작은 창 (제목줄에 파일 이름, 마우스를 올리면 활성 창) */
+html[data-mood="win98"] .photo-card {
+  padding: 27px 4px 4px;
+  background: var(--w98-face);
+  box-shadow: var(--w98-raised);
+}
+
+html[data-mood="win98"] .photo-card::before,
+html[data-mood="win98"] .photo-card:hover::before {
+  content: attr(data-file);
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: 20px;
+  padding: 0 26px 0 6px;
+  background: var(--w98-title-off);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 1;
+}
+
+html[data-mood="win98"] .photo-card:hover::before,
+html[data-mood="win98"] .photo-card:focus-visible::before {
+  background: var(--w98-title);
+}
+
+html[data-mood="win98"] .photo-card::after {
+  content: "×";
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 16px;
+  height: 14px;
+  background: var(--w98-face);
+  box-shadow: var(--w98-raised);
+  color: #000;
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
+}
+
+html[data-mood="win98"] .photo-media-wrap {
+  padding: 2px;
+  background: #fff;
+  box-shadow: var(--w98-sunken);
+}
+
+html[data-mood="win98"] .photo-card:hover .photo-thumb {
+  transform: none;
+}
+
+html[data-mood="win98"] .photo-card.is-winner .photo-media-wrap {
+  box-shadow: var(--w98-sunken), inset 0 0 0 4px #000080;
+}
+
+html[data-mood="win98"] .card-caption {
+  padding: 6px 4px 2px;
+}
+
+html[data-mood="win98"] .caption-title {
+  font-size: 12px;
+}
+
+html[data-mood="win98"] .caption-meta-row,
+html[data-mood="win98"] .caption-award {
+  font-size: 11px;
+}
+
+/* 아카이브 띠 · 카드 · 팝업 · 아래쪽 */
+html[data-mood="win98"] .archive-page-header {
+  background: var(--w98-face);
+}
+
+html[data-mood="win98"] .comp-archive-card,
+html[data-mood="win98"] .comp-detail-hero,
+html[data-mood="win98"] .ongoing-modal-card,
+html[data-mood="win98"] .archive-empty-state {
+  padding: 6px;
+  border: 0;
+  background: var(--w98-face);
+  box-shadow: var(--w98-raised);
+  color: #000;
+}
+
+html[data-mood="win98"] .comp-detail-hero {
+  padding: 12px;
+}
+
+html[data-mood="win98"] .ongoing-modal-card {
+  border-radius: 0;
+}
+
+html[data-mood="win98"] .minimal-footer {
+  background: var(--w98-face);
+  border-top: 0;
+  box-shadow: var(--w98-raised);
+  color: #000;
+}
+
+html[data-mood="win98"] .apple-toast {
+  padding: 6px 10px;
+  border: 1px solid #000;
+  border-radius: 0;
+  background: #ffffe1;
+  color: #000;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+}
+
+html[data-mood="win98"] .toast-icon {
+  color: #000080;
+}
+
+html[data-mood="win98"] .mood-pill {
+  padding: 3px 3px 3px 10px;
+  border: 0;
+  border-radius: 0;
+  background: var(--w98-face);
+  color: #000;
+  box-shadow: var(--w98-raised), 2px 2px 0 rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+}
+
+html[data-mood="win98"] .mood-pill-step {
+  color: #404040;
+}
+
+/* 작업 표시줄 · 시작 메뉴 */
+.w98-taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 94;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 3px 3px 2px;
+  background: #c0c0c0;
+  box-shadow: inset 0 1px #dfdfdf, inset 0 2px #fff;
+  color: #000;
+  font: 12px/1 var(--font-sans);
+  -webkit-font-smoothing: none;
+}
+
+.w98-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 25px;
+  padding: 0 7px 0 5px;
+  border: 0;
+  background: #c0c0c0;
+  box-shadow: var(--w98-raised);
+  color: #000;
+  font: 700 12px/1 var(--font-sans);
+  cursor: pointer;
+}
+
+.w98-start[aria-expanded="true"] {
+  box-shadow: var(--w98-sunken);
+}
+
+.w98-logo {
+  width: 15px;
+  height: 13px;
+  background:
+    linear-gradient(#f03c24, #f03c24) 0 0 / 7px 6px no-repeat,
+    linear-gradient(#4fb22f, #4fb22f) 8px 0 / 7px 6px no-repeat,
+    linear-gradient(#2d7ff9, #2d7ff9) 0 7px / 7px 6px no-repeat,
+    linear-gradient(#ffc61a, #ffc61a) 8px 7px / 7px 6px no-repeat;
+  transform: skewY(-8deg);
+}
+
+.w98-task {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 1 180px;
+  height: 25px;
+  padding: 0 8px;
+  background: repeating-conic-gradient(#c0c0c0 0% 25%, #ffffff 0% 50%) 0 0 / 2px 2px;
+  box-shadow: var(--w98-sunken);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.w98-task-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 11px;
+  background: #ffd84a;
+  box-shadow: inset -1px -1px #b8901a;
+  border-radius: 1px 3px 1px 1px;
+}
+
+.w98-task-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.w98-tray {
+  display: inline-flex;
+  align-items: center;
+  height: 25px;
+  margin-left: auto;
+  padding: 0 10px;
+  box-shadow: inset 1px 1px #808080, inset -1px -1px #fff;
+  white-space: nowrap;
+}
+
+.w98-menu {
+  position: fixed;
+  left: 3px;
+  bottom: 31px;
+  z-index: 96;
+  display: flex;
+  min-width: 220px;
+  padding: 3px;
+  background: #c0c0c0;
+  box-shadow: var(--w98-raised), 2px 2px 0 rgba(0, 0, 0, 0.3);
+  color: #000;
+  font: 12px/1.2 var(--font-sans);
+}
+
+.w98-menu-side {
+  display: flex;
+  align-items: flex-end;
+  width: 22px;
+  background: linear-gradient(0deg, #000080, #1084d0);
+}
+
+.w98-menu-side span {
+  padding: 8px 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+.w98-menu-items {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.w98-menu-items button {
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: #000;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.w98-menu-items button:hover,
+.w98-menu-items button:focus-visible {
+  background: #000080;
+  color: #fff;
+  outline: none;
+}
+
+.w98-menu-items hr {
+  margin: 3px 2px;
+  border: 0;
+  border-top: 1px solid #808080;
+  border-bottom: 1px solid #fff;
+}
+
+/* ==========================================================================
+   2. 해커 터미널
+   ========================================================================== */
+html[data-mood="hacker"] {
+  --hk: #33ff66;
+  --hk-dim: #22b84c;
+  --key: #000;
+  --on-key: var(--hk);
+  --on-key-2: var(--hk);
+  --on-key-3: var(--hk-dim);
+  --on-key-rule: rgba(51, 255, 102, 0.28);
+  --accent: var(--hk);
+  --accent-text: var(--hk);
+  --accent-on-key: var(--hk);
+  --bg: #000;
+  --surface: #020b05;
+  --surface-2: #06140a;
+  --ink: var(--hk);
+  --ink-2: var(--hk-dim);
+  --ink-3: #1d9a42;
+  --rule: rgba(51, 255, 102, 0.28);
+  --rule-strong: var(--hk);
+  --overlay: rgba(0, 0, 0, 0.85);
+  --spot: transparent;
+  --spot-soft: transparent;
+  --font-sans: 'GalmuriMono11', 'D2Coding', 'Consolas', 'Courier New', monospace;
+  scrollbar-color: #1d9a42 #000;
+}
+
+html[data-mood="hacker"] body {
+  letter-spacing: 0;
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.45);
+}
+
+html[data-mood="hacker"] ::selection {
+  background: var(--hk);
+  color: #000;
+}
+
+.hk-scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 93;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+}
+
+html[data-mood="hacker"] .hero-stage {
+  background: #000;
+}
+
+html[data-mood="hacker"] .hero-container {
+  position: relative;
+  z-index: 1;
+}
+
+.hk-rain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+html[data-mood="hacker"] .hero-title {
+  color: var(--hk);
+  letter-spacing: 0;
+}
+
+html[data-mood="hacker"] .hero-title::after {
+  content: "_";
+  animation: hkBlink 1s steps(1) infinite;
+}
+
+html[data-mood="hacker"] .hero-eyebrow::before {
+  content: "root@gallery:~$ ";
+  color: var(--hk-dim);
+}
+
+/* 사진은 초록 모니터 색, 마우스를 올리면 원래 색 */
+html[data-mood="hacker"] .photo-thumb,
+html[data-mood="hacker"] .comp-card-cover,
+html[data-mood="hacker"] .comp-detail-hero-media img {
+  filter: grayscale(1) sepia(1) hue-rotate(68deg) saturate(2.6) brightness(0.82) contrast(1.15);
+  transition: filter 0.35s ease, opacity 0.5s ease, transform 0.8s var(--ease-out);
+}
+
+html[data-mood="hacker"] .photo-card:hover .photo-thumb,
+html[data-mood="hacker"] .comp-archive-card:hover .comp-card-cover {
+  filter: none;
+}
+
+html[data-mood="hacker"] .photo-media-wrap {
+  outline: 1px solid var(--rule);
+}
+
+html[data-mood="hacker"] .caption-title::before {
+  content: "> ";
+  color: var(--hk-dim);
+}
+
+html[data-mood="hacker"] .nav-icon-btn,
+html[data-mood="hacker"] .lang-toggle-btn,
+html[data-mood="hacker"] .load-more-btn,
+html[data-mood="hacker"] .mood-btn,
+html[data-mood="hacker"] .mood-pill,
+html[data-mood="hacker"] .mood-pill button,
+html[data-mood="hacker"] .ongoing-modal-card,
+html[data-mood="hacker"] .apple-toast {
+  border-radius: 0;
+}
+
+html[data-mood="hacker"] .mood-pill,
+html[data-mood="hacker"] .apple-toast {
+  border: 1px solid var(--hk);
+  background: #000;
+  box-shadow: 0 0 14px rgba(51, 255, 102, 0.35);
+}
+
+html[data-mood="hacker"] .mood-pill button {
+  background: transparent;
+  border: 1px solid rgba(51, 255, 102, 0.4);
+}
+
+html[data-mood="hacker"] .mood-pill button:hover {
+  background: var(--hk);
+  color: #000;
+  text-shadow: none;
+}
+
+.hk-boot {
+  position: fixed;
+  inset: 0;
+  z-index: 125;
+  padding: 12vh 8vw;
+  background: #000;
+  color: #33ff66;
+  font: 15px/1.9 'GalmuriMono11', 'D2Coding', 'Consolas', monospace;
+  text-shadow: 0 0 8px rgba(51, 255, 102, 0.6);
+  white-space: pre-wrap;
+  cursor: pointer;
+  transition: opacity 0.35s ease;
+}
+
+.hk-boot.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hk-caret {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  vertical-align: text-bottom;
+  background: #33ff66;
+  animation: hkBlink 1s steps(1) infinite;
+}
+
+@keyframes hkBlink {
+  50% { opacity: 0; }
+}
+
+/* ==========================================================================
+   3. 중력
+   ========================================================================== */
+html.gravity-on,
+html.gravity-on body {
+  overflow: hidden !important;
+}
+
+.gravity-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.gravity-layer.is-dragging {
+  cursor: grabbing;
+}
+
+.gravity-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.gravity-item > * {
+  width: 100%;
+  height: 100%;
+  margin: 0 !important;
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.gravity-item .char {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* 떨어진 메뉴 버튼 · 제목은 원래 띠 색을 같이 가져가서 읽히게 */
+.gravity-item > .nav-switch-btn,
+.gravity-item > .folder-tab-btn,
+.gravity-item > .nav-icon-btn,
+.gravity-item > .search-pill,
+.gravity-item > .nav-brand,
+.gravity-item > .comp-filter-chip,
+.gravity-item > .mood-btn,
+.gravity-item > .footer-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  background: var(--key);
+  color: var(--on-key);
+}
+
+.gravity-item > .word {
+  display: block;
+  white-space: nowrap;
+  color: #fff;
+}
+
+html[data-theme="light"] .gravity-item > .word {
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   4. 카메라 뷰파인더
+   ========================================================================== */
+html[data-mood="viewfinder"] {
+  --spot: transparent;
+  --spot-soft: transparent;
+  --mood-pill-lift: 50px;
+}
+
+html[data-mood="viewfinder"] body {
+  cursor: crosshair;
+}
+
+.vf-ui {
+  position: fixed;
+  inset: 0;
+  z-index: 92;
+  pointer-events: none;
+  color: #fff;
+  font: 600 13px/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+/* 가장자리가 살짝 어두운 렌즈 느낌 */
+.vf-ui::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.32));
+}
+
+.vf-thirds {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent calc(33.333% - 0.5px), rgba(255, 255, 255, 0.2) calc(33.333% - 0.5px), rgba(255, 255, 255, 0.2) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px), transparent calc(66.666% - 0.5px), rgba(255, 255, 255, 0.2) calc(66.666% - 0.5px), rgba(255, 255, 255, 0.2) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px)),
+    linear-gradient(180deg, transparent calc(33.333% - 0.5px), rgba(255, 255, 255, 0.2) calc(33.333% - 0.5px), rgba(255, 255, 255, 0.2) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px), transparent calc(66.666% - 0.5px), rgba(255, 255, 255, 0.2) calc(66.666% - 0.5px), rgba(255, 255, 255, 0.2) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px));
+}
+
+.vf-corner {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+.vf-corner.tl { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+.vf-corner.tr { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+.vf-corner.bl { bottom: 56px; left: 12px; border-right: 0; border-top: 0; }
+.vf-corner.br { bottom: 56px; right: 12px; border-left: 0; border-top: 0; }
+
+.vf-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 14px 20px 16px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.62) 45%);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.vf-rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #ff4b3e;
+}
+
+.vf-rec i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff3b30;
+  animation: hkBlink 1.2s steps(1) infinite;
+}
+
+.vf-sep {
+  flex: 1;
+}
+
+.vf-mode {
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.vf-batt {
+  position: relative;
+  width: 26px;
+  height: 12px;
+  border: 1.5px solid #fff;
+  border-radius: 2px;
+}
+
+.vf-batt::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 3px;
+  width: 2px;
+  height: 4px;
+  background: #fff;
+}
+
+.vf-batt i {
+  position: absolute;
+  inset: 1.5px;
+  right: 30%;
+  background: #fff;
+}
+
+.vf-focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 92;
+  pointer-events: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease-out, width 0.2s ease, height 0.2s ease, border-color 0.15s ease;
+}
+
+.vf-focus.is-locked {
+  border-color: #3cff5a;
+  border-width: 2px;
+}
+
+.vf-focus.is-locked::after {
+  content: "AF·L";
+  position: absolute;
+  top: -20px;
+  left: 0;
+  color: #3cff5a;
+  font: 700 11px/1 ui-monospace, Consolas, monospace;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.vf-focus.is-hunting {
+  animation: vfHunt 0.32s ease-out;
+}
+
+@keyframes vfHunt {
+  0% { opacity: 0.2; }
+  30% { opacity: 1; }
+  55% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.vf-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 126;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vf-flash.is-on {
+  animation: vfShutter 0.3s ease-out;
+}
+
+@keyframes vfShutter {
+  0% { opacity: 0; }
+  18% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .vf-ev,
+  .vf-batt,
+  .vf-mode {
+    display: none;
+  }
+
+  .vf-bar {
+    gap: 4px 12px;
+    padding: 12px 14px 14px;
+    font-size: 11px;
+  }
+
+  .vf-corner.bl,
+  .vf-corner.br {
+    bottom: 50px;
+  }
+}
+
+/* ==========================================================================
+   5. 미니홈피 (2000년대 개인 홈페이지)
+   ========================================================================== */
+html[data-mood="homepage"] {
+  --hp-hand: 'Gaegu', 'Galmuri11', cursive;
+  --key: #ffffff;
+  --on-key: #333;
+  --on-key-2: #555;
+  --on-key-3: #8a8a8a;
+  --on-key-rule: #d9d9d9;
+  --accent: #ff7a1a;
+  --accent-text: #f06a00;
+  --accent-on-key: #f06a00;
+  --bg: #e4eef6;
+  --surface: #f6f6f6;
+  --surface-2: #efefef;
+  --ink: #333;
+  --ink-2: #666;
+  --ink-3: #999;
+  --rule: #d9d9d9;
+  --rule-strong: #9cc3e6;
+  --spot: transparent;
+  --spot-soft: transparent;
+  --font-sans: '돋움', 'Dotum', 'Galmuri11', 'Apple SD Gothic Neo', sans-serif;
+}
+
+html[data-mood="homepage"] body {
+  background: #e4eef6 radial-gradient(#c6d8e8 1px, transparent 1.6px) 0 0 / 14px 14px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.hp-topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 7px var(--page-pad);
+  background: #fff;
+  border-bottom: 1px dashed #9cc3e6;
+  color: #666;
+  font: 12px/1.5 '돋움', Dotum, 'Galmuri11', sans-serif;
+}
+
+.hp-count b {
+  color: #ff6a00;
+}
+
+.hp-mood::before {
+  content: "☺ ";
+  color: #ff8fc7;
+}
+
+.hp-bgm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px;
+  border: 1px solid #c8dcef;
+  border-radius: 999px;
+  background: #f4f9fd;
+}
+
+.hp-eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+}
+
+.hp-eq i {
+  width: 3px;
+  height: 100%;
+  background: #6fb6ea;
+  transform-origin: bottom;
+  animation: hpEq 0.9s ease-in-out infinite;
+}
+
+.hp-eq i:nth-child(2) { animation-delay: -0.3s; }
+.hp-eq i:nth-child(3) { animation-delay: -0.6s; }
+.hp-eq i:nth-child(4) { animation-delay: -0.15s; }
+
+@keyframes hpEq {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.hp-bgm-track {
+  width: 190px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.hp-bgm-text {
+  display: inline-block;
+  padding-left: 100%;
+  animation: hpMarquee 10s linear infinite;
+}
+
+@keyframes hpMarquee {
+  to { transform: translateX(-100%); }
+}
+
+.hp-hello {
+  margin-left: auto;
+  color: #f06a00;
+  font-family: var(--hp-hand);
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .hp-hello {
+    display: none;
+  }
+
+  .hp-bgm-track {
+    width: 130px;
+  }
+}
+
+/* 상단 메뉴: 수첩 옆 색인 탭 */
+html[data-mood="homepage"] .global-nav {
+  background: #fff;
+  border-bottom: 2px solid #9cc3e6;
+}
+
+html[data-mood="homepage"] .nav-section-switch {
+  gap: 4px;
+}
+
+html[data-mood="homepage"] .nav-switch-btn {
+  padding: 5px 12px;
+  border: 1px solid #c8c8c8;
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  background: #f3f3f3;
+  color: #666;
+  font-size: 12px;
+}
+
+html[data-mood="homepage"] .nav-switch-btn.active {
+  background: #fff4e8;
+  color: #f06a00;
+  border-color: #ffb27a;
+}
+
+html[data-mood="homepage"] .nav-switch-btn::after,
+html[data-mood="homepage"] .folder-tab-btn::after,
+html[data-mood="homepage"] .comp-filter-chip::after {
+  display: none;
+}
+
+html[data-mood="homepage"] .folder-tab-btn,
+html[data-mood="homepage"] .comp-filter-chip {
+  padding: 2px 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+}
+
+html[data-mood="homepage"] .folder-tab-btn.active,
+html[data-mood="homepage"] .comp-filter-chip.active {
+  border-color: #ff9a4d;
+  background: #fff4e8;
+  color: #f06a00;
+}
+
+html[data-mood="homepage"] .brand-name {
+  font-family: var(--hp-hand);
+  font-size: 1.4rem;
+  color: #ff6fa8;
+}
+
+/* 첫머리: 분홍 손글씨 제목 */
+html[data-mood="homepage"] .hero-stage {
+  background: linear-gradient(180deg, #fff6fb, #ffffff 70%);
+  border-bottom: 1px dashed #ffb3d4;
+}
+
+html[data-mood="homepage"] .hero-title {
+  font-family: var(--hp-hand);
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #ff6fa8;
+  text-shadow: 3px 3px 0 #ffe0ef;
+}
+
+html[data-mood="homepage"] .hero-eyebrow {
+  font-family: var(--hp-hand);
+  font-size: 1.1rem;
+  letter-spacing: 0;
+  color: #6fb6ea;
+}
+
+html[data-mood="homepage"] .hero-eyebrow::before {
+  content: "♡ ";
+  color: #ff8fc7;
+}
+
+html[data-mood="homepage"] .hero-subtitle {
+  font-family: var(--hp-hand);
+  font-size: 1.25rem;
+  color: #666;
+}
+
+/* 본문: 점선 테두리 하얀 다이어리 칸 */
+html[data-mood="homepage"] .gallery-stage > .gallery-container,
+html[data-mood="homepage"] .comp-archive-stage > .gallery-container,
+html[data-mood="homepage"] .comp-detail-stage > .gallery-container {
+  padding: 22px;
+  background: #fff;
+  border: 1px dashed #9cc3e6;
+  border-radius: 12px;
+  box-shadow: 0 0 0 6px #fff, 0 0 0 7px #c8dcef;
+}
+
+html[data-mood="homepage"] .archive-page-header {
+  background: #fff;
+  box-shadow: none;
+  clip-path: none;
+  padding-top: 24px;
+}
+
+html[data-mood="homepage"] .archive-page-title,
+html[data-mood="homepage"] .comp-detail-title {
+  font-family: var(--hp-hand);
+  color: #ff6fa8;
+  letter-spacing: 0;
+}
+
+/* 사진: 테이프로 붙인 폴라로이드, 살짝씩 기울어짐 */
+html[data-mood="homepage"] .bento-grid {
+  gap: 36px 26px;
+}
+
+html[data-mood="homepage"] .photo-card {
+  padding: 9px 9px 4px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(80, 110, 140, 0.22);
+  transform: rotate(-1.4deg);
+  transition: opacity 0.6s var(--ease-out), transform 0.25s ease;
+}
+
+html[data-mood="homepage"] .photo-card:nth-child(even) {
+  transform: rotate(1.1deg);
+}
+
+html[data-mood="homepage"] .photo-card:nth-child(3n) {
+  transform: rotate(-0.5deg);
+}
+
+html[data-mood="homepage"] .photo-card:hover {
+  transform: rotate(0deg) scale(1.03);
+  z-index: 2;
+}
+
+html[data-mood="homepage"] .photo-card::before,
+html[data-mood="homepage"] .photo-card:hover::before {
+  top: -10px;
+  left: 50%;
+  right: auto;
+  width: 70px;
+  height: 20px;
+  background: rgba(255, 228, 120, 0.78);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  transform: translateX(-50%) rotate(-3deg);
+  opacity: 1;
+  z-index: 1;
+}
+
+html[data-mood="homepage"] .photo-media-wrap {
+  background: #f3f3f3;
+}
+
+html[data-mood="homepage"] .photo-media-wrap::after {
+  background: #ff9a4d;
+}
+
+html[data-mood="homepage"] .caption-title {
+  font-family: var(--hp-hand);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #444;
+}
+
+html[data-mood="homepage"] .caption-meta-row {
+  font-size: 11px;
+}
+
+html[data-mood="homepage"] .caption-award {
+  color: #ff6fa8;
+}
+
+html[data-mood="homepage"] .caption-award::before {
+  content: "★ ";
+}
+
+html[data-mood="homepage"] .load-more-btn,
+html[data-mood="homepage"] .mood-btn,
+html[data-mood="homepage"] .comp-back-btn {
+  border: 1px solid #ffb27a;
+  border-radius: 999px;
+  background: #fff4e8;
+  color: #f06a00;
+}
+
+html[data-mood="homepage"] .minimal-footer {
+  background: #fff;
+  border-top: 1px dashed #9cc3e6;
+}
+
+html[data-mood="homepage"] .mood-pill {
+  background: #fff;
+  color: #555;
+  border: 1px solid #ffb3d4;
+  box-shadow: 0 6px 18px rgba(255, 111, 168, 0.25);
+}
+
+html[data-mood="homepage"] .mood-pill-name {
+  font-family: var(--hp-hand);
+  font-size: 1.05rem;
+  color: #ff6fa8;
+}
+
+html[data-mood="homepage"] .mood-pill button {
+  background: #fff0f7;
+  color: #ff6fa8;
+}
+
+html[data-mood="homepage"] .mood-pill button:hover {
+  background: #ff6fa8;
+  color: #fff;
+}
+
+html[data-mood="homepage"] .apple-toast {
+  border-left: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #555;
+  box-shadow: 0 6px 18px rgba(255, 111, 168, 0.25);
+}
+
+.hp-sparkle {
+  position: fixed;
+  z-index: 129;
+  pointer-events: none;
+  line-height: 1;
+  text-shadow: 0 0 4px #fff;
+  transform: translate(-50%, -50%);
+  animation: hpSparkle 0.9s ease-out forwards;
+}
+
+@keyframes hpSparkle {
+  to {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.4) rotate(40deg);
+  }
+}
+
+/* 움직임 줄이기 설정: 흐르는 글자 · 깜빡임 멈춤 */
+@media (prefers-reduced-motion: reduce) {
+  .hp-bgm-text {
+    padding-left: 0;
+    animation: none;
+  }
+
+  .hp-eq i,
+  .vf-rec i,
+  .hk-caret {
+    animation: none;
+  }
+}
