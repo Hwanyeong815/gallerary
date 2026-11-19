@@ -115,6 +115,19 @@ input {
 
 img {
   display: block;
+  -webkit-user-drag: none;
+}
+
+/* 사진을 끌어서 빼 가거나 글자를 긁어 선택하지 못하게 (검색창은 그대로 입력 · 선택 가능) */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 ::selection {

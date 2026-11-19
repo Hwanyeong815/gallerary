@@ -2288,6 +2288,9 @@ function initCursorFollower() {
 /* ==========================================================================
    10. 시작 · 버튼 연결
    ========================================================================== */
+// 사진 · 링크를 끌어서 옮기는 동작 막기 (CSS만으로는 막히지 않는 브라우저용)
+document.addEventListener('dragstart', e => e.preventDefault());
+
 document.addEventListener('DOMContentLoaded', () => {
   applyStaticTexts();
   setupLightboxTouchGestures();
