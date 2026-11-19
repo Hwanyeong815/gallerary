@@ -1313,6 +1313,11 @@ html[data-theme="light"] .hero-stage {
   color: var(--ink-3);
 }
 
+/* 진행 중 표시가 없으면(끝난 공모전) 앞의 점도 뺌 */
+.comp-kind-tag:first-child::before {
+  display: none;
+}
+
 .comp-detail-title {
   font-size: clamp(2.2rem, 5vw, 3.8rem);
   font-weight: 800;

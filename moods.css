@@ -1408,3 +1408,1100 @@ html[data-mood="homepage"] .apple-toast {
     animation: none;
   }
 }
+
+/* ==========================================================================
+   기분전환 고르기 창 (어느 분위기에서 열어도 읽히도록 분위기 색을 쓰지 않음)
+   ========================================================================== */
+html.mood-picker-open,
+html.mood-picker-open body {
+  overflow: hidden;
+}
+
+.mood-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 127;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 8, 8, 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  animation: moodPickerIn 0.2s ease;
+}
+
+.mood-picker {
+  --mp-bg: #161616;
+  --mp-ink: #f2f2f0;
+  --mp-ink-2: #a9a9a5;
+  --mp-tile: #202020;
+  --mp-tile-hover: #2a2a2a;
+  --mp-rule: rgba(255, 255, 255, 0.1);
+  width: min(900px, 100%);
+  max-height: min(86vh, 780px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 26px 24px 24px;
+  background: var(--mp-bg);
+  color: var(--mp-ink);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  text-shadow: none;
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+}
+
+html[data-theme="light"] .mood-picker {
+  --mp-bg: #ffffff;
+  --mp-ink: #161616;
+  --mp-ink-2: #6b6b67;
+  --mp-tile: #f6f5f1;
+  --mp-tile-hover: #efeee9;
+  --mp-rule: #e2e1dc;
+}
+
+.mood-picker-head {
+  position: relative;
+  margin-bottom: 18px;
+  padding-right: 44px;
+}
+
+.mood-picker-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.mood-picker-sub {
+  margin-top: 4px;
+  font-size: 0.92rem;
+  color: var(--mp-ink-2);
+}
+
+.mood-picker-x {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mood-picker-x:hover,
+.mood-picker-x:focus-visible {
+  background: var(--mp-tile-hover);
+}
+
+.mood-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  gap: 10px;
+}
+
+.mood-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 14px 13px;
+  border: 1px solid var(--mp-rule);
+  border-radius: 12px;
+  background: var(--mp-tile);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.mood-tile:hover,
+.mood-tile:focus-visible {
+  background: var(--mp-tile-hover);
+  border-color: #e5372d;
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.mood-tile.is-current {
+  border-color: #e5372d;
+  box-shadow: inset 0 0 0 1px #e5372d;
+}
+
+.mood-tile.is-special {
+  background: transparent;
+  border-style: dashed;
+}
+
+.mood-tile-icon {
+  margin-bottom: 6px;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.mood-tile-name {
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.mood-tile-desc {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--mp-ink-2);
+}
+
+.mood-tile-now {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #e5372d;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+@keyframes moodPickerIn {
+  from { opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .mood-picker-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .mood-picker {
+    max-height: 88vh;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    border-radius: 18px 18px 0 0;
+  }
+
+  .mood-picker-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mood-tile {
+    padding: 12px;
+  }
+}
+
+/* ==========================================================================
+   6. 거꾸로: 큰 덩어리 순서를 뒤집고 하나씩 180° 돌림 (= 화면 전체가 뒤집힌 것과 같음)
+   ========================================================================== */
+html[data-mood="upside"] body {
+  flex-direction: column-reverse;
+}
+
+html[data-mood="upside"] body > .global-nav,
+html[data-mood="upside"] body > #galleryViewContainer,
+html[data-mood="upside"] body > .comp-archive-stage,
+html[data-mood="upside"] body > .comp-detail-stage,
+html[data-mood="upside"] body > .minimal-footer {
+  transform: rotate(180deg);
+}
+
+html[data-mood="upside"] .global-nav {
+  position: relative;
+}
+
+html.upside-anim[data-mood="upside"] body > .global-nav,
+html.upside-anim[data-mood="upside"] body > #galleryViewContainer,
+html.upside-anim[data-mood="upside"] body > .comp-archive-stage,
+html.upside-anim[data-mood="upside"] body > .comp-detail-stage,
+html.upside-anim[data-mood="upside"] body > .minimal-footer {
+  animation: upsideSpin 0.9s cubic-bezier(0.5, -0.3, 0.3, 1.3);
+}
+
+@keyframes upsideSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(180deg); }
+}
+
+/* ==========================================================================
+   7. 우주 공간
+   ========================================================================== */
+html[data-mood="space"] {
+  --key: rgba(6, 8, 22, 0.62);
+  --on-key: #eef3ff;
+  --on-key-2: #b8c4e6;
+  --on-key-3: #8590b8;
+  --on-key-rule: rgba(160, 180, 255, 0.18);
+  --on-key-hover: rgba(160, 180, 255, 0.12);
+  --accent: #6fd3ff;
+  --accent-text: #8fdcff;
+  --accent-on-key: #8fdcff;
+  --bg: transparent;
+  --surface: rgba(20, 26, 60, 0.6);
+  --surface-2: rgba(30, 38, 80, 0.6);
+  --ink: #eef3ff;
+  --ink-2: #b8c4e6;
+  --ink-3: #8590b8;
+  --rule: rgba(160, 180, 255, 0.16);
+  --rule-strong: rgba(200, 215, 255, 0.5);
+  --spot: transparent;
+  --spot-soft: transparent;
+  --print-shadow: 0 0 28px rgba(110, 160, 255, 0.3);
+  background: #04050d;
+}
+
+html[data-mood="space"] body {
+  background: transparent;
+  cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ctext x='2' y='24' font-size='22'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E") 6 6, auto;
+}
+
+.space-sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+html[data-mood="space"] .global-nav {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+html[data-mood="space"] .hero-stage,
+html[data-theme="light"][data-mood="space"] .hero-stage {
+  background: transparent;
+  border-bottom: 0;
+}
+
+html[data-mood="space"] .hero-title {
+  text-shadow: 0 0 26px rgba(120, 180, 255, 0.55);
+}
+
+html[data-mood="space"] .hero-eyebrow::after {
+  content: var(--space-dist, "");
+  color: var(--on-key-3);
+}
+
+html[data-mood="space"] .ongoing-modal-card {
+  background: #0b0e24;
+}
+
+html[data-mood="space"] .bento-grid > .photo-card {
+  animation: spaceFloat 7s ease-in-out infinite;
+}
+
+html[data-mood="space"] .bento-grid > .photo-card:nth-child(4n + 2) { animation-duration: 8s; animation-delay: -1.8s; }
+html[data-mood="space"] .bento-grid > .photo-card:nth-child(4n + 3) { animation-duration: 6.5s; animation-delay: -3.6s; }
+html[data-mood="space"] .bento-grid > .photo-card:nth-child(4n) { animation-duration: 7.5s; animation-delay: -5.2s; }
+
+@keyframes spaceFloat {
+  0%, 100% { transform: translateY(0) rotate(-0.4deg); }
+  50% { transform: translateY(-9px) rotate(0.4deg); }
+}
+
+.space-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.space-line {
+  fill: none;
+  stroke: rgba(160, 210, 255, 0.8);
+  stroke-width: 1.3;
+  stroke-dasharray: 4 6;
+  filter: drop-shadow(0 0 4px rgba(120, 190, 255, 0.9));
+}
+
+.space-star {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 6px #9fd6ff);
+}
+
+.space-label {
+  fill: #d9eeff;
+  font: 700 13px 'Pretendard Variable', Pretendard, sans-serif;
+  paint-order: stroke;
+  stroke: rgba(4, 5, 13, 0.85);
+  stroke-width: 3px;
+}
+
+/* ==========================================================================
+   8. 커뮤니티 게시판 (흰 바탕 목록 · 작은 글씨 · 개념글 · 댓글)
+   ========================================================================== */
+html[data-mood="board"] {
+  --key: #ffffff;
+  --on-key: #222;
+  --on-key-2: #444;
+  --on-key-3: #888;
+  --on-key-rule: #dcdcdc;
+  --on-key-hover: rgba(0, 0, 0, 0.05);
+  --accent: #e8590c;
+  --accent-text: #d9480f;
+  --accent-on-key: #d9480f;
+  --bg: #eef0f3;
+  --surface: #f5f5f5;
+  --surface-2: #ececec;
+  --ink: #222;
+  --ink-2: #555;
+  --ink-3: #888;
+  --rule: #dcdcdc;
+  --rule-strong: #2d3a4a;
+  --spot: transparent;
+  --spot-soft: transparent;
+  --print-shadow: 0 0 0 transparent;
+  --font-sans: '돋움', 'Dotum', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+
+html[data-mood="board"] body {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+html[data-mood="board"] .hero-stage,
+html[data-mood="board"] #photoGrid,
+html[data-mood="board"] #photoGridMore {
+  display: none;
+}
+
+.bd-board {
+  background: #fff;
+  border: 1px solid #cfd4da;
+  border-top: 3px solid #2d3a4a;
+  color: #333;
+  font: 13px/1.5 '돋움', 'Dotum', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+}
+
+.bd-head {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #e3e6ea;
+  background: linear-gradient(#f8f9fb, #ffffff);
+}
+
+.bd-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #2d3a4a;
+}
+
+.bd-info {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #888;
+}
+
+.bd-tabs {
+  display: flex;
+  padding: 0 12px;
+  border-bottom: 1px solid #cfd4da;
+  background: #fafbfc;
+}
+
+.bd-tab {
+  margin-bottom: -1px;
+  padding: 9px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: #666;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bd-tab.active {
+  border-bottom-color: #e8590c;
+  color: #2d3a4a;
+}
+
+.bd-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bd-row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 130px 64px 52px;
+  align-items: center;
+  gap: 0 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #edf0f2;
+}
+
+.bd-row:not(.bd-cols):hover {
+  background: #f7f9fc;
+}
+
+.bd-cols {
+  border-bottom-color: #cfd4da;
+  background: #f3f5f7;
+  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bd-cols span {
+  text-align: center;
+}
+
+.bd-num,
+.bd-views,
+.bd-likes {
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+
+.bd-author {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #444;
+}
+
+.bd-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bd-tag {
+  flex-shrink: 0;
+  padding: 0 5px;
+  border: 1px solid #c5ccd3;
+  border-radius: 2px;
+  background: #fff;
+  color: #5b6773;
+  font-size: 11px;
+  line-height: 17px;
+}
+
+.bd-tag.is-best {
+  border-color: #e8590c;
+  color: #e8590c;
+  font-weight: 700;
+}
+
+.bd-tag.is-notice {
+  border-color: #2d3a4a;
+  background: #2d3a4a;
+  color: #fff;
+}
+
+.bd-open {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-open:hover .bd-title-text {
+  text-decoration: underline;
+}
+
+.bd-thumb {
+  flex-shrink: 0;
+  width: 46px;
+  height: 32px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  background: #f2f2f2;
+}
+
+.bd-title-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bd-row.is-best .bd-title-text {
+  color: #d9480f;
+  font-weight: 700;
+}
+
+.is-notice .bd-title-text {
+  font-weight: 700;
+}
+
+.bd-cmt {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #e8590c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bd-comments {
+  grid-column: 1 / -1;
+  margin: 8px 0 4px 72px;
+  padding: 8px 12px 10px;
+  border: 1px solid #e6e9ec;
+  background: #f7f8fa;
+}
+
+.bd-comment {
+  padding: 5px 0;
+  border-bottom: 1px dotted #dfe3e7;
+  font-size: 12.5px;
+}
+
+.bd-comment b {
+  margin-right: 8px;
+  color: #555;
+}
+
+.bd-votes {
+  display: flex;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.bd-vote {
+  padding: 5px 12px;
+  border: 1px solid #cfd4da;
+  border-radius: 3px;
+  background: #fff;
+  color: #333;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.bd-vote:hover {
+  border-color: #e8590c;
+  color: #e8590c;
+}
+
+.bd-empty {
+  display: block;
+  padding: 40px;
+  text-align: center;
+  color: #999;
+}
+
+@media (max-width: 600px) {
+  .bd-cols {
+    display: none;
+  }
+
+  .bd-row {
+    grid-template-columns: minmax(0, 1fr) 40px;
+    gap: 2px 8px;
+  }
+
+  .bd-num,
+  .bd-views {
+    display: none;
+  }
+
+  .bd-title {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .bd-author {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 11px;
+    color: #999;
+  }
+
+  .bd-likes {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .bd-comments {
+    margin-left: 0;
+  }
+}
+
+/* ==========================================================================
+   9. 암실: 빨간 안전등 · 하얀 인화지에서 천천히 현상 · 필름 테두리 · 집게
+   ========================================================================== */
+html[data-mood="darkroom"] {
+  --key: #0b0000;
+  --on-key: #ff9c8f;
+  --on-key-2: #e0705f;
+  --on-key-3: #a8483b;
+  --on-key-rule: rgba(255, 90, 70, 0.18);
+  --on-key-hover: rgba(255, 80, 60, 0.12);
+  --accent: #ff3b2b;
+  --accent-text: #ff6b5b;
+  --accent-on-key: #ff6b5b;
+  --bg: #120202;
+  --surface: #1e0606;
+  --surface-2: #2a0a0a;
+  --ink: #ffb3a8;
+  --ink-2: #e0705f;
+  --ink-3: #a8483b;
+  --rule: rgba(255, 90, 70, 0.16);
+  --rule-strong: rgba(255, 120, 100, 0.5);
+  --spot: rgba(255, 40, 20, 0.22);
+  --spot-soft: rgba(255, 40, 20, 0.08);
+  --print-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+}
+
+html[data-mood="darkroom"] .hero-stage,
+html[data-theme="light"][data-mood="darkroom"] .hero-stage {
+  background: radial-gradient(ellipse 46% 120% at 50% -10%, rgba(255, 40, 20, 0.25), transparent 70%), #0b0000;
+  border-bottom: 0;
+}
+
+html[data-mood="darkroom"] .hero-title {
+  color: #ff6b5b;
+  text-shadow: 0 0 22px rgba(255, 40, 20, 0.55);
+}
+
+.dr-lamp {
+  position: fixed;
+  top: -160px;
+  left: 50%;
+  z-index: 92;
+  width: min(1000px, 140vw);
+  height: 560px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(255, 40, 20, 0.32), transparent 65%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: drFlicker 7s infinite;
+}
+
+@keyframes drFlicker {
+  0%, 100% { opacity: 1; }
+  47% { opacity: 1; }
+  48% { opacity: 0.75; }
+  49% { opacity: 1; }
+  80% { opacity: 0.92; }
+}
+
+.dr-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 93;
+  pointer-events: none;
+  opacity: 0.1;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+html[data-mood="darkroom"] .bento-grid {
+  counter-reset: frame;
+}
+
+html[data-mood="darkroom"] .bento-grid > .photo-card {
+  counter-increment: frame;
+}
+
+/* 필름 테두리: 위아래 구멍 줄 */
+html[data-mood="darkroom"] .photo-media-wrap {
+  padding: 14px 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 7px, rgba(255, 200, 170, 0.5) 7px 13px, transparent 13px 18px) 0 3px / 100% 7px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 7px, rgba(255, 200, 170, 0.5) 7px 13px, transparent 13px 18px) 0 calc(100% - 3px) / 100% 7px no-repeat,
+    #0b0605;
+}
+
+html[data-mood="darkroom"] .photo-media-wrap::after {
+  display: none;
+}
+
+html[data-mood="darkroom"] .photo-media-wrap::before {
+  content: counter(frame) "A";
+  position: absolute;
+  top: 0;
+  right: 8px;
+  z-index: 1;
+  padding: 0 3px;
+  background: #0b0605;
+  color: #ffb070;
+  font: 700 9px/14px ui-monospace, Consolas, monospace;
+}
+
+/* 집게 */
+html[data-mood="darkroom"] .photo-card::before,
+html[data-mood="darkroom"] .photo-card:hover::before {
+  top: -9px;
+  left: 50%;
+  right: auto;
+  z-index: 2;
+  width: 14px;
+  height: 24px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #9b6f45, #c89a6a 50%, #9b6f45);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  transform: translateX(-50%);
+  opacity: 1;
+}
+
+/* 하얀 인화지 → 빨간 불빛 아래 사진이 떠오름 */
+html[data-mood="darkroom"] .photo-thumb {
+  animation: drDevelop 5.5s ease-out both;
+}
+
+html[data-mood="darkroom"] .bento-grid > .photo-card:nth-child(6n + 2) .photo-thumb { animation-delay: 0.35s; }
+html[data-mood="darkroom"] .bento-grid > .photo-card:nth-child(6n + 3) .photo-thumb { animation-delay: 0.7s; }
+html[data-mood="darkroom"] .bento-grid > .photo-card:nth-child(6n + 4) .photo-thumb { animation-delay: 1.05s; }
+html[data-mood="darkroom"] .bento-grid > .photo-card:nth-child(6n + 5) .photo-thumb { animation-delay: 1.4s; }
+html[data-mood="darkroom"] .bento-grid > .photo-card:nth-child(6n) .photo-thumb { animation-delay: 1.75s; }
+
+@keyframes drDevelop {
+  0% { filter: grayscale(1) brightness(2.8) contrast(0.15); }
+  55% { filter: grayscale(1) sepia(1) hue-rotate(-35deg) saturate(2) brightness(1.05) contrast(0.9); }
+  100% { filter: grayscale(1) sepia(1) hue-rotate(-35deg) saturate(2.6) brightness(0.78) contrast(1.15); }
+}
+
+/* 마우스를 올리면 불이 켜짐: 원래 색 */
+html[data-mood="darkroom"] .photo-card:hover .photo-thumb {
+  animation: none;
+  filter: none;
+}
+
+html[data-mood="darkroom"] .card-caption {
+  font-family: ui-monospace, Consolas, 'D2Coding', monospace;
+}
+
+/* ==========================================================================
+   10. 김 서린 창문 (유리 · 빗방울 캔버스)
+   ========================================================================== */
+.fog-glass,
+.fog-rain {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.fog-glass {
+  z-index: 91;
+}
+
+.fog-rain {
+  z-index: 92;
+}
+
+/* ==========================================================================
+   11. 미술관 경매: 버건디 벽 · 금색 액자 · 흰 매트 · 작품 설명표
+   ========================================================================== */
+html[data-mood="museum"] {
+  --key: #2a0c0e;
+  --on-key: #f3e6cf;
+  --on-key-2: #d9c4a0;
+  --on-key-3: #a8916b;
+  --on-key-rule: rgba(214, 180, 110, 0.25);
+  --on-key-hover: rgba(214, 180, 110, 0.12);
+  --accent: #c9a24a;
+  --accent-text: #e2c172;
+  --accent-on-key: #e2c172;
+  --bg: #3a1214;
+  --surface: #f4efe4;
+  --surface-2: #ece5d6;
+  --ink: #f3e6cf;
+  --ink-2: #d9c4a0;
+  --ink-3: #a8916b;
+  --rule: rgba(214, 180, 110, 0.2);
+  --rule-strong: #c9a24a;
+  --spot: rgba(255, 214, 150, 0.2);
+  --spot-soft: rgba(255, 214, 150, 0.08);
+  --print-shadow: 0 22px 34px rgba(0, 0, 0, 0.55);
+}
+
+html[data-mood="museum"] body {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 220, 160, 0.05) 0 3px, transparent 4px) 0 0 / 34px 34px,
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.12) 0 2px, transparent 3px) 17px 17px / 34px 34px,
+    #3a1214;
+}
+
+html[data-mood="museum"] .hero-stage,
+html[data-theme="light"][data-mood="museum"] .hero-stage {
+  background: radial-gradient(ellipse 60% 120% at 50% -20%, rgba(255, 214, 150, 0.22), transparent 70%), #2a0c0e;
+  border-bottom: 3px double rgba(214, 180, 110, 0.5);
+}
+
+html[data-mood="museum"] .hero-title {
+  color: #e9cd85;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+html[data-mood="museum"] .hero-eyebrow::after {
+  content: var(--museum-sale, "");
+}
+
+html[data-mood="museum"] .bento-grid {
+  gap: 60px 40px;
+}
+
+html[data-mood="museum"] .photo-media-wrap {
+  padding: 10px;
+  border: 9px solid transparent;
+  border-image: linear-gradient(135deg, #7a5a14, #f2d68c 25%, #a2802c 45%, #f8e7a8 65%, #6f5010) 1;
+  background: #f4efe4;
+}
+
+html[data-mood="museum"] .photo-media-wrap::after {
+  display: none;
+}
+
+html[data-mood="museum"] .photo-card:hover .photo-thumb {
+  transform: none;
+}
+
+/* 작품 설명표 */
+html[data-mood="museum"] .card-caption {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 16px;
+  padding: 9px 12px 10px;
+  background: #f8f4ea;
+  color: #2a2a2a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+html[data-mood="museum"] .caption-title {
+  color: #1d1d1d;
+}
+
+html[data-mood="museum"] .caption-meta-row {
+  color: #555;
+}
+
+html[data-mood="museum"] .card-caption::after {
+  content: attr(data-medium) "\A" attr(data-price);
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: pre-line;
+  color: #7a1a1a;
+}
+
+/* 낙찰된 작품: 빨간 점 스티커 */
+html[data-mood="museum"] .photo-card.mu-sold .card-caption::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: -16px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #d21f1f;
+  box-shadow: 0 0 0 2px #f8f4ea;
+}
+
+/* ==========================================================================
+   12. 첫눈: 눈 캔버스 · 액자 위에 쌓이는 눈 (--snow: 쌓인 높이)
+   ========================================================================== */
+html[data-mood="snow"] {
+  --bg: #0c1420;
+  --key: #070d18;
+  --surface: #18222f;
+  --surface-2: #1f2b3a;
+  --rule: rgba(200, 220, 255, 0.14);
+  --on-key-rule: rgba(200, 220, 255, 0.16);
+  --spot: rgba(200, 220, 255, 0.12);
+  --spot-soft: rgba(200, 220, 255, 0.05);
+}
+
+html[data-theme="light"][data-mood="snow"] {
+  --bg: #edf3f9;
+  --key: #ffffff;
+  --surface: #e2e9f1;
+  --surface-2: #d8e1ea;
+  --rule: #dbe3ec;
+  --on-key-rule: #dbe3ec;
+  --spot: transparent;
+  --spot-soft: transparent;
+}
+
+.snow-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 91;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+html[data-mood="snow"] .photo-card::before,
+html[data-mood="snow"] .photo-card:hover::before {
+  top: calc(3px - var(--snow, 0px));
+  left: -4px;
+  right: -4px;
+  z-index: 2;
+  height: var(--snow, 0px);
+  border-radius: 14px 14px 4px 4px / 12px 12px 3px 3px;
+  background: linear-gradient(#ffffff, #eef4fa);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  transition: height 0.3s ease, top 0.3s ease;
+}
+
+html[data-mood="snow"] .hero-stage::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 22px;
+  background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='22' viewBox='0 0 240 22'%3E%3Cpath d='M0 22V12C20 2 40 2 60 10S100 20 120 10 160 0 180 8 220 18 240 10V22Z' fill='%23ffffff'/%3E%3C/svg%3E") repeat-x bottom / 240px 22px;
+  filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.12));
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   13. 8비트: 도트 사진 · 굵은 도트 테두리 · 점수판 · PRESS START · 동전
+   ========================================================================== */
+html[data-mood="pixel"] {
+  --key: #13142b;
+  --on-key: #f4f4f4;
+  --on-key-2: #c9c9e8;
+  --on-key-3: #8e8fbf;
+  --on-key-rule: #2f3160;
+  --on-key-hover: rgba(255, 210, 63, 0.15);
+  --accent: #ff5277;
+  --accent-text: #ff7a96;
+  --accent-on-key: #ffd23f;
+  --bg: #1d1f3a;
+  --surface: #2a2d55;
+  --surface-2: #34376a;
+  --ink: #f4f4f4;
+  --ink-2: #c9c9e8;
+  --ink-3: #8e8fbf;
+  --rule: #2f3160;
+  --rule-strong: #ffd23f;
+  --spot: transparent;
+  --spot-soft: transparent;
+  --print-shadow: 0 0 0 4px #000, 0 0 0 8px #f4f4f4, 0 0 0 12px #000, 10px 10px 0 12px rgba(0, 0, 0, 0.45);
+  --font-sans: 'Galmuri11', 'Galmuri9', ui-monospace, monospace;
+}
+
+html[data-mood="pixel"] body {
+  letter-spacing: 0;
+  -webkit-font-smoothing: none;
+}
+
+html[data-mood="pixel"] .hero-stage,
+html[data-theme="light"][data-mood="pixel"] .hero-stage {
+  background: #13142b;
+  border-bottom: 4px solid #000;
+}
+
+html[data-mood="pixel"] .photo-thumb,
+html[data-mood="pixel"] .comp-card-cover {
+  image-rendering: pixelated;
+}
+
+html[data-mood="pixel"] .bento-grid {
+  gap: 48px 34px;
+}
+
+html[data-mood="pixel"] .hero-title {
+  color: #ffd23f;
+  letter-spacing: 0;
+  text-shadow: 4px 4px 0 #ff5277, 8px 8px 0 #000;
+}
+
+html[data-mood="pixel"] .hero-eyebrow::after {
+  content: var(--pixel-score, "");
+  color: #ffd23f;
+}
+
+html[data-mood="pixel"] .photo-card:hover .photo-thumb {
+  transform: none;
+}
+
+html[data-mood="pixel"] .photo-media-wrap::after {
+  content: var(--pixel-start, "");
+  top: auto;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  height: auto;
+  background: none;
+  color: #fff;
+  font: 11px 'Galmuri11', ui-monospace, monospace;
+  text-align: center;
+  text-shadow: 2px 2px 0 #000;
+  opacity: 0;
+  transform: none;
+  transition: none;
+}
+
+html[data-mood="pixel"] .photo-card:hover .photo-media-wrap::after,
+html[data-mood="pixel"] .photo-card:focus-visible .photo-media-wrap::after {
+  opacity: 1;
+  transform: none;
+  animation: hkBlink 0.8s steps(1) infinite;
+}
+
+html[data-mood="pixel"] .load-more-btn,
+html[data-mood="pixel"] .mood-btn,
+html[data-mood="pixel"] .comp-back-btn,
+html[data-mood="pixel"] .mood-pill,
+html[data-mood="pixel"] .mood-pill button,
+html[data-mood="pixel"] .nav-icon-btn,
+html[data-mood="pixel"] .lang-toggle-btn {
+  border-radius: 0;
+}
+
+html[data-mood="pixel"] .load-more-btn {
+  border: 3px solid #000;
+  background: #ffd23f;
+  color: #000;
+  box-shadow: 4px 4px 0 #000;
+}
+
+html[data-mood="pixel"] .mood-pill {
+  border: 3px solid #000;
+  background: #13142b;
+  box-shadow: 4px 4px 0 #000;
+}
+
+.px-coin {
+  position: fixed;
+  z-index: 129;
+  pointer-events: none;
+  color: #ffd23f;
+  font: 700 16px 'Galmuri11', ui-monospace, monospace;
+  text-shadow: 2px 2px 0 #000;
+  transform: translate(-50%, -50%);
+  animation: pxCoin 0.8s steps(8) forwards;
+}
+
+@keyframes pxCoin {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -260%);
+  }
+}

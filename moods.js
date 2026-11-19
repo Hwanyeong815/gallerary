@@ -1,14 +1,172 @@
 /* ==========================================================================
-   기분전환: 맨 아래 '기분전환' 버튼을 누를 때마다 사이트 분위기가 차례로 바뀜
-   원래 → 윈도우 98 → 해커 터미널 → 중력 → 카메라 뷰파인더 → 미니홈피 → 원래
-   어디에도 저장하지 않으므로 새로고침하면 원래대로 돌아옴
-   (화면 문구는 app.js의 STRINGS / t() 를 같이 씀)
+   기분전환: 맨 아래 '기분전환' 버튼을 누르면 분위기 고르기 창이 열림
+   고른 분위기는 어디에도 저장하지 않으므로 새로고침하면 원래대로 돌아옴
+   분위기 목록: 윈도우 98 · 해커 터미널 · 중력 · 카메라 뷰파인더 · 미니홈피 ·
+               거꾸로 · 우주 공간 · 커뮤니티 게시판 · 암실 · 김 서린 창문 · 미술관 경매 · 첫눈 · 8비트
+   (메뉴 이름 같은 공통 문구는 app.js의 t()를, 분위기 문구는 아래 MOOD_TEXT를 씀)
    ========================================================================== */
 (function () {
-  const MOODS = ['win98', 'hacker', 'gravity', 'viewfinder', 'homepage'];
+  const MOODS = [
+    'win98', 'hacker', 'gravity', 'viewfinder', 'homepage',
+    'upside', 'space', 'board', 'darkroom', 'fog', 'museum', 'snow', 'pixel'
+  ];
+  const ICONS = {
+    win98: '🪟', hacker: '💻', gravity: '🍎', viewfinder: '📷', homepage: '💌',
+    upside: '🙃', space: '🚀', board: '💬', darkroom: '🔴', fog: '🌧️', museum: '🖼️', snow: '❄️', pixel: '👾',
+    random: '🎲', normal: '↩️'
+  };
   const GALMURI_CSS = 'https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css';
   const GAEGU_CSS = 'https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap';
   const MATTER_JS = 'https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js';
+
+  const MOOD_TEXT = {
+    ko: {
+      names: {
+        win98: '윈도우 98', hacker: '해커 터미널', gravity: '중력', viewfinder: '카메라 뷰파인더', homepage: '미니홈피',
+        upside: '거꾸로', space: '우주 공간', board: '커뮤니티 게시판', darkroom: '암실', fog: '김 서린 창문',
+        museum: '미술관 경매', snow: '첫눈', pixel: '8비트', random: '아무거나', normal: '원래대로'
+      },
+      descs: {
+        win98: '회색 창과 작업 표시줄', hacker: '검은 화면 초록 글자', gravity: '다 떨어진다, 잡아서 던지기',
+        viewfinder: '초점 맞추고 찰칵', homepage: '2000년대 감성 홈피', upside: '세상이 뒤집혔다',
+        space: '별 사이를 떠다니는 사진', board: '사진이 게시글이 된다', darkroom: '빨간 불 아래 현상 중',
+        fog: '문질러서 닦아 보기', museum: '추정가 38억', snow: '액자 위에 눈이 쌓인다', pixel: '도트로 깨진 사진',
+        random: '뭐가 나올지 몰라요', normal: '처음 모습으로'
+      },
+      pickerTitle: '기분전환',
+      pickerSub: '골라서 사이트 분위기를 바꿔 보세요. 새로고침하면 원래대로 돌아와요.',
+      current: '지금',
+      change: '바꾸기',
+      close: '닫기',
+      toast: name => `기분전환: ${name}`,
+      toastOff: '원래 분위기로 돌아왔어요',
+      luckyToast: name => `🎲 10번에 한 번 당첨! 오늘은 '${name}' (오른쪽 아래 ✕로 원래대로)`,
+      weatherSnow: seoul => `${seoul ? '지금 서울에' : '지금 계신 곳에'} 눈이 와요 ❄️ 사이트에도 눈이 내려요`,
+      weatherRain: seoul => `${seoul ? '지금 서울에' : '지금 계신 곳에'} 비가 와요 🌧️ 사이트에도 비가 내려요`,
+      loadFail: '효과를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.',
+      gravityHint: '사진을 잡아서 던져 보세요',
+      gravityReset: '다시 떨어뜨리기',
+      hackerBoot: ['> 갤러리 서버 접속 중...', '> 접근 권한 확인... 승인', '> 사진 복호화 중... 100%', '> 환영합니다, 관람객님'],
+      winTitle: '갤러리 - 탐색기',
+      winStart: '시작',
+      winShutdown: '시스템 종료 (원래대로)',
+      rec: 'REC',
+      hpCount: (today, total) => `TODAY ${today} | TOTAL ${total}`,
+      hpMood: '오늘의 기분: 감성충만',
+      hpBgm: '♪ 배경음악: 잔잔한 피아노 (재생 중)',
+      hpHello: '방문해 주셔서 감사합니다 ^^',
+      upsideHint: '세상이 뒤집혔어요. 클릭은 그대로 돼요',
+      spaceDist: n => ` · 지구에서 ${n}광년`,
+      constellation: name => `${name}자리`,
+      darkroomHint: '사진이 천천히 현상돼요. 마우스를 올리면 불이 켜져요',
+      fogHint: '창문을 문질러 보세요 (마우스를 움직이면 닦여요)',
+      museumSale: ' · 오늘 밤 8시 특별 경매',
+      museumMedium: year => `디지털 프린트, ${year}`,
+      museumPrice: n => `추정가 ₩${n.toLocaleString('ko-KR')}`,
+      museumSold: '낙찰',
+      snowHint: '사진에 마우스를 올리면 쌓인 눈이 털려요',
+      pixelScore: n => ` · HI-SCORE ${String(n).padStart(6, '0')}`,
+      pixelStart: '▶ PRESS START',
+      board: {
+        title: '각자의 프레임 갤러리',
+        info: '사진 찍는 사람들 모임 · 매니저 웰컴',
+        tabAll: '전체글',
+        tabBest: '개념글',
+        cols: ['번호', '제목', '글쓴이', '조회', '추천'],
+        noticeTag: '공지',
+        notice: '사진 파일 이름은 작가 이름으로 올려 주세요 (예: 소라.jpg)',
+        noticeBy: '운영자',
+        photoTag: '사진',
+        bestTag: '개념',
+        anon: 'ㅇㅇ',
+        reco: '추천',
+        unreco: '비추',
+        empty: '글이 없습니다.',
+        titles: [
+          '{t} 찍어 봄', '{t} 출품합니다', '이거 잘 나온 거 맞냐?', '폰카로 찍음 ㅇㅇ', '보정 하나도 안 함 (진짜임)',
+          '{t} 주제 생각보다 어렵네', '구도 평가 좀', '오늘 건진 사진', '날씨가 다 했다', '이게 내 최선이다'
+        ],
+        ongoingTitle: n => `${n}번 출품작`,
+        comments: [
+          '구도 지렸다', '이게 폰카라고?', '색감 미쳤네', '주제랑 딱 맞는 듯', 'ㄹㅇ 감성 있음',
+          '이거 우승각인데', '보정 뭐 씀?', '사진 잘 찍네 ㄷㄷ', '저장해 감', '와 분위기 좋다'
+        ]
+      }
+    },
+    en: {
+      names: {
+        win98: 'Windows 98', hacker: 'Hacker terminal', gravity: 'Gravity', viewfinder: 'Camera viewfinder', homepage: 'Retro homepage',
+        upside: 'Upside down', space: 'Outer space', board: 'Forum board', darkroom: 'Darkroom', fog: 'Foggy window',
+        museum: 'Museum auction', snow: 'First snow', pixel: '8-bit', random: 'Surprise me', normal: 'Back to normal'
+      },
+      descs: {
+        win98: 'Gray windows and a taskbar', hacker: 'Green text on black', gravity: 'Everything falls, throw it around',
+        viewfinder: 'Focus and click', homepage: '2000s personal homepage', upside: 'The world flipped',
+        space: 'Photos floating among stars', board: 'Photos become forum posts', darkroom: 'Developing under red light',
+        fog: 'Wipe the glass to see', museum: 'Estimate: $2.9M', snow: 'Snow piles on the frames', pixel: 'Pixelated photos',
+        random: 'No idea what you’ll get', normal: 'The usual look'
+      },
+      pickerTitle: 'Mood swap',
+      pickerSub: 'Pick a mood for the site. Refresh to go back.',
+      current: 'Now',
+      change: 'Change',
+      close: 'Close',
+      toast: name => `Mood: ${name}`,
+      toastOff: 'Back to the usual look',
+      luckyToast: name => `🎲 1-in-10 surprise: ${name} (✕ at the bottom right to go back)`,
+      weatherSnow: seoul => `It’s snowing ${seoul ? 'in Seoul' : 'where you are'} right now ❄️ so it’s snowing here too`,
+      weatherRain: seoul => `It’s raining ${seoul ? 'in Seoul' : 'where you are'} right now 🌧️ so it’s raining here too`,
+      loadFail: 'Couldn’t load the effect. Check your connection.',
+      gravityHint: 'Grab a photo and throw it',
+      gravityReset: 'Drop again',
+      hackerBoot: ['> Connecting to gallery server...', '> Checking access... granted', '> Decrypting photos... 100%', '> Welcome, visitor'],
+      winTitle: 'Gallery - Explorer',
+      winStart: 'Start',
+      winShutdown: 'Shut down (back to normal)',
+      rec: 'REC',
+      hpCount: (today, total) => `TODAY ${today} | TOTAL ${total}`,
+      hpMood: 'Mood of the day: all the feels',
+      hpBgm: '♪ BGM: soft piano (playing)',
+      hpHello: 'Thanks for stopping by ^^',
+      upsideHint: 'The world flipped. Clicking still works',
+      spaceDist: n => ` · ${n} light-years from Earth`,
+      constellation: name => `Constellation ${name}`,
+      darkroomHint: 'Photos develop slowly. Hover to turn the light on',
+      fogHint: 'Wipe the window (move the mouse to clear it)',
+      museumSale: ' · Special auction tonight at 8',
+      museumMedium: year => `Digital print, ${year}`,
+      museumPrice: n => `Estimate $${Math.round(n / 1300).toLocaleString('en-US')}`,
+      museumSold: 'Sold',
+      snowHint: 'Hover a photo to shake the snow off',
+      pixelScore: n => ` · HI-SCORE ${String(n).padStart(6, '0')}`,
+      pixelStart: '▶ PRESS START',
+      board: {
+        title: 'Frames of Our Own board',
+        info: 'A club for people who take photos · Manager 웰컴',
+        tabAll: 'All posts',
+        tabBest: 'Best',
+        cols: ['No.', 'Title', 'Author', 'Views', 'Likes'],
+        noticeTag: 'Notice',
+        notice: 'Please name photo files after the photographer (e.g. 소라.jpg)',
+        noticeBy: 'Admin',
+        photoTag: 'Photo',
+        bestTag: 'Best',
+        anon: 'anon',
+        reco: 'Like',
+        unreco: 'Dislike',
+        empty: 'No posts.',
+        titles: [
+          'Tried shooting {t}', 'My entry for {t}', 'Did this come out ok?', 'Shot on my phone', 'Zero editing (for real)',
+          '{t} is harder than it looks', 'Rate my composition', 'Today’s keeper', 'The weather did all the work', 'This is my best'
+        ],
+        ongoingTitle: n => `Entry No. ${n}`,
+        comments: [
+          'Composition is insane', 'This is a phone shot?', 'Those colors', 'Fits the theme perfectly', 'So moody',
+          'This one wins', 'What did you edit with?', 'Nice shot', 'Saved', 'Love the vibe'
+        ]
+      }
+    }
+  };
 
   const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -17,16 +175,27 @@
   let cleanup = null; // 지금 켜진 분위기를 끌 때 실행할 정리 함수
   let refreshTexts = null; // 지금 켜진 분위기의 문구를 다시 쓰는 함수 (한/EN 전환용)
   let pill = null;
+  let pickerEl = null;
+  let pickerOpener = null;
+  let weatherAutoIndex = null; // 날씨 때문에 저절로 켜진 분위기
+  const WEATHER_OFF_KEY = 'gallery-weather-off';
+  const WEATHER_CACHE_KEY = 'gallery-weather';
 
+  const lang = () => (typeof currentLang !== 'undefined' && currentLang === 'en' ? 'en' : 'ko');
+  const L = (key, ...args) => {
+    const table = MOOD_TEXT[lang()];
+    const entry = key in table ? table[key] : MOOD_TEXT.ko[key];
+    return typeof entry === 'function' ? entry(...args) : entry;
+  };
   const tr = (key, ...args) => (typeof t === 'function' ? t(key, ...args) : key);
   const toast = msg => { if (typeof showAppleToast === 'function') showAppleToast(msg); };
-  const moodName = i => {
-    const names = tr('moodNames');
-    return Array.isArray(names) ? names[i] : MOODS[i];
-  };
+  const moodName = key => L('names')[key] || key;
   const photoTotal = () => (typeof allPhotos !== 'undefined' && Array.isArray(allPhotos) ? allPhotos.length : 0);
   const esc = str => String(str == null ? '' : str)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  // 사진 id로 정하는 '늘 같은' 난수 (조회수 · 경매가 같은 가짜 숫자가 새로고침해도 그대로)
+  const hash = str => [...String(str)].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 2166136261);
+  const findPhoto = id => (typeof allPhotos !== 'undefined' ? allPhotos.find(p => p.id === id) : null);
 
   /* ---------- 글꼴 · 라이브러리는 그 분위기를 처음 켤 때만 불러옴 ---------- */
   const loading = {};
@@ -61,8 +230,91 @@
     return loading[src];
   }
 
-  /* ---------- 전환 ---------- */
-  function setMood(index) {
+  /* 사진 카드가 새로 그려질 때마다(목차 · 검색 · 더보기 · 화면 전환) 알려 줌 */
+  function watchCards(onChange) {
+    let queued = false;
+    const run = () => {
+      queued = false;
+      onChange([...document.querySelectorAll('.photo-card:not(.is-skeleton)')]);
+    };
+    const mo = new MutationObserver(muts => {
+      const touched = muts.some(m => [...m.addedNodes].some(n =>
+        n.nodeType === 1 && (n.classList.contains('photo-card') || n.classList.contains('comp-archive-card') || n.querySelector('.photo-card, .comp-archive-card'))
+      ));
+      if (touched && !queued) {
+        queued = true;
+        setTimeout(run, 0);
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    run();
+    return () => mo.disconnect();
+  }
+
+  // 화면에 보이는 사진 카드와 사진 칸 위치
+  function visibleCardRects() {
+    return [...document.querySelectorAll('.photo-card:not(.is-skeleton)')]
+      .map(card => {
+        const media = card.querySelector('.photo-media-wrap') || card;
+        return { card, rect: media.getBoundingClientRect() };
+      })
+      .filter(({ rect }) => rect.width > 0 && rect.bottom > -40 && rect.top < window.innerHeight + 40);
+  }
+
+  // 화면 크기에 맞춘 캔버스 (선명하도록 화면 배율 반영, 너무 크면 1.5배까지만)
+  function makeCanvas(className, onResize) {
+    const canvas = document.createElement('canvas');
+    canvas.className = className;
+    canvas.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const state = { canvas, ctx, w: 0, h: 0, dpr: 1 };
+    const resize = () => {
+      state.dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      state.w = window.innerWidth;
+      state.h = window.innerHeight;
+      canvas.width = Math.round(state.w * state.dpr);
+      canvas.height = Math.round(state.h * state.dpr);
+      ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+      if (onResize) onResize(state);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+    state.destroy = () => {
+      window.removeEventListener('resize', resize);
+      canvas.remove();
+    };
+    return state;
+  }
+
+  // 화면이 안 보일 때는 멈추는 애니메이션 반복
+  function animate(step) {
+    let raf = null;
+    let stopped = false;
+    let last = performance.now();
+    const loop = now => {
+      if (stopped) return;
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      step(dt, now);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      stopped = true;
+      cancelAnimationFrame(raf);
+    };
+  }
+
+  /* ======================================================================
+     전환 · 고르기 창 · 오른쪽 아래 막대
+     ====================================================================== */
+  function setMood(index, options = {}) {
+    // 날씨로 저절로 켜진 분위기를 직접 끄거나 바꾸면, 이번 방문 동안은 날씨로 다시 켜지 않음
+    if (weatherAutoIndex !== null && index !== weatherAutoIndex) {
+      weatherAutoIndex = null;
+      try { sessionStorage.setItem(WEATHER_OFF_KEY, '1'); } catch (e) {}
+    }
     if (cleanup) {
       try { cleanup(); } catch (e) {}
     }
@@ -75,24 +327,95 @@
       moodIndex = -1;
       root.removeAttribute('data-mood');
       removePill();
-      toast(tr('moodToastOff'));
+      toast(L('toastOff'));
       return;
     }
 
     const mood = MOODS[index];
     root.setAttribute('data-mood', mood);
     renderPill();
-    toast(tr('moodToast', moodName(index)));
-    const result = SETUPS[mood]();
+    toast(L('toast', moodName(mood)));
+    const result = SETUPS[mood](options) || {};
     cleanup = result.cleanup || null;
     refreshTexts = result.refresh || null;
   }
 
-  function nextMood() {
-    setMood(moodIndex + 1 >= MOODS.length ? -1 : moodIndex + 1);
+  function pick(key) {
+    if (key === 'normal') {
+      if (moodIndex >= 0) setMood(-1);
+      return;
+    }
+    if (key === 'random') {
+      const choices = MOODS.map((m, i) => i).filter(i => i !== moodIndex);
+      setMood(choices[Math.floor(Math.random() * choices.length)]);
+      return;
+    }
+    const index = MOODS.indexOf(key);
+    if (index >= 0 && index !== moodIndex) setMood(index);
   }
 
-  /* 화면 오른쪽 아래 작은 막대: 지금 분위기 이름 · 다음 · 원래대로 (맨 아래까지 내려가지 않아도 바꿀 수 있게) */
+  function pickerTile(key) {
+    const isCurrent = (key === 'normal' && moodIndex < 0) || MOODS[moodIndex] === key;
+    return `
+      <button type="button" class="mood-tile ${isCurrent ? 'is-current' : ''} ${key === 'random' || key === 'normal' ? 'is-special' : ''}" data-pick="${key}">
+        <span class="mood-tile-icon" aria-hidden="true">${ICONS[key]}</span>
+        <span class="mood-tile-name">${esc(moodName(key))}</span>
+        <span class="mood-tile-desc">${esc(L('descs')[key] || '')}</span>
+        ${isCurrent ? `<span class="mood-tile-now">${esc(L('current'))}</span>` : ''}
+      </button>
+    `;
+  }
+
+  function openPicker(opener) {
+    closePicker(false);
+    pickerOpener = opener || document.activeElement;
+    pickerEl = document.createElement('div');
+    pickerEl.className = 'mood-picker-backdrop';
+    pickerEl.innerHTML = `
+      <div class="mood-picker" role="dialog" aria-modal="true" aria-labelledby="moodPickerTitle">
+        <div class="mood-picker-head">
+          <h2 id="moodPickerTitle" class="mood-picker-title">${esc(L('pickerTitle'))}</h2>
+          <p class="mood-picker-sub">${esc(L('pickerSub'))}</p>
+          <button type="button" class="mood-picker-x" data-close aria-label="${esc(L('close'))}">✕</button>
+        </div>
+        <div class="mood-picker-grid">
+          ${['random', 'normal', ...MOODS].map(pickerTile).join('')}
+        </div>
+      </div>
+    `;
+    pickerEl.addEventListener('click', e => {
+      if (e.target === pickerEl || e.target.closest('[data-close]')) {
+        closePicker();
+        return;
+      }
+      const tile = e.target.closest('[data-pick]');
+      if (!tile) return;
+      const key = tile.getAttribute('data-pick');
+      closePicker(false);
+      pick(key);
+    });
+    document.body.appendChild(pickerEl);
+    document.documentElement.classList.add('mood-picker-open');
+    const first = pickerEl.querySelector('.mood-tile.is-current') || pickerEl.querySelector('.mood-tile');
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  function closePicker(restoreFocus = true) {
+    if (!pickerEl) return;
+    pickerEl.remove();
+    pickerEl = null;
+    document.documentElement.classList.remove('mood-picker-open');
+    if (restoreFocus && pickerOpener && document.body.contains(pickerOpener)) pickerOpener.focus({ preventScroll: true });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && pickerEl) {
+      e.stopPropagation();
+      closePicker();
+    }
+  }, true);
+
+  /* 화면 오른쪽 아래 작은 막대: 지금 분위기 · 바꾸기(고르기 창) · 원래대로 */
   function renderPill() {
     if (!pill) {
       pill = document.createElement('div');
@@ -102,20 +425,22 @@
         const btn = e.target.closest('button[data-act]');
         if (!btn) return;
         const act = btn.getAttribute('data-act');
-        if (act === 'next') nextMood();
+        if (act === 'pick') openPicker(btn);
         else if (act === 'off') setMood(-1);
         else if (act === 'reset' && typeof pill._reset === 'function') pill._reset();
       });
       document.body.appendChild(pill);
     }
     const mood = MOODS[moodIndex];
+    const reset = pill._reset;
     pill.setAttribute('aria-label', tr('moodBtn'));
     pill.innerHTML = `
-      <span class="mood-pill-name">${esc(moodName(moodIndex))}<span class="mood-pill-step">${moodIndex + 1}/${MOODS.length}</span></span>
-      ${mood === 'gravity' ? `<button type="button" data-act="reset">${esc(tr('gravityReset'))}</button>` : ''}
-      <button type="button" data-act="next">${esc(tr('moodNext'))} ▸</button>
-      <button type="button" data-act="off" class="mood-pill-off" aria-label="${esc(tr('moodBack'))}" title="${esc(tr('moodBack'))}">✕</button>
+      <span class="mood-pill-name"><span aria-hidden="true">${ICONS[mood]}</span> ${esc(moodName(mood))}</span>
+      ${mood === 'gravity' ? `<button type="button" data-act="reset">${esc(L('gravityReset'))}</button>` : ''}
+      <button type="button" data-act="pick" aria-haspopup="dialog">${esc(L('change'))}</button>
+      <button type="button" data-act="off" class="mood-pill-off" aria-label="${esc(moodName('normal'))}" title="${esc(moodName('normal'))}">✕</button>
     `;
+    pill._reset = reset;
   }
 
   function removePill() {
@@ -125,6 +450,7 @@
 
   // app.js의 setLanguage()가 부름
   window.refreshMoodTexts = function () {
+    if (pickerEl) openPicker(pickerOpener);
     if (moodIndex < 0) return;
     renderPill();
     if (refreshTexts) refreshTexts();
@@ -170,6 +496,8 @@
       closeMenu();
       if (go === 'off') {
         setMood(-1);
+      } else if (go === 'moods') {
+        openPicker(startBtn);
       } else if (typeof switchMainView === 'function') {
         switchMainView(go);
         window.scrollTo({ top: 0 });
@@ -181,23 +509,23 @@
     document.addEventListener('click', onDocClick);
 
     const tick = () => {
-      const lang = typeof currentLang !== 'undefined' && currentLang === 'en' ? 'en-US' : 'ko-KR';
-      clock.textContent = new Date().toLocaleTimeString(lang, { hour: 'numeric', minute: '2-digit' });
+      clock.textContent = new Date().toLocaleTimeString(lang() === 'en' ? 'en-US' : 'ko-KR', { hour: 'numeric', minute: '2-digit' });
     };
     const timer = setInterval(tick, 15000);
 
     const refresh = () => {
-      root.style.setProperty('--mood-win-title', JSON.stringify(tr('winTitle')));
-      bar.querySelector('.w98-start-label').textContent = tr('winStart');
-      bar.querySelector('.w98-task-label').textContent = tr('winTitle');
+      root.style.setProperty('--mood-win-title', JSON.stringify(L('winTitle')));
+      bar.querySelector('.w98-start-label').textContent = L('winStart');
+      bar.querySelector('.w98-task-label').textContent = L('winTitle');
       menu.innerHTML = `
         <div class="w98-menu-side" aria-hidden="true"><span>Gallery 98</span></div>
         <div class="w98-menu-items">
           <button type="button" role="menuitem" data-go="gallery">🖼️ ${esc(tr('navGallery'))}</button>
           <button type="button" role="menuitem" data-go="competitions">📁 ${esc(tr('navContests'))}</button>
           <button type="button" role="menuitem" data-go="mini">📂 ${esc(tr('navMini'))}</button>
+          <button type="button" role="menuitem" data-go="moods">🎨 ${esc(L('pickerTitle'))}</button>
           <hr />
-          <button type="button" role="menuitem" data-go="off">⏻ ${esc(tr('winShutdown'))}</button>
+          <button type="button" role="menuitem" data-go="off">⏻ ${esc(L('winShutdown'))}</button>
         </div>
       `;
       tick();
@@ -234,8 +562,7 @@
     boot.className = 'hk-boot';
     boot.setAttribute('aria-hidden', 'true');
     document.body.appendChild(boot);
-    const lines = tr('hackerBoot');
-    const bootLines = Array.isArray(lines) ? lines : [];
+    const bootLines = L('hackerBoot');
     const endBoot = () => {
       boot.classList.add('is-done');
       timers.push(setTimeout(() => boot.remove(), 400));
@@ -253,7 +580,7 @@
       timers.push(setTimeout(endBoot, 120 + bootLines.length * 330 + 450));
     }
 
-    // 첫머리(먹색 띠)에만 초록 글자 비
+    // 첫머리(제목 띠)에만 초록 글자 비
     const hero = document.querySelector('.hero-stage');
     let canvas = null;
     if (hero && !reducedMotion) {
@@ -320,9 +647,9 @@
     loadScript(MATTER_JS).then(() => {
       if (cancelled) return;
       start();
-      toast(tr('gravityHint'));
+      toast(L('gravityHint'));
     }).catch(() => {
-      if (!cancelled) toast(tr('moodLoadFail'));
+      if (!cancelled) toast(L('loadFail'));
     });
 
     return {
@@ -526,13 +853,12 @@
     const APERTURES = ['F1.8', 'F2.8', 'F4', 'F5.6', 'F8', 'F11'];
     const ISOS = ['ISO 100', 'ISO 200', 'ISO 400', 'ISO 800', 'ISO 1600'];
     const EVS = ['-0.7', '-0.3', '±0.0', '+0.3', '+0.7'];
-    const hash = str => [...String(str)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
     const setExposure = id => {
       const h = hash(id || 'idle');
       $('.vf-shutter').textContent = SHUTTERS[h % SHUTTERS.length];
-      $('.vf-aperture').textContent = APERTURES[(h >> 3) % APERTURES.length];
-      $('.vf-iso').textContent = ISOS[(h >> 6) % ISOS.length];
-      $('.vf-ev').textContent = EVS[(h >> 9) % EVS.length];
+      $('.vf-aperture').textContent = APERTURES[(h >>> 3) % APERTURES.length];
+      $('.vf-iso').textContent = ISOS[(h >>> 6) % ISOS.length];
+      $('.vf-ev').textContent = EVS[(h >>> 9) % EVS.length];
     };
     setExposure('idle');
 
@@ -595,7 +921,7 @@
     schedule();
 
     const refresh = () => {
-      $('.vf-rec-label').textContent = tr('viewfinderRec');
+      $('.vf-rec-label').textContent = L('rec');
       $('.vf-shots').textContent = `[ ${photoTotal()} ]`;
     };
     refresh();
@@ -670,12 +996,12 @@
       const d = new Date();
       const today = 7 + ((d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate()) % 53);
       const total = 3000 + photoTotal() * 123 + today;
-      const fmt = n => n.toLocaleString(typeof currentLang !== 'undefined' && currentLang === 'en' ? 'en-US' : 'ko-KR');
-      top.querySelector('.hp-count').innerHTML = esc(tr('cyTodayTotal', fmt(today), fmt(total)))
+      const fmt = n => n.toLocaleString(lang() === 'en' ? 'en-US' : 'ko-KR');
+      top.querySelector('.hp-count').innerHTML = esc(L('hpCount', fmt(today), fmt(total)))
         .replace(/(\d[\d,]*)/g, '<b>$1</b>');
-      top.querySelector('.hp-mood').textContent = tr('cyMood');
-      top.querySelector('.hp-bgm-text').textContent = tr('cyBgm');
-      top.querySelector('.hp-hello').textContent = tr('cyHello');
+      top.querySelector('.hp-mood').textContent = L('hpMood');
+      top.querySelector('.hp-bgm-text').textContent = L('hpBgm');
+      top.querySelector('.hp-hello').textContent = L('hpHello');
     };
     refresh();
 
@@ -689,18 +1015,834 @@
     };
   }
 
+  /* ======================================================================
+     6. 거꾸로: 화면이 위아래로 뒤집힘 (보던 자리는 그대로, 클릭은 그대로 됨)
+        큰 덩어리의 순서를 거꾸로 하고 덩어리마다 180° 돌리면 화면 전체를 뒤집은 것과 같음
+        → 알림 · 크게 보기 · 고르기 창 같은 떠 있는 것은 뒤집히지 않아서 계속 쓸 수 있음
+     ====================================================================== */
+  function setupUpside() {
+    const root = document.documentElement;
+    const mirrorScroll = () => {
+      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      window.scrollTo(0, Math.max(0, max - window.scrollY));
+    };
+    mirrorScroll();
+    if (!reducedMotion) root.classList.add('upside-anim');
+    const timer = setTimeout(() => root.classList.remove('upside-anim'), 1000);
+    toast(L('upsideHint'));
+
+    return {
+      cleanup() {
+        clearTimeout(timer);
+        root.classList.remove('upside-anim');
+        // 원래대로 돌아간 뒤에도 보던 자리가 화면에 남도록
+        setTimeout(mirrorScroll, 0);
+      }
+    };
+  }
+
+  /* ======================================================================
+     7. 우주 공간: 워프로 들어가서 별밭 위를 떠다니는 사진
+        같은 작가 사진에 마우스를 올리면 별자리처럼 이어짐 ('소라자리')
+     ====================================================================== */
+  function setupSpace() {
+    const root = document.documentElement;
+    root.style.setProperty('--space-dist', JSON.stringify(L('spaceDist', photoTotal() || 0)));
+
+    let stars = [];
+    let warp = reducedMotion ? 0 : 1.3; // 남은 워프 시간(초)
+    let shooting = null;
+    let nextShoot = 4;
+    const sky = makeCanvas('space-sky', s => {
+      const count = Math.min(650, Math.round((s.w * s.h) / 2300));
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * s.w,
+        y: Math.random() * s.h,
+        z: Math.random() * 0.8 + 0.2, // 가까울수록 크고 빠르게 움직임
+        tw: Math.random() * Math.PI * 2
+      }));
+    });
+    const { ctx } = sky;
+
+    const draw = (dt, now) => {
+      const { w, h } = sky;
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      if (warp > 0) {
+        // 워프: 가운데에서 바깥으로 별이 길게 늘어나며 지나감
+        warp -= dt;
+        const k = Math.max(0, warp) / 1.3;
+        ctx.lineCap = 'round';
+        stars.forEach(st => {
+          const dx = st.x - cx;
+          const dy = st.y - cy;
+          const stretch = 1 + k * 0.9 * st.z;
+          ctx.strokeStyle = `rgba(200, 225, 255, ${0.35 + 0.6 * st.z})`;
+          ctx.lineWidth = st.z * 1.6;
+          ctx.beginPath();
+          ctx.moveTo(cx + dx / stretch, cy + dy / stretch);
+          ctx.lineTo(cx + dx * (1 + k * 0.15), cy + dy * (1 + k * 0.15));
+          ctx.stroke();
+        });
+        return;
+      }
+      // 별밭: 깜빡이고, 스크롤하면 가까운 별이 더 많이 움직임
+      const scroll = window.scrollY;
+      stars.forEach(st => {
+        const y = ((st.y - scroll * st.z * 0.25) % h + h) % h;
+        const a = 0.45 + 0.55 * Math.abs(Math.sin(st.tw + now / 900 * st.z));
+        ctx.fillStyle = `rgba(225, 235, 255, ${a * (0.4 + st.z * 0.6)})`;
+        const r = st.z * 1.3;
+        ctx.fillRect(st.x - r / 2, y - r / 2, r, r);
+      });
+      // 가끔 별똥별
+      nextShoot -= dt;
+      if (!shooting && nextShoot <= 0) {
+        shooting = { x: Math.random() * w * 0.7 + w * 0.2, y: Math.random() * h * 0.35, life: 0 };
+        nextShoot = 5 + Math.random() * 6;
+      }
+      if (shooting) {
+        shooting.life += dt;
+        const p = shooting.life / 0.9;
+        const x = shooting.x - p * 260;
+        const y = shooting.y + p * 120;
+        const grad = ctx.createLinearGradient(x, y, x + 90, y - 42);
+        grad.addColorStop(0, `rgba(255, 255, 255, ${1 - p})`);
+        grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + 90, y - 42);
+        ctx.stroke();
+        if (p >= 1) shooting = null;
+      }
+    };
+    const stopAnim = reducedMotion ? (draw(0, 0), () => {}) : animate(draw);
+
+    // 별자리: 같은 작가 사진끼리 선으로 잇기
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'space-lines');
+    svg.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(svg);
+    let hoverAuthor = '';
+    let hoverCard = null;
+    const drawLines = () => {
+      svg.innerHTML = '';
+      if (!hoverAuthor) return;
+      const nodes = visibleCardRects()
+        .filter(({ card }) => card.getAttribute('data-author') === hoverAuthor)
+        .map(({ card, rect }) => ({ card, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }));
+      if (nodes.length < 2) return;
+      const path = nodes.map((n, i) => `${i ? 'L' : 'M'}${n.x.toFixed(1)} ${n.y.toFixed(1)}`).join(' ');
+      const line = document.createElementNS(svgNS, 'path');
+      line.setAttribute('d', path);
+      line.setAttribute('class', 'space-line');
+      svg.appendChild(line);
+      nodes.forEach(n => {
+        const dot = document.createElementNS(svgNS, 'circle');
+        dot.setAttribute('cx', n.x);
+        dot.setAttribute('cy', n.y);
+        dot.setAttribute('r', n.card === hoverCard ? 5 : 3.5);
+        dot.setAttribute('class', 'space-star');
+        svg.appendChild(dot);
+      });
+      const at = nodes.find(n => n.card === hoverCard) || nodes[0];
+      const label = document.createElementNS(svgNS, 'text');
+      label.setAttribute('x', at.x + 10);
+      label.setAttribute('y', at.y - 10);
+      label.setAttribute('class', 'space-label');
+      label.textContent = `✦ ${L('constellation', hoverAuthor)}`;
+      svg.appendChild(label);
+    };
+    const onOver = e => {
+      const card = e.target instanceof Element ? e.target.closest('.photo-card') : null;
+      const author = card ? card.getAttribute('data-author') || '' : '';
+      if (card === hoverCard) return;
+      hoverCard = card;
+      hoverAuthor = author;
+      drawLines();
+    };
+    const onScroll = () => { if (hoverAuthor) drawLines(); };
+    document.addEventListener('pointerover', onOver);
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return {
+      refresh() {
+        root.style.setProperty('--space-dist', JSON.stringify(L('spaceDist', photoTotal() || 0)));
+        drawLines();
+      },
+      cleanup() {
+        stopAnim();
+        sky.destroy();
+        svg.remove();
+        document.removeEventListener('pointerover', onOver);
+        window.removeEventListener('scroll', onScroll);
+        root.style.removeProperty('--space-dist');
+      }
+    };
+  }
+
+  /* ======================================================================
+     8. 커뮤니티 게시판: 갤러리 사진이 게시글 목록이 됨
+        우승작은 '개념글', 조회 · 추천 · 댓글은 사진마다 정해진 가짜 숫자
+        (특정 사이트를 흉내 내지 않은 일반 익명 게시판 모양)
+     ====================================================================== */
+  function setupBoard() {
+    const grid = document.getElementById('photoGrid');
+    const container = grid ? grid.parentElement : null;
+    if (!grid || !container) return {};
+
+    const board = document.createElement('div');
+    board.className = 'bd-board';
+    container.insertBefore(board, grid);
+
+    let tab = 'all';
+    const openRows = new Set();
+    const votes = {};
+
+    const topicOf = photo => {
+      const group = typeof getFolderGroupName === 'function' ? getFolderGroupName(photo.folderName) : '';
+      const short = typeof getFolderShortName === 'function' ? getFolderShortName(photo.folderName) : '';
+      return short.replace(/\d+\s*차/, '').split(group).join(' ').replace(/\s{2,}/g, ' ').trim() || short;
+    };
+
+    const postOf = (photo, i, total) => {
+      const B = L('board');
+      const h = hash(photo.id);
+      const meta = typeof getDisplayMeta === 'function' ? getDisplayMeta(photo) : { isAnonymous: false, headline: photo.name };
+      const award = typeof getPhotoAward === 'function' && !meta.isAnonymous ? getPhotoAward(photo) : null;
+      const best = Boolean(award && award.isTopWinner);
+      const title = meta.isAnonymous
+        ? B.ongoingTitle(photo.contestNumber || i + 1)
+        : B.titles[h % B.titles.length].replace('{t}', topicOf(photo));
+      const author = meta.isAnonymous ? `${B.anon}(${(h % 200) + 1}.${(h >>> 8) % 250})` : (meta.authorLabel || B.anon);
+      const views = 40 + (h % 2400) + (best ? 1800 : 0);
+      const likes = (h >>> 5) % 60 + (best ? 120 : 0) + (votes[photo.id] || 0);
+      const comments = (h >>> 11) % 14;
+      return { photo, num: 3000 + total - i, title, author, views, likes, comments, best, h };
+    };
+
+    const render = () => {
+      const B = L('board');
+      const list = (grid._paged && grid._paged.photos) || [];
+      const posts = list.map((p, i) => postOf(p, i, list.length));
+      const shown = tab === 'best' ? posts.filter(p => p.best) : posts;
+
+      const row = post => {
+        const open = openRows.has(post.photo.id);
+        const cmts = B.comments;
+        const commentHtml = open ? `
+          <div class="bd-comments">
+            ${Array.from({ length: Math.min(3, Math.max(1, post.comments)) }, (_, k) => {
+              const ch = hash(post.photo.id + k);
+              return `<p class="bd-comment"><b>${esc(B.anon)}(${(ch % 200) + 1}.${(ch >>> 8) % 250})</b> ${esc(cmts[ch % cmts.length])}</p>`;
+            }).join('')}
+            <div class="bd-votes">
+              <button type="button" class="bd-vote" data-vote="up" data-id="${esc(post.photo.id)}">👍 ${esc(B.reco)} ${post.likes}</button>
+              <button type="button" class="bd-vote is-down" data-vote="down" data-id="${esc(post.photo.id)}">👎 ${esc(B.unreco)}</button>
+            </div>
+          </div>` : '';
+        return `
+          <li class="bd-row ${post.best ? 'is-best' : ''}">
+            <span class="bd-num">${post.num}</span>
+            <span class="bd-title">
+              <span class="bd-tag ${post.best ? 'is-best' : ''}">${esc(post.best ? B.bestTag : B.photoTag)}</span>
+              <button type="button" class="bd-open" data-open="${esc(post.photo.id)}">
+                <img class="bd-thumb" src="${esc(post.photo.thumbUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" />
+                <span class="bd-title-text">${esc(post.title)}</span>
+              </button>
+              <button type="button" class="bd-cmt" data-cmt="${esc(post.photo.id)}" aria-expanded="${open}">[${post.comments}]</button>
+            </span>
+            <span class="bd-author">${esc(post.author)}</span>
+            <span class="bd-views">${post.views.toLocaleString()}</span>
+            <span class="bd-likes">${post.likes}</span>
+            ${commentHtml}
+          </li>
+        `;
+      };
+
+      board.innerHTML = `
+        <div class="bd-head">
+          <h2 class="bd-name">${esc(B.title)}</h2>
+          <p class="bd-info">${esc(B.info)}</p>
+        </div>
+        <div class="bd-tabs" role="tablist">
+          <button type="button" class="bd-tab ${tab === 'all' ? 'active' : ''}" data-tab="all">${esc(B.tabAll)}</button>
+          <button type="button" class="bd-tab ${tab === 'best' ? 'active' : ''}" data-tab="best">${esc(B.tabBest)}</button>
+        </div>
+        <ul class="bd-list">
+          <li class="bd-row bd-cols" aria-hidden="true">${B.cols.map((c, k) => `<span class="${['bd-num', 'bd-title', 'bd-author', 'bd-views', 'bd-likes'][k]}">${esc(c)}</span>`).join('')}</li>
+          <li class="bd-row is-notice">
+            <span class="bd-num"><span class="bd-tag is-notice">${esc(B.noticeTag)}</span></span>
+            <span class="bd-title"><span class="bd-title-text">${esc(B.notice)}</span></span>
+            <span class="bd-author">${esc(B.noticeBy)}</span>
+            <span class="bd-views">-</span>
+            <span class="bd-likes">-</span>
+          </li>
+          ${shown.length ? shown.map(row).join('') : `<li class="bd-row bd-empty">${esc(B.empty)}</li>`}
+        </ul>
+      `;
+    };
+
+    board.addEventListener('click', e => {
+      const tabBtn = e.target.closest('[data-tab]');
+      if (tabBtn) {
+        tab = tabBtn.getAttribute('data-tab');
+        render();
+        return;
+      }
+      const openBtn = e.target.closest('[data-open]');
+      if (openBtn) {
+        const list = (grid._paged && grid._paged.photos) || [];
+        const idx = list.findIndex(p => p.id === openBtn.getAttribute('data-open'));
+        if (idx >= 0 && typeof openLightbox === 'function') {
+          filteredPhotos = list;
+          lightboxShowAwards = false;
+          openLightbox(idx);
+        }
+        return;
+      }
+      const cmtBtn = e.target.closest('[data-cmt]');
+      if (cmtBtn) {
+        const id = cmtBtn.getAttribute('data-cmt');
+        if (openRows.has(id)) openRows.delete(id);
+        else openRows.add(id);
+        render();
+        return;
+      }
+      const vote = e.target.closest('[data-vote]');
+      if (vote) {
+        const id = vote.getAttribute('data-id');
+        votes[id] = (votes[id] || 0) + (vote.getAttribute('data-vote') === 'up' ? 1 : -1);
+        render();
+      }
+    });
+
+    // 목차 · 검색으로 사진 목록이 바뀌면 게시판도 다시 씀
+    let queued = false;
+    const mo = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      setTimeout(() => { queued = false; render(); }, 0);
+    });
+    mo.observe(grid, { childList: true });
+    render();
+
+    return {
+      refresh: render,
+      cleanup() {
+        mo.disconnect();
+        board.remove();
+      }
+    };
+  }
+
+  /* ======================================================================
+     9. 암실: 빨간 안전등 아래 사진이 하얀 인화지에서 천천히 현상됨
+        필름 테두리 · 프레임 번호 · 집게. 마우스를 올리면 불이 켜져 원래 색
+     ====================================================================== */
+  function setupDarkroom() {
+    const lamp = document.createElement('div');
+    lamp.className = 'dr-lamp';
+    lamp.setAttribute('aria-hidden', 'true');
+    const grain = document.createElement('div');
+    grain.className = 'dr-grain';
+    grain.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(lamp);
+    document.body.appendChild(grain);
+    toast(L('darkroomHint'));
+    return {
+      cleanup() {
+        lamp.remove();
+        grain.remove();
+      }
+    };
+  }
+
+  /* ======================================================================
+     10. 김 서린 창문: 화면 앞 유리에 김이 서려 있고 빗방울이 흘러내림
+         마우스(또는 손가락)로 문지르면 그 자리가 닦이고, 시간이 지나면 다시 김이 서림
+     ====================================================================== */
+  function setupFog(options = {}) {
+    const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+    // 실제로 비가 와서 켜진 경우: 김은 옅게, 빗방울 위주 (사진이 잘 보이게)
+    const thin = options.weather === 'rain' ? 0.42 : 1;
+
+    // 유리 무늬(김 + 작은 물방울 결)는 한 번만 그려 두고, 닦은 자리(mask)만 매번 빼서 보여 줌
+    // mask: 닦은 정도 (진할수록 맑음). 시간이 지나면 옅어져서 다시 김이 서림
+    const texture = document.createElement('canvas');
+    const mask = document.createElement('canvas');
+    const tctx = texture.getContext('2d');
+    const mctx = mask.getContext('2d');
+
+    const paintTexture = s => {
+      texture.width = s.canvas.width;
+      texture.height = s.canvas.height;
+      mask.width = s.canvas.width;
+      mask.height = s.canvas.height;
+      tctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0);
+      mctx.setTransform(s.dpr, 0, 0, s.dpr, 0, 0);
+      tctx.fillStyle = isLight() ? `rgba(226, 233, 238, ${0.86 * thin})` : `rgba(150, 162, 172, ${0.72 * thin})`;
+      tctx.fillRect(0, 0, s.w, s.h);
+      for (let i = 0; i < (s.w * s.h) / 900; i++) {
+        tctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.18 * thin})`;
+        tctx.beginPath();
+        tctx.arc(Math.random() * s.w, Math.random() * s.h, Math.random() * 1.6 + 0.4, 0, Math.PI * 2);
+        tctx.fill();
+      }
+    };
+    const glass = makeCanvas('fog-glass', paintTexture);
+    const rain = makeCanvas('fog-rain');
+    let dirty = true;
+
+    const wipe = (x, y, r, strength = 1) => {
+      const g = mctx.createRadialGradient(x, y, r * 0.35, x, y, r);
+      g.addColorStop(0, `rgba(0, 0, 0, ${strength})`);
+      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      mctx.globalCompositeOperation = 'source-over';
+      mctx.fillStyle = g;
+      mctx.beginPath();
+      mctx.arc(x, y, r, 0, Math.PI * 2);
+      mctx.fill();
+      dirty = true;
+    };
+
+    const render = () => {
+      if (!dirty) return;
+      dirty = false;
+      const { ctx, canvas } = glass;
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = 'copy';
+      ctx.drawImage(texture, 0, 0);
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.drawImage(mask, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    };
+
+    let last = null;
+    const onMove = e => {
+      const x = e.clientX;
+      const y = e.clientY;
+      const r = e.pointerType === 'touch' ? 40 : 48;
+      if (last) {
+        const dist = Math.hypot(x - last.x, y - last.y);
+        const steps = Math.min(30, Math.ceil(dist / (r / 3)));
+        for (let i = 1; i <= steps; i++) {
+          wipe(last.x + ((x - last.x) * i) / steps, last.y + ((y - last.y) * i) / steps, r);
+        }
+      } else {
+        wipe(x, y, r);
+      }
+      last = { x, y };
+      if (reducedMotion) render();
+    };
+    const onLeave = () => { last = null; };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    document.documentElement.addEventListener('pointerleave', onLeave);
+
+    // 닦은 자리에 천천히 다시 김이 서림 (닦은 정도를 조금씩 지움)
+    const refog = setInterval(() => {
+      mctx.save();
+      mctx.setTransform(1, 0, 0, 1, 0, 0);
+      mctx.globalCompositeOperation = 'destination-out';
+      mctx.fillStyle = `rgba(0, 0, 0, ${reducedMotion ? 0.02 : 0.035})`;
+      mctx.fillRect(0, 0, mask.width, mask.height);
+      mctx.restore();
+      dirty = true;
+      if (reducedMotion) render();
+    }, 140);
+
+    // 빗방울: 흘러내리면서 지나간 자리를 닦음
+    let drops = [];
+    const spawn = top => ({
+      x: Math.random() * rain.w,
+      y: top ? -20 - Math.random() * rain.h * 0.5 : Math.random() * rain.h,
+      r: 1.6 + Math.random() * 2.4,
+      v: 30 + Math.random() * 120,
+      wob: Math.random() * Math.PI * 2
+    });
+    const resetDrops = () => {
+      drops = Array.from({ length: Math.round(rain.w / 45) }, () => spawn(false));
+    };
+    resetDrops();
+    window.addEventListener('resize', resetDrops);
+
+    render();
+    const stopAnim = reducedMotion ? () => {} : animate((dt, now) => {
+      const { ctx, w, h } = rain;
+      ctx.clearRect(0, 0, w, h);
+      const dropColor = isLight() ? 'rgba(120, 140, 160, 0.55)' : 'rgba(220, 235, 245, 0.6)';
+      drops.forEach((d, i) => {
+        d.y += d.v * dt * (0.6 + Math.random() * 0.8);
+        d.x += Math.sin(now / 400 + d.wob) * 0.15;
+        wipe(d.x, d.y, d.r * 1.8, 0.5);
+        ctx.fillStyle = dropColor;
+        ctx.beginPath();
+        ctx.ellipse(d.x, d.y, d.r, d.r * 1.35, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(d.x - d.r * 0.35, d.y - d.r * 0.4, d.r * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        if (d.y > h + 10) drops[i] = spawn(true);
+      });
+      render();
+    });
+
+    if (!options.weather) toast(L('fogHint'));
+
+    return {
+      cleanup() {
+        clearInterval(refog);
+        stopAnim();
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('resize', resetDrops);
+        document.documentElement.removeEventListener('pointerleave', onLeave);
+        glass.destroy();
+        rain.destroy();
+      }
+    };
+  }
+
+  /* ======================================================================
+     11. 미술관 경매: 금색 액자 · 흰 매트 · 작품 설명표에 가짜 추정가, 몇 점은 '낙찰' 빨간 점
+     ====================================================================== */
+  function setupMuseum() {
+    const root = document.documentElement;
+    const year = new Date().getFullYear();
+
+    const label = cards => {
+      cards.forEach(card => {
+        const caption = card.querySelector('.card-caption');
+        if (!caption) return;
+        const h = hash(card.getAttribute('data-photo-id') || card.getAttribute('data-file') || '');
+        const price = (12 + (h % 970)) * 10000000;
+        const sold = h % 10 < 3;
+        card.classList.toggle('mu-sold', sold);
+        caption.setAttribute('data-medium', L('museumMedium', year));
+        caption.setAttribute('data-price', `${L('museumPrice', price)}${sold ? ` · ${L('museumSold')}` : ''}`);
+      });
+    };
+    const stopWatch = watchCards(label);
+    const refresh = () => {
+      root.style.setProperty('--museum-sale', JSON.stringify(L('museumSale')));
+      label([...document.querySelectorAll('.photo-card:not(.is-skeleton)')]);
+    };
+    refresh();
+
+    return {
+      refresh,
+      cleanup() {
+        stopWatch();
+        root.style.removeProperty('--museum-sale');
+        document.querySelectorAll('.photo-card').forEach(card => {
+          card.classList.remove('mu-sold');
+          const caption = card.querySelector('.card-caption');
+          if (caption) {
+            caption.removeAttribute('data-medium');
+            caption.removeAttribute('data-price');
+          }
+        });
+      }
+    };
+  }
+
+  /* ======================================================================
+     12. 첫눈: 눈이 내리고 사진 액자 윗변에 조금씩 쌓임. 마우스를 올리면 털림
+     ====================================================================== */
+  function setupSnow(options = {}) {
+    const piles = new Map(); // 사진 카드 → 쌓인 높이(px)
+    const MAX_PILE = 16;
+    let flakes = [];
+    const spawn = (s, top) => ({
+      x: Math.random() * s.w,
+      y: top ? -10 - Math.random() * 60 : Math.random() * s.h,
+      r: 1.2 + Math.random() * 2.6,
+      v: 22 + Math.random() * 46,
+      sway: Math.random() * Math.PI * 2
+    });
+    const sky = makeCanvas('snow-sky', s => {
+      flakes = Array.from({ length: Math.min(170, Math.round(s.w / 8)) }, () => spawn(s, false));
+    });
+
+    let targets = [];
+    const updateTargets = () => { targets = visibleCardRects(); };
+    updateTargets();
+    const targetTimer = setInterval(updateTargets, 400);
+    window.addEventListener('scroll', updateTargets, { passive: true });
+
+    const setPile = (card, value) => {
+      piles.set(card, value);
+      card.style.setProperty('--snow', `${value.toFixed(1)}px`);
+    };
+
+    const stopAnim = reducedMotion ? () => {} : animate((dt, now) => {
+      const { ctx, w, h } = sky;
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+      // 밝은 모드에서는 흰 바탕에 묻히지 않게 눈송이 가장자리를 옅게 그림
+      const outline = document.documentElement.getAttribute('data-theme') === 'light';
+      ctx.strokeStyle = 'rgba(110, 135, 165, 0.5)';
+      ctx.lineWidth = 0.8;
+      flakes.forEach((f, i) => {
+        const prevY = f.y;
+        f.y += f.v * dt;
+        f.x += Math.sin(now / 900 + f.sway) * 0.35;
+        // 액자 윗변에 닿으면 쌓임
+        for (const { card, rect } of targets) {
+          const top = rect.top - (piles.get(card) || 0);
+          if (f.x > rect.left && f.x < rect.right && prevY < top && f.y >= top) {
+            setPile(card, Math.min(MAX_PILE, (piles.get(card) || 0) + f.r * 0.09));
+            flakes[i] = f.temp ? Object.assign(f, { dead: true }) : spawn(sky, true);
+            return;
+          }
+        }
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+        if (outline) ctx.stroke();
+        if (f.y > h + 10) flakes[i] = f.temp ? Object.assign(f, { dead: true }) : spawn(sky, true);
+      });
+      // 털려서 잠깐 생긴 눈은 땅에 닿으면 없앰
+      if (flakes.some(f => f.dead)) flakes = flakes.filter(f => !f.dead);
+    });
+
+    // 마우스를 올리면 쌓인 눈이 털림
+    const onOver = e => {
+      const card = e.target instanceof Element ? e.target.closest('.photo-card') : null;
+      if (!card || !piles.get(card)) return;
+      const rect = (card.querySelector('.photo-media-wrap') || card).getBoundingClientRect();
+      const amount = Math.round(piles.get(card) * 3);
+      for (let k = 0; k < amount && flakes.length < 260; k++) {
+        flakes.push({ x: rect.left + Math.random() * rect.width, y: rect.top + 2 + Math.random() * 6, r: 1 + Math.random() * 2, v: 60 + Math.random() * 80, sway: Math.random() * 6, temp: true });
+      }
+      setPile(card, 0);
+    };
+    document.addEventListener('pointerover', onOver);
+    if (!options.weather) toast(L('snowHint'));
+
+    return {
+      cleanup() {
+        stopAnim();
+        clearInterval(targetTimer);
+        window.removeEventListener('scroll', updateTargets);
+        document.removeEventListener('pointerover', onOver);
+        sky.destroy();
+        document.querySelectorAll('.photo-card').forEach(card => card.style.removeProperty('--snow'));
+      }
+    };
+  }
+
+  /* ======================================================================
+     13. 8비트: 사진이 도트로 깨져 보이고, 누르면 동전 +100, 점수판이 올라감
+         (작은 미리보기를 확대해서 도트로 보이게 함. 크게 보기는 원래 화질)
+     ====================================================================== */
+  function setupPixel() {
+    loadStyle(GALMURI_CSS);
+    const root = document.documentElement;
+    let score = photoTotal() * 1000;
+    const setScore = () => root.style.setProperty('--pixel-score', JSON.stringify(L('pixelScore', score)));
+    setScore();
+    root.style.setProperty('--pixel-start', JSON.stringify(L('pixelStart')));
+
+    const lowRes = src => String(src).replace(/([?&]sz=)w\d+/, '$1w56');
+    const pixelate = () => {
+      document.querySelectorAll('.photo-thumb, .comp-card-cover').forEach(img => {
+        if (img.dataset.hiSrc) return;
+        const src = img.getAttribute('src') || '';
+        if (!/[?&]sz=w\d+/.test(src)) return;
+        img.dataset.hiSrc = src;
+        img.setAttribute('src', lowRes(src));
+      });
+    };
+    const stopWatch = watchCards(pixelate);
+
+    const onClick = e => {
+      if (!(e.target instanceof Element) || !e.target.closest('.photo-card:not(.is-skeleton)')) return;
+      score += 100;
+      setScore();
+      const coin = document.createElement('span');
+      coin.className = 'px-coin';
+      coin.textContent = '+100';
+      coin.style.left = `${e.clientX}px`;
+      coin.style.top = `${e.clientY}px`;
+      coin.addEventListener('animationend', () => coin.remove());
+      document.body.appendChild(coin);
+    };
+    document.addEventListener('click', onClick, true);
+
+    return {
+      refresh() {
+        setScore();
+        root.style.setProperty('--pixel-start', JSON.stringify(L('pixelStart')));
+      },
+      cleanup() {
+        stopWatch();
+        document.removeEventListener('click', onClick, true);
+        document.querySelectorAll('.px-coin').forEach(c => c.remove());
+        document.querySelectorAll('[data-hi-src]').forEach(img => {
+          img.setAttribute('src', img.dataset.hiSrc);
+          delete img.dataset.hiSrc;
+        });
+        root.style.removeProperty('--pixel-score');
+        root.style.removeProperty('--pixel-start');
+      }
+    };
+  }
+
   const SETUPS = {
     win98: setupWin98,
     hacker: setupHacker,
     gravity: setupGravity,
     viewfinder: setupViewfinder,
-    homepage: setupHomepage
+    homepage: setupHomepage,
+    upside: setupUpside,
+    space: setupSpace,
+    board: setupBoard,
+    darkroom: setupDarkroom,
+    fog: setupFog,
+    museum: setupMuseum,
+    snow: setupSnow,
+    pixel: setupPixel
   };
 
-  /* ---------- 버튼 연결 ---------- */
+  /* ---------- 페이지를 열 때 10번에 한 번은 아무 분위기나 저절로 켜짐 ----------
+     주소 뒤에 ?mood=space 처럼 붙이면 그 분위기로, ?mood=random 이면 무작위로 바로 열림 */
+  const LUCKY_CHANCE = 0.1;
+
+  // 사진이 화면에 다 그려진 뒤에 켜야 중력 · 미술관 같은 분위기가 사진에 제대로 걸림
+  function whenPhotosReady(callback) {
+    const started = Date.now();
+    const check = () => {
+      const ready = document.querySelector('#photoGrid .photo-card:not(.is-skeleton)') ||
+        !document.getElementById('statusBanner')?.classList.contains('hidden');
+      if (ready || Date.now() - started > 8000) callback();
+      else setTimeout(check, 200);
+    };
+    check();
+  }
+
+  /* ---------- 날씨: 방문한 사람이 있는 곳에 눈 · 비가 오면 사이트에도 ----------
+     무료 · 키 없음: 대략적인 위치(도시 정도)는 접속 주소로 get.geojs.io → ipwho.is 순서로 찾고,
+     못 찾으면 서울. 날씨는 Open-Meteo. 위치는 소수 둘째 자리(1km 정도)까지만 보냄.
+     한 번 확인하면 30분 동안은 다시 묻지 않음 (이번 방문 동안 브라우저에 기억)
+     주소 뒤에 ?weather=snow 또는 ?weather=rain 을 붙이면 그 날씨인 것처럼 시험해 볼 수 있음 */
+  const SEOUL = { lat: 37.57, lon: 126.98, seoul: true };
+  const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
+  const RAIN_CODES = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
+
+  async function fetchJson(url, ms = 2500) {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = setTimeout(() => { if (ctrl) ctrl.abort(); }, ms);
+    try {
+      const res = await fetch(url, { signal: ctrl ? ctrl.signal : undefined, cache: 'no-store' });
+      return res.ok ? await res.json() : null;
+    } catch (e) {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function findVisitorPlace() {
+    const geo = await fetchJson('https://get.geojs.io/v1/ip/geo.json');
+    if (geo && isFinite(parseFloat(geo.latitude)) && isFinite(parseFloat(geo.longitude))) {
+      return { lat: parseFloat(geo.latitude), lon: parseFloat(geo.longitude), seoul: false };
+    }
+    const who = await fetchJson('https://ipwho.is/');
+    if (who && who.success !== false && isFinite(who.latitude) && isFinite(who.longitude)) {
+      return { lat: Number(who.latitude), lon: Number(who.longitude), seoul: false };
+    }
+    return SEOUL;
+  }
+
+  async function readWeather() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(WEATHER_CACHE_KEY) || 'null');
+      if (saved && Date.now() - saved.at < 30 * 60 * 1000) return saved;
+    } catch (e) {}
+
+    const place = await findVisitorPlace();
+    const url = 'https://api.open-meteo.com/v1/forecast' +
+      `?latitude=${place.lat.toFixed(2)}&longitude=${place.lon.toFixed(2)}` +
+      '&current=weather_code,rain,showers,snowfall&timezone=auto';
+    const data = await fetchJson(url);
+    const now = data && data.current;
+    let kind = 'unknown';
+    if (now) {
+      if (SNOW_CODES.has(now.weather_code) || now.snowfall > 0) kind = 'snow';
+      else if (RAIN_CODES.has(now.weather_code) || now.rain > 0 || now.showers > 0) kind = 'rain';
+      else kind = 'clear';
+    }
+    const result = { kind, seoul: place.seoul, at: Date.now() };
+    if (kind !== 'unknown') {
+      try { sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(result)); } catch (e) {}
+    }
+    return result;
+  }
+
+  /* ---------- 페이지를 열 때: 눈 · 비가 오면 그 날씨로, 아니면 10번에 한 번은 아무 분위기나 ----------
+     주소 뒤에 ?mood=space 처럼 붙이면 그 분위기로, ?mood=random 이면 무작위로 바로 열림 */
+  function autoMoodOnLoad() {
+    let params = null;
+    try { params = new URLSearchParams(window.location.search); } catch (e) {}
+    const forced = params ? params.get('mood') || '' : '';
+    const testWeather = params ? params.get('weather') || '' : '';
+
+    if (forced) {
+      whenPhotosReady(() => {
+        if (moodIndex >= 0 || pickerEl) return;
+        const index = MOODS.indexOf(forced);
+        if (index >= 0) setMood(index);
+        else pick('random');
+      });
+      return;
+    }
+
+    let weatherOff = false;
+    try { weatherOff = sessionStorage.getItem(WEATHER_OFF_KEY) === '1'; } catch (e) {}
+    let weatherPromise;
+    if (testWeather === 'snow' || testWeather === 'rain') {
+      weatherPromise = Promise.resolve({ kind: testWeather, seoul: false });
+    } else if (weatherOff) {
+      weatherPromise = Promise.resolve(null);
+    } else {
+      weatherPromise = readWeather().catch(() => null);
+    }
+    const lucky = Math.random() < LUCKY_CHANCE;
+
+    whenPhotosReady(async () => {
+      // 날씨 확인이 늦으면 4초까지만 기다림
+      const weather = await Promise.race([weatherPromise, new Promise(r => setTimeout(() => r(null), 4000))]);
+      if (moodIndex >= 0 || pickerEl) return; // 그사이 직접 골랐으면 건드리지 않음
+
+      if (weather && (weather.kind === 'snow' || weather.kind === 'rain')) {
+        setMood(MOODS.indexOf(weather.kind === 'snow' ? 'snow' : 'fog'), { weather: weather.kind });
+        weatherAutoIndex = moodIndex;
+        const message = L(weather.kind === 'snow' ? 'weatherSnow' : 'weatherRain', weather.seoul);
+        setTimeout(() => { if (moodIndex === weatherAutoIndex) toast(message); }, 2800);
+        return;
+      }
+
+      if (lucky) {
+        pick('random');
+        if (moodIndex >= 0) {
+          const name = moodName(MOODS[moodIndex]);
+          setTimeout(() => { if (moodIndex >= 0) toast(L('luckyToast', name)); }, 3000);
+        }
+      }
+    });
+  }
+
+  /* ---------- 버튼 연결: 기분전환 → 고르기 창 ---------- */
   function init() {
     const btn = document.getElementById('btnMood');
-    if (btn) btn.addEventListener('click', nextMood);
+    if (btn) btn.addEventListener('click', () => openPicker(btn));
+    autoMoodOnLoad();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

@@ -118,24 +118,7 @@ const STRINGS = {
     cursorOpen: '열기',
 
     moodBtn: '기분전환',
-    moodBtnAria: '사이트 분위기 바꾸기 (누를 때마다 다음 분위기, 새로고침하면 원래대로)',
-    moodBack: '원래대로',
-    moodNext: '다음',
-    moodLoadFail: '효과를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.',
-    moodNames: ['윈도우 98', '해커 터미널', '중력', '카메라 뷰파인더', '미니홈피'],
-    moodToast: name => `기분전환: ${name}`,
-    moodToastOff: '원래 분위기로 돌아왔어요',
-    gravityHint: '사진을 잡아서 던져 보세요',
-    gravityReset: '다시 떨어뜨리기',
-    hackerBoot: ['> 갤러리 서버 접속 중...', '> 접근 권한 확인... 승인', '> 사진 복호화 중... 100%', '> 환영합니다, 관람객님'],
-    cyTodayTotal: (today, total) => `TODAY ${today} | TOTAL ${total}`,
-    cyMood: '오늘의 기분: 감성충만',
-    cyBgm: '♪ 배경음악: 잔잔한 피아노 (재생 중)',
-    cyHello: '방문해 주셔서 감사합니다 ^^',
-    winTitle: '갤러리 - 탐색기',
-    winStart: '시작',
-    winShutdown: '시스템 종료 (원래대로)',
-    viewfinderRec: 'REC'
+    moodBtnAria: '사이트 분위기 고르기 (새로고침하면 원래대로)',
   },
 
   en: {
@@ -233,24 +216,7 @@ const STRINGS = {
     cursorOpen: 'Open',
 
     moodBtn: 'Mood swap',
-    moodBtnAria: 'Change the site’s mood (each press goes to the next one; refresh to reset)',
-    moodBack: 'Back to normal',
-    moodNext: 'Next',
-    moodLoadFail: 'Couldn’t load the effect. Check your connection.',
-    moodNames: ['Windows 98', 'Hacker terminal', 'Gravity', 'Camera viewfinder', 'Retro homepage'],
-    moodToast: name => `Mood: ${name}`,
-    moodToastOff: 'Back to the usual look',
-    gravityHint: 'Grab a photo and throw it',
-    gravityReset: 'Drop again',
-    hackerBoot: ['> Connecting to gallery server...', '> Checking access... granted', '> Decrypting photos... 100%', '> Welcome, visitor'],
-    cyTodayTotal: (today, total) => `TODAY ${today} | TOTAL ${total}`,
-    cyMood: 'Mood of the day: all the feels',
-    cyBgm: '♪ BGM: soft piano (playing)',
-    cyHello: 'Thanks for stopping by ^^',
-    winTitle: 'Gallery - Explorer',
-    winStart: 'Start',
-    winShutdown: 'Shut down (back to normal)',
-    viewfinderRec: 'REC'
+    moodBtnAria: 'Pick a mood for the site (refresh to reset)',
   }
 };
 
@@ -1523,6 +1489,7 @@ function renderPhotoCardHtml(photo, idx, showAward = false, delayIdx = idx) {
       data-index="${idx}"
       data-photo-id="${escapeHtml(photo.id)}"
       data-file="${escapeHtml(fileLabel)}"
+      data-author="${meta.isAnonymous ? '' : escapeHtml(meta.authorLabel || '')}"
       tabindex="0"
       role="button"
       aria-label="${escapeHtml(t('viewLarge', label))}"
@@ -1916,8 +1883,10 @@ function getAllCompetitionsMeta() {
     .map(buildCompetitionMetadata);
 }
 
+// 상태 표시는 진행 중일 때만 (끝난 공모전에는 '종료'를 붙이지 않음)
 function statusPillHtml(comp) {
-  return `<span class="comp-status-pill ${comp.ongoing ? 'is-live' : 'is-ended'}">${comp.ongoing ? '<span class="live-dot"></span>' : ''}${escapeHtml(comp.statusLabel)}</span>`;
+  if (!comp.ongoing) return '';
+  return `<span class="comp-status-pill is-live"><span class="live-dot"></span>${escapeHtml(comp.statusLabel)}</span>`;
 }
 
 // 공모전 목록 (연도별) — kind: 'regular' = 공모전 아카이브, 'mini' = 소마대전
@@ -2015,7 +1984,7 @@ function renderCompetitionsArchiveView(kind = 'regular') {
                   ${coverUrl ? `<img class="comp-card-cover" src="${coverUrl}" alt="" loading="lazy" referrerpolicy="no-referrer" />` : ''}
                 </div>
                 <div class="comp-card-body">
-                  <p class="comp-card-period">${statusPillHtml(comp)}</p>
+                  ${comp.ongoing ? `<p class="comp-card-period">${statusPillHtml(comp)}</p>` : ''}
                   <h3 class="comp-card-title">${escapeHtml(comp.title)}</h3>
                   ${comp.customDescription ? `<p class="comp-card-desc">${escapeHtml(comp.customDescription)}</p>` : ''}
                   ${comp.ongoing ? voteNoteHtml() : ''}
@@ -2095,10 +2064,12 @@ function renderCompetitionDetailView(folderId) {
   container.innerHTML = `
     <header class="comp-detail-hero">
       <div class="comp-detail-hero-content">
-        <p class="comp-detail-badges">
-          ${statusPillHtml(comp)}
-          ${showKindTag ? `<span class="comp-kind-tag">${escapeHtml(t('kindMini'))}</span>` : ''}
-        </p>
+        ${comp.ongoing || showKindTag ? `
+          <p class="comp-detail-badges">
+            ${statusPillHtml(comp)}
+            ${showKindTag ? `<span class="comp-kind-tag">${escapeHtml(t('kindMini'))}</span>` : ''}
+          </p>
+        ` : ''}
         <h1 class="comp-detail-title">${escapeHtml(comp.title)}</h1>
         ${comp.description ? `<p class="comp-detail-desc">${escapeHtml(comp.description)}</p>` : ''}
         ${comp.ongoing ? voteNoteHtml() : ''}
