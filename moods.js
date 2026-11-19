@@ -74,114 +74,303 @@
         affinity: '호감도',
         save: '세이브 슬롯이 가득 찼어요… 대신 사진은 갤러리에 전부 저장돼 있어요!',
         hint: '화면을 누르거나 스페이스를 누르면 다음 대사로 넘어가요',
+        // 처음 들어왔을 때: 신입 부원에게 셋이 차례로 인사
+        introCast: [
+          ['mao', '어서 와요, 신입 부원! 저는 사진부 부장 마오예요. 와 줘서 정말 고마워요!'],
+          ['sora', '신입이에요? 저는 소라. 마오 부장 혼자 두면 불안해서 같이 안내할게요.'],
+          ['hood', '…후드예요. 사진 설명은 정리해 왔어요. 천천히 보세요, 신입 씨.'],
+          ['mao', '자, 그럼 우리 부원들 사진 구경하러 가요! 화면을 누르면 다음으로 넘어가요.']
+        ],
         lines: {
           mao: {
-            intro: ['어서 와요! 저는 사진부 부장 마오예요. 와 줘서 정말 고마워요. 같이 천천히 구경해요!'],
             own: [
-              '이거 제가 찍은 거예요… 아직 잘 모르지만, 찍을 때 정말 행복했어요.',
+              '이거 제가 찍은 거예요… 아직 잘 모르지만, 찍을 때 정말 행복했어요. 신입 부원도 이런 날이 올 거예요.',
               '제 사진이에요! {topic} 주제라서 열심히 돌아다녔어요. 부장인데 부끄럽지 않게요!',
-              '두 달 동안 1200장 찍었는데요, 이게 제일 마음에 들어요. 헤헤.'
+              '두 달 동안 1200장 찍었는데요, 이게 제일 마음에 들어요. 신입 부원도 일단 많이 찍어 봐요!',
+              '이 사진 찍으려고 같은 자리에 세 번 갔어요. 사진은 발로 찍는 거래요. 헤헤.',
+              '사실 이거 색이 자신 없어서 흑백으로 바꿀까 엄청 고민했어요. 그냥 둔 게 다행이죠?',
+              '이날 비가 조금 왔는데 카메라 괜찮을까 걱정하면서 찍었어요. 다행히 멀쩡해요!',
+              '{topic} 주제 듣자마자 바로 나갔어요. 부장이 제일 먼저 내야 다들 따라오니까요!',
+              '인스타에서 본 구도를 따라 해 본 거예요. 따라 하다 보면 내 것도 생긴대요!'
             ],
             ownWin: [
               '제가… 이겼어요? 정말요? 소라가 엄청 잘 찍었는데… 다들 고마워요!',
-              '이건 제 우승작이에요. 부장이라고 봐준 거 아니죠…? 아니라고 해 주세요!'
+              '이건 제 우승작이에요. 부장이라고 봐준 거 아니죠…? 아니라고 해 주세요!',
+              '신입 부원, 이거 꼭 보여 주고 싶었어요. 소라한테 이긴 날 찍은 거예요!',
+              '우승이라니… 공지에 제 이름 쓰는 게 너무 쑥스러웠어요. 헤헤.',
+              '이 사진 덕분에 소마대전 스코어가 한 점 줄었어요! 신입 부원, 응원해 줘요!',
+              '우승작이에요! 상품은 작았지만, 기분은 엄청 컸어요.'
             ],
             sora: [
               '소라 사진이에요. 와… 하늘 색이 어떻게 이렇게 나오지? 나중에 몰래 물어봐야겠다.',
-              '소라는 잔소리가 좀 많지만… 사진은 정말 잘 찍어요. 이건 비밀이에요!'
+              '소라는 잔소리가 좀 많지만… 사진은 정말 잘 찍어요. 이건 비밀이에요!',
+              '신입 부원, 소라한테 배우면 금방 늘 거예요. 잔소리는… 조금 각오해야 하지만요.',
+              '소라는 투덜거리면서도 결국 끝까지 찍어 와요. 진짜 대단해요.',
+              '이 사진 보고 저 바로 따라 나갔다가… 그냥 하늘만 찍고 왔어요. 왜 다르지?',
+              '소라 사진은 보정을 거의 안 한 것 같은데 색이 예뻐요. 비결이 뭘까요?'
             ],
-            soraWin: ['소라가 또 이겼네요. 괜찮아요, 잘 찍었으니까요! …그래도 다음엔 저도 이기고 싶어요.'],
+            soraWin: [
+              '소라가 또 이겼네요. 괜찮아요, 잘 찍었으니까요! …그래도 다음엔 저도 이기고 싶어요.',
+              '소마대전이 원래 소라랑 저랑 대결이거든요. 스코어는… 묻지 말아 줘요.',
+              '소라가 이긴 날은 단톡방이 조용해요. 제가 조용하거든요… 헤헤.',
+              '인정할 건 인정해야죠! 이 사진은 저도 투표했어요. 비밀이에요.'
+            ],
             hood: [
               '후드 사진이에요. 조용히 와서 이렇게 멋진 걸 찍어 오다니… 정말 대단해요.',
-              '사실 저 후드 사진 보면서 구도 많이 배웠어요. 고마워, 후드!'
+              '사실 저 후드 사진 보면서 구도 많이 배웠어요. 고마워, 후드!',
+              '후드는 노출을 미리 계산해 온대요. 저는… 일단 찍고 봐요. 헤헤.',
+              '후드는 필름도 찍는대요. 현상 나오는 거 같이 기다려 주고 싶어요!',
+              '후드가 사진 올리는 날은 단톡방이 갑자기 조용해져요. 다들 감상하느라요.',
+              '후드 사진엔 늘 빛이 예쁘게 들어와 있어요. 시간을 잘 고르는 것 같아요.'
             ],
-            hoodWin: ['후드가 우승했던 사진이에요! 우리 부원들 다 너무 잘해서… 부장으로서 뿌듯해요.'],
+            hoodWin: [
+              '후드가 우승했던 사진이에요! 우리 부원들 다 너무 잘해서… 부장으로서 뿌듯해요.',
+              '후드는 자주 안 나오는데, 나오면 이렇게 1등이에요. 신입 부원도 기대할게요!',
+              '후드 우승했을 때 제가 박수 이모티콘을 백 개 보냈어요. 너무 많았나…?',
+              '이 사진 처음 봤을 때 진짜 숨 참았어요. 신입 부원도 그렇죠?'
+            ],
             other: [
               '{author} 님 사진이에요! 우와… 저도 이렇게 찍어 보고 싶어요.',
-              '{author} 님은 {topic} 주제를 이렇게 담았구나… 정말 좋다.'
+              '{author} 님은 {topic} 주제를 이렇게 담았구나… 정말 좋다.',
+              '신입 부원, {author} 님 사진 꼭 기억해 둬요. 저도 여기서 많이 배워요.',
+              '{topic} 주제 때 다들 이렇게 다르게 찍어 와서, 보는 재미가 있어요!',
+              '{author} 님 사진 보면 {topic} 주제가 이렇게 넓었나 싶어요!',
+              '와… {author} 님은 이걸 어떻게 발견했을까요? 저는 그냥 지나쳤을 거예요.',
+              '{author} 님 이 사진, 단톡방에 올라왔을 때 다들 감탄했어요!',
+              '신입 부원, 이런 사진 보면 찍고 싶어지지 않아요? 저는 벌써 나가고 싶어요!'
             ],
             ongoing: [
               '이건 지금 투표 중인 작품이라 누가 찍었는지는 비밀이에요. 아, 투표… 한 번만 부탁드려도 될까요?',
-              '투표 중인 사진이에요! 다들 투표해 주시면 부장이 정말 기뻐요.'
+              '투표 중인 사진이에요! 신입 부원도 투표할 수 있어요. 해 주면 저 정말 기쁠 거예요.',
+              '누가 찍었는지 맞혀 볼래요? …아, 투표 끝날 때까지는 정답 못 알려 줘요!',
+              '투표 마감 전에 꼭이요! 신입 부원 한 표도 소중해요.',
+              '이 사진, 저도 누가 찍었는지 몰라요… 사실 알아요. 그래도 비밀!',
+              '투표는 톡게시판에서 해요. 모르겠으면 저한테 물어봐요!'
+            ],
+            tips: [
+              '신입 부원, 공지 한 번씩만 꼭 봐 줘요! 닉네임 양식도 거기 있어요.',
+              '소마대전은 미니 공모전이에요. 주제가 나오면 한 장씩 내면 돼요. 부담 갖지 말고요!',
+              '공식 사진전에서 1등 하면 방 대표 커버 사진이 돼요. 신입 부원 사진이 걸리면 좋겠다!',
+              '사진 공유도 좋고, 카메라 이야기도 좋고, 그냥 수다도 좋아요. 편하게 와요!',
+              '출사 모임도 가끔 해요! 신입 부원도 시간 되면 같이 가요.',
+              '인스타 계정 있으면 톡게시판 댓글에 공유해 줘요. 서로 구경해요!',
+              '활동이 너무 없으면… 방 규칙상 내보내게 될 수도 있어요. 그러니까 자주 와요! 진짜로요.',
+              '우리 사진들은 온라인 갤러리에도 모아 두고 있어요. 지금 보고 있는 여기요!'
             ],
             flavor: [
               '인성은 렌즈 크기에 비례한대요! …제가 한 말이에요. 아니에요?',
               '조리개 숫자를 높이면 뒤까지 선명해진다… 맞나요? 아직 공부 중이에요.',
               '오늘의 좋은 말! 느려도 괜찮아, 포기하지만 않으면. 사진도 그렇대요.',
               '맡겨 둔 필름이 아직 현상 중이에요. 두근두근!',
-              '카메라를 세 대나 들고 다녀서 어깨가 아파요… 그래도 다 소중해요.'
+              '카메라를 세 대나 들고 다녀서 어깨가 아파요… 그래도 다 소중해요.',
+              '모르는 건 그냥 물어봐요! 저도 맨날 물어봐요. 부장인데도요.',
+              '삼각대를 사서 들고 갈지 아직도 고민 중이에요. 무거운 건 이미 많은데…',
+              '셔터 속도 4천 이상은 아직 한 번도 안 써 봤어요. 언젠가 써 볼 거예요!',
+              '화이트밸런스가 안 맞으면 하얀색이 하얀색이 아니래요. 신기하죠?',
+              '저 처음엔 보케가 뭔지도 몰랐어요. 지금은… 조금 알아요!',
+              '카메라가 비 조금 맞아도 괜찮겠죠…? 저 매번 걱정해요.',
+              '사진 잘 찍는 사람 보면 "저런 게 사진쟁이지!" 하고 외치게 돼요.'
             ],
-            thanks: [
-              '정말요? 헤헤… 칭찬받으니까 오늘 하루 종일 행복할 것 같아요.',
-              '고마워요! 부장 열심히 할게요!'
+            // 칭찬받을 때: 1번째 → 2번째 → 3번째 순서로, 다른 부원이 끼어드는 짧은 장면
+            praise: [
+              [['mao', '정말요? 헤헤… 칭찬받으니까 오늘 하루 종일 행복할 것 같아요.'], ['sora', '신입, 마오 부장 너무 띄워 주지 마요. 그러다 또 카메라 사요.'], ['mao', '안 사요! …아마도요.']],
+              [['mao', '또 칭찬해 줘요? 신입 부원 덕분에 부장 할 맛 나요!'], ['hood', '…마오 부장, 얼굴 빨개졌어요.'], ['mao', '아, 아니에요! 조, 조명 때문이에요!']],
+              [['mao', '세 번이나…! 신입 부원, 혹시 저 감동시키러 온 거예요?'], ['sora', '마오 부장 울어요. 손수건 준비하세요.'], ['mao', '안 울어요! …고마워요, 진짜로. 우리 사진부 와 줘서.']]
+            ],
+            praiseMore: [
+              [['mao', '헤헤… 이러다 신입 부원한테 부장 자리 뺏기겠어요.'], ['hood', '…그건 좀 이르지 않을까요.']],
+              [['mao', '칭찬은 언제 들어도 좋아요! 신입 부원 최고!'], ['sora', '…둘이 아주 신났네요.']],
+              [['mao', '신입 부원 칭찬 노트 만들어야겠어요. 오늘 벌써 몇 번째지?'], ['hood', '…제가 세고 있어요. 정리해 둘게요.']]
             ]
           },
           sora: {
-            intro: ['아, 오셨어요? 저는 소라예요. 마오 부장 혼자 두면 불안해서 제가 같이 안내할게요.'],
             own: [
               '제 사진이에요. {topic} 주제였죠. 하늘 톤 맞추느라 한참 기다렸다고요.',
-              '흐린 날은 햇빛도 그림자도 없어서 못 찍어요. 그래서 이날은 해 나올 때까지 버텼어요.'
+              '흐린 날은 햇빛도 그림자도 없어서 못 찍어요. 그래서 이날은 해 나올 때까지 버텼어요.',
+              '신입, 이거 보정 많이 한 거 아니에요. 찍을 때 제대로 찍는 게 먼저예요.',
+              '이 장면 하나 찍으려고 해 뜨기 전부터 나가 있었어요. 신입은 따라 하지 마요. 힘들어요.',
+              '이거 수업 끝나고 찍은 거예요. 해가 짧아져서 진짜 빠듯했어요.',
+              '삼각대 없이 숨 참고 찍었어요. 신입, 흔들리면 다시 찍어요. 핑계 없어요.',
+              '그림자 하나 찍으려고 소품까지 샀어요. 만오천 원이요. 흑흑.',
+              '제대로 찍은 건 100장도 안 돼요. 그중 하나예요. 신입, 버리는 것도 실력이에요.'
             ],
             ownWin: [
               '제 우승작이에요. …자꾸 이기니까 저도 헷갈려요. 마오 부장, 분발 좀 해요.',
-              '또 제가 이겼네요. 소마대전 스코어요? 마오 부장 앞에선 말 안 할게요.'
+              '또 제가 이겼네요. 소마대전 스코어요? 마오 부장 앞에선 말 안 할게요.',
+              '신입, 이게 우승작이에요. 잘 봐 둬요. 구도, 빛, 타이밍. 셋 다 맞아야 해요.',
+              '가장 자신 있는 사진은 아니었는데 이겼어요. 그러니까 신입도 일단 내요.',
+              '스코어 또 벌어졌네요. 마오 부장, 오늘은 위로 안 해 줄 거예요.',
+              '우승은 좋은데, 다음엔 신입이 저를 이기면 더 좋겠어요. 진심이에요.'
             ],
             mao: [
               '마오 부장 사진이네요. …잘 나왔네요. 근데 마오 부장, 또 카메라 산 건 아니죠? 제발요.',
-              '마오 부장, 이건 좋아요. 근데 다음엔 수평 좀 맞춰요. 잔소리 아니에요, 조언이에요.'
+              '마오 부장, 이건 좋아요. 근데 다음엔 수평 좀 맞춰요. 잔소리 아니에요, 조언이에요.',
+              '신입, 마오 부장 사진은 열정으로 찍은 거예요. 기술은… 저한테 배워요.',
+              '마오 부장, 이거 흑백으로 바꿀까 고민했죠? 안 바꾼 거 잘했어요.',
+              '마오 부장 사진은 매번 늘어요. …그건 인정해요. 장비 말고 실력이요.',
+              '신입, 마오 부장이 모르는 거 물어보면 대신 대답해 줘요. 제가 바빠요.'
             ],
-            maoWin: ['이번엔 마오 부장이 이겼죠. 인정해요. …다음엔 없을 거지만요. 흑흑, 농담이에요.'],
-            hood: ['후드 선배 사진이에요. 말은 없는데 사진은 늘 정답이에요. 마오 부장도 좀 보고 배워요.'],
-            hoodWin: ['후드 선배는 가끔 나와서 이렇게 가져가요. 마오 부장, 봐요. 이게 모범 답안이에요.'],
+            maoWin: [
+              '이번엔 마오 부장이 이겼죠. 인정해요. …다음엔 없을 거지만요. 흑흑, 농담이에요.',
+              '이날은 제가 졌어요. 신입, 이 얘기 마오 부장 앞에서 하지 마요. 신나서 하루 종일 말해요.',
+              '마오 부장이 이긴 날은 공지가 세 번 올라와요. 신입, 각오해요.',
+              '이 사진은 인정. 마오 부장 사진 중에 제일 좋아요. 이건 말하지 마요.'
+            ],
+            hood: [
+              '후드 선배 사진이에요. 말은 없는데 사진은 늘 정답이에요. 마오 부장도 좀 보고 배워요.',
+              '신입, 후드 선배처럼 미리 계획하고 찍는 습관 들여요. 저도 그건 못 이겨요.',
+              '후드 선배 사진은 조용한데 오래 봐도 안 질려요. 신입, 그런 사진을 찍어요.',
+              '후드 선배는 필름도 찍어요. 저는 필름값 보고 포기했어요. 흑흑.'
+            ],
+            hoodWin: [
+              '후드 선배는 가끔 나와서 이렇게 가져가요. 마오 부장, 봐요. 이게 모범 답안이에요.',
+              '후드 선배 승률이 한 90%는 될걸요. 신입, 후드 선배 나오는 날은 긴장해요.',
+              '후드 선배랑 붙는 날은 저도 긴장해요. 이건 비밀이에요.',
+              '이 사진은 이길 방법이 없었어요. 깔끔하게 인정.'
+            ],
             other: [
               '{author} 님 사진이에요. 빛을 잘 읽었네요. 마오 부장, 메모해요.',
-              '{topic} 주제를 이렇게 풀었네요. {author} 님, 좋은 시선이에요.'
+              '{topic} 주제를 이렇게 풀었네요. {author} 님, 좋은 시선이에요.',
+              '신입, {author} 님 사진 보이죠? 이런 게 주제를 자기 걸로 만든 사진이에요.',
+              '{author} 님 사진은 군더더기가 없어요. 신입은 빼는 연습부터 해요.',
+              '{author} 님, {topic} 주제에서 이 각도는 생각 못 했어요. 좋네요.',
+              '신입, 이 사진 수평 봐요. 이렇게 딱 맞아야 해요. 마오 부장, 듣고 있어요?',
+              '{author} 님 사진은 색을 과하게 안 써서 좋아요. 신입은 채도부터 줄여요.',
+              '이건 기다려서 찍은 사진이에요. 우연히 찍힌 게 아니에요. 보면 알아요.'
             ],
-            ongoing: ['투표 중인 작품이라 작가는 아직 비밀이에요. 그리고 투표 안 하신 분들, 제발 해 주세요. 마오 부장 또 울어요.'],
+            ongoing: [
+              '투표 중인 작품이라 작가는 아직 비밀이에요. 그리고 투표 안 하신 분들, 제발 해 주세요. 마오 부장 또 울어요.',
+              '신입, 투표는 마음에 드는 사진 하나만 고르면 돼요. 어렵게 생각하지 마요.',
+              '누가 찍었는지 추측하는 건 자유지만, 말하면 안 돼요. 규칙이에요.',
+              '투표 마감은 칼같이 지켜요. 늦으면 안 받아요. 신입도 예외 없어요.',
+              '마음에 드는 사진이 두 개면… 그래도 하나만 골라요. 제발요.',
+              '결과 나오기 전까지 단톡방에 힌트 흘리지 마요. 다 티 나요.'
+            ],
+            tips: [
+              '신입, 감성 사진은 액정 말고 뷰파인더로 봐요. 몇 번을 말해요.',
+              '흐린 날은 햇빛도 그림자도 없어서 사진이 다 심심해요. 신입은 맑은 날을 노려요.',
+              '보정할 땐 RGB 커브부터 만져 봐요. 삼원색만 알면 돼요. 신입, 듣고 있죠?',
+              '장비 욕심은 나중에 내요. 마오 부장처럼 되면 큰일 나요.',
+              '컴퓨터로 보정하고 폰으로 옮기면 색이 밋밋해질 수 있어요. 마지막엔 폰으로 확인해요.',
+              '수업 끝나면 어두워서 찍을 게 없어요. 신입, 주말 아침을 노려요.',
+              '뷰파인더는 편한 눈으로 봐요. 근데 다들 왼쪽 눈이더라고요. 신입은요?',
+              '안 쓰는 렌즈는 팔아요. 장비가 많다고 사진이 느는 게 아니에요.'
+            ],
             flavor: [
-              '소마대전이 소라랑 마오 대결인 거 아시죠? 스코어는 제가 앞서고 있어요.',
-              '감성 사진은 액정 말고 뷰파인더로 보세요. 몇 번을 말해요.',
-              '흐린 날은 햇빛도 그림자도 없어서 사진이 다 심심해요… 흑흑.',
+              '소마대전이 소라랑 마오 대결인 거 알죠? 스코어는 제가 앞서고 있어요.',
               '필카가 미래라고요? 필름값 보세요. 똑딱이 하나 값이에요.',
-              '보정할 땐 RGB 커브부터 만져 보세요. 삼원색만 알면 돼요. 마오 부장, 듣고 있어요?'
+              '흑흑, 오늘도 마오 부장 대신 공지 정리했어요.',
+              '마음에 드는 사진은 다음 날 다시 봐요. 그래도 좋으면 진짜 좋은 거예요.',
+              '사진 잘 찍는 법이요? 많이 찍고, 많이 버리기. 끝.',
+              '현재 스코어요? 제가 앞서요. 숫자는 마오 부장 앞에서 말 안 할게요.',
+              '퀴즈 게임 하면 제가 1등 해요. 사진만 잘하는 게 아니에요.',
+              '단톡방에 300개 쌓여 있으면 그냥 다 읽음 처리하고 싶어요. 흑흑.',
+              '단풍 시즌인데 단풍을 한 장도 못 찍었어요. 이번 주엔 꼭 나가요.',
+              '제 사진 창피하다고 안 올리는 거 금지예요. 신입, 일단 올려요.'
             ],
-            thanks: [
-              '…칭찬은 익숙한데요. 이렇게 들으니까 좀 쑥스럽네요.',
-              '흑흑, 그런 말 하시면 다음에도 이겨야 하잖아요.'
+            praise: [
+              [['sora', '…칭찬은 익숙한데요. 이렇게 들으니까 좀 쑥스럽네요.'], ['mao', '소라가 쑥스러워한다! 신입 부원, 방금 거 봤어요?'], ['sora', '마오 부장은 조용히 해요!']],
+              [['sora', '흑흑, 그런 말 하면 다음에도 이겨야 하잖아요.'], ['hood', '…소라, 귀 빨개.'], ['sora', '후드 선배까지…! 신입, 다음 사진으로 넘어가요. 빨리요.']],
+              [['sora', '…세 번째예요. 신입, 혹시 저 놀리는 거예요?'], ['mao', '진심이에요! 소라가 제일 잘 찍잖아요!'], ['sora', '…알아요. 그래도, 고마워요. 이번만 진짜 고맙다고 할게요.']]
+            ],
+            praiseMore: [
+              [['sora', '칭찬 그만하고 신입도 찍어 와요. 그게 제일 좋은 칭찬이에요.']],
+              [['sora', '…좋아요. 오늘은 잔소리 한 번 쉬어 줄게요.'], ['mao', '소라가 잔소리를 쉰대요! 오늘 기념일이에요!']],
+              [['sora', '신입, 칭찬은 고마운데요. 수평은 맞춰 오세요.'], ['hood', '…결국 잔소리로 끝났어요.']]
             ]
           },
           hood: {
-            intro: ['…안녕하세요. 후드예요. 사진 설명은… 정리해 왔어요. 천천히 보세요.'],
             own: [
               '…제 사진이에요. {topic}. 노출은 미리 계산해 뒀어요.',
-              '…필름으로 찍은 것도 있어요. 현상 나오길 기다리는 시간이 제일 두근거려요.'
+              '…필름으로 찍은 것도 있어요. 현상 나오길 기다리는 시간이 제일 두근거려요.',
+              '…이 장소는 미리 세 번 답사했어요. 신입 씨도 장소부터 정해 보세요.',
+              '…해 지기 20분 전이 제일 좋아요. 이건 그때 찍었어요.',
+              '…필름은 스캔까지 맡기고, 고르는 건 제가 해요. 이건 고른 것 중 하나예요.',
+              '…이건 셔터 한 번에 끝났어요. 운이 좋았어요.',
+              '…스트릿 느낌으로 찍어 보고 싶었어요. 조금 어색하죠?',
+              '…올릴 사진은 많은데, 하나 고르는 게 제일 어려워요. 이건 고른 거예요.'
             ],
-            ownWin: ['…우승했었어요. 햇빛이 좋았어요. 준비한 만큼 나온 것 같아요.'],
+            ownWin: [
+              '…우승했었어요. 햇빛이 좋았어요. 준비한 만큼 나온 것 같아요.',
+              '…이건 계획대로 됐어요. 드물게요.',
+              '…상을 받고 노트에 한 줄을 더 적었어요. "빛은 기다리면 온다."',
+              '…이겼다는 말 들었을 때, 사실 조금 웃었어요. 조금만요.'
+            ],
             mao: [
               '…마오 부장 사진이에요. 카메라 추천은 안 들었지만… 사진은 좋아요.',
-              '…마오 부장, 많이 늘었어요. 정말이에요.'
+              '…마오 부장, 많이 늘었어요. 정말이에요.',
+              '…신입 씨, 마오 부장은 모르는 게 있으면 바로 물어봐요. 그게 빨리 느는 비결 같아요.',
+              '…마오 부장 사진엔 늘 신나는 게 보여요. 찍는 사람이 즐거워서 그래요.',
+              '…마오 부장, 이번엔 수평이 맞았어요. 소라가 좋아하겠어요.',
+              '…카메라가 세 대라 어깨가 걱정돼요. 그래도 사진은 좋아요.'
             ],
-            maoWin: ['…마오 부장이 이겼어요. 축하해요. (조용히 박수)'],
+            maoWin: [
+              '…마오 부장이 이겼어요. 축하해요. (조용히 박수)',
+              '…이날 마오 부장이 하루 종일 웃었어요. 저도 좀 좋았어요.',
+              '…마오 부장이 이긴 날은 공지가 길어져요. 그래도 좋아 보여서 괜찮아요.',
+              '…이 사진은 저도 좋았어요. 투표는 비밀이지만요.'
+            ],
             sora: [
               '…소라 사진이에요. 잔소리는 많지만, 하늘은 정말 잘 찍어요.',
-              '…소라 사진. 색이 진하고 깊어요. 저도 배우고 싶어요.'
+              '…소라 사진. 색이 진하고 깊어요. 저도 배우고 싶어요.',
+              '…신입 씨, 소라 잔소리는 다 맞는 말이에요. 듣기만 조금 힘들 뿐이에요.',
+              '…소라는 흐린 날엔 안 찍어요. 그래서 소라 사진엔 늘 빛이 있어요.',
+              '…소라 사진은 수평이 정확해요. 자로 잰 것 같아요.',
+              '…소라가 해 뜨기 전부터 나가서 찍은 사진이에요. 존경해요.'
             ],
-            soraWin: ['…또 소라예요. 놀랍지 않아요. 열심히 하니까요.'],
+            soraWin: [
+              '…또 소라예요. 놀랍지 않아요. 열심히 하니까요.',
+              '…소라는 이길 때도 잔소리해요. "이 정도는 기본이에요" 같은 거요.',
+              '…소라 우승작은 노트에 따로 모아 두고 있어요. 공부용이에요.',
+              '…이길 만했어요. 크흠, 저도 분발할게요.'
+            ],
             other: [
               '…{author} 님 사진. 구도가 깔끔해요. 메모해 둘게요.',
-              '…{topic}. 이렇게 찍을 수도 있네요. 오홍.'
+              '…{topic}. 이렇게 찍을 수도 있네요. 오홍.',
+              '…신입 씨, 이 사진은 시선이 머무는 곳이 하나예요. 그게 좋아요.',
+              '…{author} 님은 빛이 들어오는 방향을 잘 봐요. 크흠, 배워야겠어요.',
+              '…{author} 님 사진은 색이 차분해요. 저랑 취향이 비슷한 것 같아요.',
+              '…{topic} 주제를 이렇게 해석하는 건 생각 못 했어요. 메모했어요.',
+              '…이 사진은 오래 볼수록 좋아요. 신입 씨도 한 번 더 봐 주세요.',
+              '…배경을 정리한 게 좋아요. 시선이 흩어지지 않아요.'
             ],
-            ongoing: ['…투표 중이에요. 누가 찍었는지는 비밀이에요. …크흠.'],
+            ongoing: [
+              '…투표 중이에요. 누가 찍었는지는 비밀이에요. …크흠.',
+              '…신입 씨도 투표할 수 있어요. 번호만 고르면 돼요.',
+              '…투표는 조용히, 마음에 드는 걸로요.',
+              '…저도 아직 고민 중이에요. 다 좋아서요.'
+            ],
+            tips: [
+              '…신입 씨, 오늘 배운 건 노트에 적어 두세요. 조리개, 셔터, ISO 순서로요.',
+              '…처음엔 노출 삼각형만 알면 돼요. 나머지는 찍다 보면 알게 돼요.',
+              '…출사 갈 땐 배터리 두 개, 메모리 카드 두 개. 저는 그렇게 해요.',
+              '…모르는 게 있으면 물어보세요. 정리해서 알려 드릴게요.',
+              '…크롭 바디는 화각이 좁아져요. 환산 계산은 제가 해 드릴게요.',
+              '…처음엔 단렌즈 하나로 오래 찍어 보는 것도 좋아요. 발로 움직이게 돼요.',
+              '…좋은 사진을 많이 보세요. 스트릿 사진집 추천해 드릴까요?',
+              '…사진은 다음 날 다시 고르세요. 그날은 다 좋아 보여요.'
+            ],
             flavor: [
               '…소니가 예쁘장하게 입는다면, 니콘은 진한 색 옷을 입는 느낌이에요. 제 생각엔요.',
-              '…오늘 배운 건 노트에 적어 뒀어요. 조리개, 셔터, ISO 순서로요.',
               '…주말엔 필름 현상하러 가요. 어후, 벌써 두근거려요.',
               '…모노레일 하나 찍으려고 두 시간 걸은 적 있어요. 그럴 가치가 있었어요.',
-              '…아웃포커싱만 잔뜩 한 사진은 요즘 조금 올드한 느낌이에요.'
+              '…아웃포커싱만 잔뜩 한 사진은 요즘 조금 올드한 느낌이에요.',
+              '…조용한 날이 좋아요. 사진도 조용해지거든요.',
+              '…요즘은 흑백이 좋아요. 색이 없으니까 빛이 더 보여요.',
+              '…카메라 시작한 지 5년쯤 됐어요. 아직도 매번 배워요.',
+              '…2단 줌 렌즈는 화질이 아쉽다고 들었어요. 확인은 아직이에요.',
+              '…불꽃놀이 찍을 땐 더 넓은 렌즈가 있었으면 했어요. 다음엔 준비할게요.',
+              '…사진 올리는 건 아직 조금 쑥스러워요. 그래도 올려요.'
             ],
-            thanks: [
-              '…! …고, 고맙습니다.',
-              '…크흠. 칭찬은… 조금 부끄러워요.'
+            praise: [
+              [['hood', '…! …고, 고맙습니다.'], ['mao', '후드가 놀랐다! 신입 부원, 후드 놀라는 거 처음 봤어요!'], ['hood', '…마오 부장, 조용히 해 주세요.']],
+              [['hood', '…크흠. 칭찬은… 조금 부끄러워요.'], ['sora', '후드 선배 후드 더 깊이 눌러쓰는 거 봐요.'], ['hood', '…원래 이렇게 써요.']],
+              [['hood', '…세 번이나. 신입 씨는… 좋은 사람이네요.'], ['mao', '후드가 사람 칭찬했어요! 오늘 기념일이에요!'], ['hood', '…다음 사진은 제가 설명할게요. 정리해 둔 거 있어요.']]
+            ],
+            praiseMore: [
+              [['hood', '…감사해요. 노트에 적어 둘게요.']],
+              [['hood', '…오홍. 기분 좋네요.'], ['sora', '후드 선배가 오홍 했어요. 진짜 기분 좋은 거예요.']],
+              [['hood', '…신입 씨 칭찬은, 이상하게 오래 남아요.'], ['mao', '후드가 길게 말했어요! 신입 부원 대단해요!']]
             ]
           }
         }
@@ -266,114 +455,301 @@
         affinity: 'Affection',
         save: 'Save slots are full… but every photo is saved in the gallery!',
         hint: 'Click or press Space to continue',
+        introCast: [
+          ['mao', 'Welcome, new member! I’m Mao, president of the photo club. Thank you so much for joining!'],
+          ['sora', 'You’re the new one? I’m Sora. Leaving Mao alone makes me nervous, so I’ll guide you too.'],
+          ['hood', '…I’m Hood. I organized some notes on the photos. Take your time.'],
+          ['mao', 'Okay, let’s go look at everyone’s photos! Click to move on.']
+        ],
         lines: {
           mao: {
-            intro: ['Welcome! I’m Mao, president of the photo club. Thank you so much for coming. Let’s look around slowly!'],
             own: [
-              'I took this one… I don’t know much yet, but I was so happy shooting it.',
+              'I took this one… I don’t know much yet, but I was so happy shooting it. Your day will come too!',
               'This is mine! I walked all over for the {topic} theme. Can’t embarrass myself as president!',
-              'I took 1,200 shots in two months, and this is my favorite. Hehe.'
+              'I took 1,200 shots in two months, and this is my favorite. Just shoot a lot, okay?',
+              'I went back to the same spot three times for this. They say photos are taken with your feet. Hehe.',
+              'I almost turned this black and white because I wasn’t sure about the colors. Glad I didn’t, right?',
+              'It drizzled that day and I kept worrying about my camera. It survived!',
+              'I went out the moment the {topic} theme was announced. The president should enter first!',
+              'I copied a composition I saw on Instagram. They say copying is how you find your own style!'
             ],
             ownWin: [
               'I… won? Really? Sora shot something amazing too… thank you, everyone!',
-              'This is my winning shot. Nobody went easy on me because I’m president… right? Please say right!'
+              'This is my winning shot. Nobody went easy on me because I’m president… right? Please say right!',
+              'I really wanted to show you this one. It’s from the day I beat Sora!',
+              'I won… writing my own name in the notice was so embarrassing. Hehe.',
+              'This one closed the Soma battle score by a point! Cheer for me, okay?',
+              'My winning shot! The prize was small, but the feeling was huge.'
             ],
             sora: [
               'Sora’s photo. Wow… how does she get the sky this color? I’ll ask her secretly later.',
-              'Sora nags a lot… but she’s really good. That part’s a secret!'
+              'Sora nags a lot… but she’s really good. That part’s a secret!',
+              'Learn from Sora and you’ll improve fast. Just… be ready for the nagging.',
+              'Sora grumbles the whole way, but she always finishes the shot. Amazing.',
+              'I went out right after seeing this… and only came back with plain sky. Why is hers different?',
+              'Sora barely edits, and the colors are still beautiful. What’s the secret?'
             ],
-            soraWin: ['Sora won again. That’s okay, it’s a great shot! …I’d still like to win next time.'],
+            soraWin: [
+              'Sora won again. That’s okay, it’s a great shot! …I’d still like to win next time.',
+              'The Soma battle is really Sora versus me. The score… please don’t ask.',
+              'The chat goes quiet on days Sora wins. Because I go quiet… hehe.',
+              'Credit where it’s due! I voted for this one too. Secret.'
+            ],
             hood: [
               'Hood’s photo. She quietly shows up with something this good… amazing.',
-              'Honestly, I learned a lot of composition from Hood’s photos. Thanks, Hood!'
+              'Honestly, I learned a lot of composition from Hood’s photos. Thanks, Hood!',
+              'Hood works out the exposure before she even goes out. Me? I just shoot first. Hehe.',
+              'Hood shoots film too. I want to wait for her scans with her!',
+              'When Hood posts a photo, the chat suddenly goes quiet. Everyone’s just looking.',
+              'Hood’s photos always have such pretty light. She picks her timing so well.'
             ],
-            hoodWin: ['Hood won with this one! Everyone in the club is so good… I’m proud as president.'],
+            hoodWin: [
+              'Hood won with this one! Everyone in the club is so good… I’m proud as president.',
+              'Hood doesn’t show up often, but when she does, she wins. I’m counting on you too!',
+              'When Hood won, I sent a hundred clapping emojis. Too many…?',
+              'I held my breath the first time I saw this. You too, right?'
+            ],
             other: [
               'This is {author}’s! Wow… I want to shoot like this too.',
-              'So that’s how {author} captured {topic}… it’s lovely.'
+              'So that’s how {author} captured {topic}… it’s lovely.',
+              'Remember {author}’s photo, okay? I learn a lot from it too.',
+              'Everyone shot {topic} so differently. That’s the fun part!',
+              'Seeing {author}’s photo, I realize {topic} was a much bigger theme than I thought!',
+              'Wow… how did {author} even find this? I would’ve walked right past it.',
+              'Everyone gasped when {author} posted this one in the chat!',
+              'Doesn’t a photo like this make you want to go shoot? I already want to!'
             ],
             ongoing: [
               'This one’s still being voted on, so who took it is a secret. Um… could you vote, just once?',
-              'This photo’s up for a vote! It would make your president really happy if everyone voted.'
+              'This photo’s up for a vote! New members can vote too. It would make me really happy.',
+              'Want to guess who took it? …Oh, I can’t tell you until voting ends!',
+              'Please vote before the deadline! Your vote counts too.',
+              'I don’t know who took this… okay, I do. Still a secret!',
+              'Voting happens on the chat board. Ask me if you get lost!'
+            ],
+            tips: [
+              'Please read the notices once! The nickname format is there too.',
+              'The Soma battle is a mini contest. When a theme comes out, just send one photo. No pressure!',
+              'Win the official contest and your photo becomes the room’s cover. I hope it’s yours someday!',
+              'Share photos, talk cameras, or just chat. Make yourself at home!',
+              'We go on photo walks sometimes! Come along if you’re free.',
+              'If you have Instagram, share it in the board comments. Let’s follow each other!',
+              'If you’re inactive for too long… the room rules say we have to let you go. So come by often! Really.',
+              'We collect all our photos in the online gallery too. Right here, where you are now!'
             ],
             flavor: [
               'They say your character grows with your lens size! …I said that. Isn’t it true?',
               'A higher f-number keeps the background sharp too… right? Still studying.',
               'Nice words for today: it’s okay to be slow, as long as you don’t give up. Same with photos.',
               'My film is still being developed. So exciting!',
-              'Carrying three cameras hurts my shoulders… but they’re all precious.'
+              'Carrying three cameras hurts my shoulders… but they’re all precious.',
+              'If you don’t know something, just ask! I ask all the time. Even as president.',
+              'I still can’t decide whether to buy a tripod. I already carry so much…',
+              'I’ve never used a shutter speed faster than 1/4000. Someday!',
+              'If the white balance is off, white isn’t white anymore. Isn’t that wild?',
+              'At first I didn’t even know what bokeh was. Now I… sort of do!',
+              'A little rain won’t hurt my camera… right? I worry every time.',
+              'When I see a great shot I always shout, “Now that’s a real photographer!”'
             ],
-            thanks: [
-              'Really? Hehe… a compliment like that will keep me happy all day.',
-              'Thank you! I’ll work hard as president!'
+            praise: [
+              [['mao', 'Really? Hehe… a compliment like that will keep me happy all day.'], ['sora', 'Don’t hype Mao up too much. She’ll buy another camera.'], ['mao', 'I won’t! …Probably.']],
+              [['mao', 'Another compliment? You make being president worth it!'], ['hood', '…Mao, your face is red.'], ['mao', 'N-no it’s not! It’s the lighting!']],
+              [['mao', 'Three times…! Did you come here just to make me cry?'], ['sora', 'Mao’s going to cry. Someone get a tissue.'], ['mao', 'I’m not crying! …Thank you, really. For joining our club.']]
+            ],
+            praiseMore: [
+              [['mao', 'Hehe… at this rate you’ll take my president spot.'], ['hood', '…That might be a little early.']],
+              [['mao', 'Compliments always feel good! You’re the best!'], ['sora', '…You two are having way too much fun.']],
+              [['mao', 'I should start a notebook of your compliments. How many is that today?'], ['hood', '…I’m counting. I’ll keep a record.']]
             ]
           },
           sora: {
-            intro: ['Oh, you’re here? I’m Sora. Leaving Mao alone makes me nervous, so I’ll guide you too.'],
             own: [
               'Mine. The {topic} round. I waited forever to get the sky tones right.',
-              'You can’t shoot on overcast days, no light, no shadows. So I held out until the sun came out.'
+              'You can’t shoot on overcast days, no light, no shadows. So I held out until the sun came out.',
+              'This isn’t heavily edited, by the way. Getting it right in camera comes first.',
+              'I was out before sunrise for this one shot. Don’t copy me. It’s exhausting.',
+              'I shot this right after class. The days are getting short, so it was tight.',
+              'No tripod, just holding my breath. If it’s blurry, reshoot. No excuses.',
+              'I bought a prop just to make one shadow. Fifteen thousand won. Sniff.',
+              'Fewer than a hundred of my shots are actually good. This is one. Deleting is a skill too.'
             ],
             ownWin: [
               'My winning shot. …I win so much I lose track. Mao, try harder.',
-              'I won again. The Soma battle score? I won’t say it in front of Mao.'
+              'I won again. The Soma battle score? I won’t say it in front of Mao.',
+              'This is a winning shot. Study it. Composition, light, timing. All three have to land.',
+              'It wasn’t even my most confident shot, and it won. So just enter.',
+              'The score gap grew again. Mao, no comforting you today.',
+              'Winning’s nice, but it’d be better if you beat me next time. I mean it.'
             ],
             mao: [
               'Mao’s photo. …It came out well. But Mao, you didn’t buy another camera, did you? Please.',
-              'Mao, this one’s good. Next time, level the horizon, though. It’s not nagging, it’s advice.'
+              'Mao, this one’s good. Next time, level the horizon, though. It’s not nagging, it’s advice.',
+              'Mao shoots on passion. For technique… learn from me.',
+              'Mao, you thought about making this black and white, didn’t you? Good call not to.',
+              'Mao gets better every time. …I’ll admit that. Skill, not gear.',
+              'When Mao asks you something she doesn’t know, answer for me. I’m busy.'
             ],
-            maoWin: ['Mao won this time. I admit it. …It won’t happen again. Sniff, just kidding.'],
-            hood: ['Hood’s photo. She never talks, but her photos are always the right answer. Mao, learn from this.'],
-            hoodWin: ['Hood shows up now and then and takes it. Mao, look. This is the model answer.'],
+            maoWin: [
+              'Mao won this time. I admit it. …It won’t happen again. Sniff, just kidding.',
+              'I lost that day. Don’t bring it up around Mao. She’ll talk about it all day.',
+              'When Mao wins, the notice gets posted three times. Brace yourself.',
+              'Fine, this one’s great. Her best, honestly. Don’t tell her.'
+            ],
+            hood: [
+              'Hood’s photo. She never talks, but her photos are always the right answer. Mao, learn from this.',
+              'Get into the habit of planning shots like Hood. That’s one thing I can’t beat.',
+              'Hood’s photos are quiet, but you never get tired of them. Shoot photos like that.',
+              'Hood shoots film too. I gave up when I saw film prices. Sniff.'
+            ],
+            hoodWin: [
+              'Hood shows up now and then and takes it. Mao, look. This is the model answer.',
+              'Hood’s win rate must be ninety percent. When she enters, get nervous.',
+              'Even I get nervous when I’m up against Hood. Secret.',
+              'There was no beating this one. Clean loss.'
+            ],
             other: [
               'This is {author}’s. Good read on the light. Mao, take notes.',
-              'So that’s how they did {topic}. {author}, nice eye.'
+              'So that’s how they did {topic}. {author}, nice eye.',
+              'See {author}’s photo? That’s what owning a theme looks like.',
+              '{author}’s photos have nothing extra. Practice taking things out first.',
+              '{author}, I never thought of this angle for {topic}. Nice.',
+              'Look at the horizon here. Perfectly level. Mao, are you listening?',
+              '{author} doesn’t overdo the color. Turn your saturation down first.',
+              'This one was waited for. It didn’t just happen. You can tell.'
             ],
-            ongoing: ['It’s still being voted on, so the photographer is secret. And anyone who hasn’t voted, please do. Mao will cry again.'],
+            ongoing: [
+              'It’s still being voted on, so the photographer is secret. And anyone who hasn’t voted, please do. Mao will cry again.',
+              'Voting is easy. Just pick the one you like. Don’t overthink it.',
+              'Guessing who took it is fine, but no saying it out loud. Rules.',
+              'The deadline is strict. Late votes don’t count. No exceptions for newbies.',
+              'If you like two… still pick one. Please.',
+              'No dropping hints in the chat before results. It’s always obvious.'
+            ],
+            tips: [
+              'For moody shots, use the viewfinder, not the screen. How many times do I have to say it.',
+              'Overcast days have no light and no shadows, so everything looks dull. Aim for clear days.',
+              'When editing, start with the RGB curves. Just learn the three primaries. You listening?',
+              'Gear lust can wait. If you turn into Mao, we’re in trouble.',
+              'Colors can go flat when you move edits from computer to phone. Always check on the phone last.',
+              'It’s dark after class, so there’s nothing to shoot. Aim for weekend mornings.',
+              'Use whichever eye feels natural on the viewfinder. Most of us use the left. You?',
+              'Sell lenses you don’t use. More gear doesn’t mean better photos.'
+            ],
             flavor: [
               'You know the Soma battle is Sora vs. Mao, right? I’m ahead.',
-              'For moody shots, use the viewfinder, not the screen. How many times do I have to say it.',
-              'Overcast days have no light and no shadows. Everything looks dull… sniff.',
               'Film is the future? Look at film prices. One roll costs as much as a point-and-shoot.',
-              'When editing, start with the RGB curves. Just learn the three primaries. Mao, are you listening?'
+              'Sniff, I tidied up the notices for Mao again today.',
+              'Look at a photo you like again the next day. If it still works, it’s really good.',
+              'How to shoot well? Shoot a lot, delete a lot. That’s it.',
+              'The current score? I’m ahead. I won’t say the numbers in front of Mao.',
+              'I win the chat quiz games too. It’s not just photos.',
+              'When 300 messages pile up in the chat, I just want to mark them all read. Sniff.',
+              'It’s autumn-leaf season and I haven’t shot a single leaf. This week, for sure.',
+              'No hiding your photos because they’re embarrassing. Just post them.'
             ],
-            thanks: [
-              '…I’m used to compliments. Hearing it like this is a little embarrassing, though.',
-              'Sniff, if you say that I have to win next time too.'
+            praise: [
+              [['sora', '…I’m used to compliments. Hearing it like this is a little embarrassing, though.'], ['mao', 'Sora’s embarrassed! Did you see that?'], ['sora', 'Mao, be quiet!']],
+              [['sora', 'Sniff, if you say that I have to win next time too.'], ['hood', '…Sora, your ears are red.'], ['sora', 'Not you too, Hood…! Next photo. Quickly.']],
+              [['sora', '…That’s the third time. Are you teasing me?'], ['mao', 'They mean it! You’re the best shooter here!'], ['sora', '…I know. Still, thank you. Just this once, I’ll say it properly.']]
+            ],
+            praiseMore: [
+              [['sora', 'Stop complimenting and go shoot something. That’s the best compliment.']],
+              [['sora', '…Fine. I’ll skip one round of nagging today.'], ['mao', 'Sora is skipping the nagging! Mark the calendar!']],
+              [['sora', 'Thanks for the compliment. Now level your horizons.'], ['hood', '…It ended in nagging after all.']]
             ]
           },
           hood: {
-            intro: ['…Hello. I’m Hood. I… organized some notes on the photos. Take your time.'],
             own: [
               '…This is my photo. {topic}. I worked out the exposure beforehand.',
-              '…I shoot film too. Waiting for the scans is the most exciting part.'
+              '…I shoot film too. Waiting for the scans is the most exciting part.',
+              '…I scouted this spot three times first. Try picking your place before anything else.',
+              '…Twenty minutes before sunset is best. I took this then.',
+              '…I send film out for scans, but I choose the frames myself. This is one I picked.',
+              '…This took one press of the shutter. I got lucky.',
+              '…I wanted to try a street feel. A little awkward, right?',
+              '…I have lots of photos to post, but picking one is the hardest part. This is the one.'
             ],
-            ownWin: ['…It won. The sunlight was nice. I think the preparation paid off.'],
+            ownWin: [
+              '…It won. The sunlight was nice. I think the preparation paid off.',
+              '…This one went according to plan. For once.',
+              '…After it won, I added a line to my notes: “Light comes if you wait.”',
+              '…When I heard it won, I actually smiled a little. Just a little.'
+            ],
             mao: [
               '…Mao’s photo. She ignored the camera advice, but… it’s a good photo.',
-              '…Mao, you’ve really improved. I mean it.'
+              '…Mao, you’ve really improved. I mean it.',
+              '…Mao asks right away when she doesn’t know something. I think that’s why she improves so fast.',
+              '…Mao’s photos always look like she had fun. Because she did.',
+              '…Mao, the horizon is level this time. Sora will be pleased.',
+              '…Three cameras worry me for her shoulders. The photo is good, though.'
             ],
-            maoWin: ['…Mao won. Congratulations. (quiet clapping)'],
+            maoWin: [
+              '…Mao won. Congratulations. (quiet clapping)',
+              '…Mao smiled all day that day. I liked that too.',
+              '…The notices get long when Mao wins. She looks happy, so it’s fine.',
+              '…I liked this one too. My vote is secret, though.'
+            ],
             sora: [
               '…Sora’s photo. She nags a lot, but she’s really good at skies.',
-              '…Sora’s photo. Deep, rich colors. I want to learn that.'
+              '…Sora’s photo. Deep, rich colors. I want to learn that.',
+              '…Everything Sora nags about is right. It’s just a little hard to hear.',
+              '…Sora doesn’t shoot on overcast days. That’s why her photos always have light.',
+              '…Sora’s horizons are exact. Like she used a ruler.',
+              '…Sora went out before sunrise for this. I respect that.'
             ],
-            soraWin: ['…Sora again. Not surprising. She works hard.'],
+            soraWin: [
+              '…Sora again. Not surprising. She works hard.',
+              '…Sora nags even when she wins. Things like “this is just the basics.”',
+              '…I keep Sora’s winning shots in a separate notebook. For studying.',
+              '…It deserved to win. Ahem, I’ll try harder.'
+            ],
             other: [
               '…{author}’s photo. Clean composition. I’ll make a note.',
-              '…{topic}. You can shoot it like this, too. Ooh.'
+              '…{topic}. You can shoot it like this, too. Ooh.',
+              '…This photo has one place for your eye to rest. That’s why it works.',
+              '…{author} reads where the light comes from. Ahem, I should learn that.',
+              '…{author}’s colors are calm. I think our taste is similar.',
+              '…I never thought of reading {topic} this way. Noted.',
+              '…The longer you look at this one, the better it gets. Look once more.',
+              '…The clean background is nice. Your eye doesn’t wander.'
             ],
-            ongoing: ['…It’s being voted on. Who took it is a secret. …Ahem.'],
+            ongoing: [
+              '…It’s being voted on. Who took it is a secret. …Ahem.',
+              '…New members can vote too. Just pick a number.',
+              '…Vote quietly, for the one you like.',
+              '…I’m still deciding too. They’re all good.'
+            ],
+            tips: [
+              '…Write down what you learn today. Aperture, shutter, ISO, in that order.',
+              '…At first, the exposure triangle is all you need. The rest comes with shooting.',
+              '…Two batteries and two memory cards for every outing. That’s my rule.',
+              '…Ask me anything. I’ll organize it and explain.',
+              '…A crop body narrows your field of view. I’ll do the conversion math for you.',
+              '…Shooting with one prime lens for a while is good. It makes you move your feet.',
+              '…Look at lots of good photos. Want a street photo book recommendation?',
+              '…Pick your photos again the next day. Everything looks good on the day.'
+            ],
             flavor: [
               '…If Sony dresses pretty, Nikon wears dark clothes. That’s my take.',
-              '…I wrote down what I learned today. Aperture, shutter, ISO, in that order.',
               '…I’m getting film developed this weekend. Already excited.',
               '…I once walked two hours to shoot one monorail. It was worth it.',
-              '…Photos that are all blurry background feel a little old these days.'
+              '…Photos that are all blurry background feel a little old these days.',
+              '…I like quiet days. Photos get quiet too.',
+              '…I like black and white lately. Without color, you see the light more.',
+              '…I’ve been doing photography for about five years. I still learn every time.',
+              '…I heard two-step zooms aren’t so sharp. Haven’t checked yet.',
+              '…Shooting fireworks, I wished for a wider lens. Next time I’ll be ready.',
+              '…Posting photos is still a little embarrassing. I post anyway.'
             ],
-            thanks: [
-              '…! …Th-thank you.',
-              '…Ahem. Compliments are… a little embarrassing.'
+            praise: [
+              [['hood', '…! …Th-thank you.'], ['mao', 'Hood was surprised! First time I’ve ever seen that!'], ['hood', '…Mao, please be quiet.']],
+              [['hood', '…Ahem. Compliments are… a little embarrassing.'], ['sora', 'Look, Hood just pulled her hood down further.'], ['hood', '…I always wear it like this.']],
+              [['hood', '…Three times. You’re… a nice person.'], ['mao', 'Hood complimented someone! Today’s a holiday!'], ['hood', '…I’ll explain the next photo. I have notes.']]
+            ],
+            praiseMore: [
+              [['hood', '…Thank you. I’ll write that down.']],
+              [['hood', '…Ooh. That feels nice.'], ['sora', 'Hood said “ooh.” She’s genuinely happy.']],
+              [['hood', '…Your compliments stay with me for some reason.'], ['mao', 'Hood said a whole sentence! You’re amazing!']]
             ]
           }
         }
@@ -1996,7 +2372,28 @@
 
     const affinity = { mao: 0, sora: 0, hood: 0 };
     let speaker = null;
-    let spot = 'center';
+    let spot = VN_SPOTS[Math.floor(Math.random() * VN_SPOTS.length)];
+    let queue = []; // 지금 장면에서 이어서 나올 대사들 ([누가, 대사] …)
+
+    // 같은 대사가 금방 다시 나오지 않게: 한 묶음을 섞어서 다 쓴 뒤에야 다시 섞음 (직전 대사로는 시작 안 함)
+    const bags = {};
+    const pickFresh = (key, list) => {
+      if (!list || !list.length) return '';
+      let bag = bags[key];
+      if (!bag || bag.len !== list.length || bag.pos >= bag.order.length) {
+        const order = list.map((_, i) => i);
+        for (let i = order.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [order[i], order[j]] = [order[j], order[i]];
+        }
+        const last = bag ? bag.last : -1;
+        if (order.length > 1 && order[0] === last) order.push(order.shift());
+        bag = bags[key] = { order, pos: 0, len: list.length, last };
+      }
+      const idx = bag.order[bag.pos++];
+      bag.last = idx;
+      return list[idx];
+    };
     let full = '';
     let typing = null;
     let autoOn = false;
@@ -2043,18 +2440,24 @@
     const lineFor = (who, photo) => {
       const lines = V().lines[who];
       const meta = typeof getDisplayMeta === 'function' ? getDisplayMeta(photo) : { isAnonymous: true };
-      if (meta.isAnonymous) return pickOne(lines.ongoing);
-      if (Math.random() < 0.18) return pickOne(lines.flavor);
+      if (meta.isAnonymous) return pickFresh(`${who}.ongoing`, lines.ongoing);
+      // 가끔은 사진 이야기 대신 신입 부원에게 알려 주는 팁이나 잡담
+      const roll = Math.random();
+      if (roll < 0.12) return pickFresh(`${who}.tips`, lines.tips);
+      if (roll < 0.24) return pickFresh(`${who}.flavor`, lines.flavor);
       const author = meta.authorLabel || '';
       const award = typeof getPhotoAward === 'function' ? getPhotoAward(photo) : null;
-      const won = Boolean(award && award.isTopWinner);
+      // 우승작이어도 열에 넷은 평소 대사로 (소라 우승작이 많아서 '우승' 대사만 반복되지 않게)
+      const won = Boolean(award && award.isTopWinner) && Math.random() < 0.6;
       const authorKey = VN_KEYS.find(k => VN_CHARS[k].koName === author);
-      let pool;
-      if (authorKey === who) pool = won ? lines.ownWin : lines.own;
-      else if (authorKey) pool = (won && lines[`${authorKey}Win`]) || lines[authorKey];
-      else pool = author ? lines.other : lines.flavor;
+      let poolKey;
+      if (authorKey === who) poolKey = won ? 'ownWin' : 'own';
+      else if (authorKey) poolKey = won && lines[`${authorKey}Win`] ? `${authorKey}Win` : authorKey;
+      else poolKey = author ? 'other' : 'flavor';
       const shownAuthor = authorKey ? V().names[authorKey] : author;
-      return pickOne(pool).replace(/\{author\}/g, shownAuthor).replace(/\{topic\}/g, topicOf(photo));
+      return pickFresh(`${who}.${poolKey}`, lines[poolKey])
+        .replace(/\{author\}/g, shownAuthor)
+        .replace(/\{topic\}/g, topicOf(photo));
     };
 
     const clearAuto = () => { if (autoTimer) clearTimeout(autoTimer); autoTimer = null; };
@@ -2075,8 +2478,10 @@
     const say = (who, text, newSpot = true) => {
       clearAuto();
       if (who !== speaker || newSpot) {
-        const spots = VN_SPOTS.filter(s => who !== speaker || s !== spot);
-        spot = pickOne(spots);
+        if (newSpot) {
+          const spots = VN_SPOTS.filter(s => who !== speaker || s !== spot);
+          spot = pickOne(spots);
+        }
         sprite.classList.remove('is-in');
         void sprite.offsetWidth;
         sprite.src = VN_CHARS[who].img;
@@ -2103,6 +2508,13 @@
         textEl.textContent = chars.slice(0, i).join('');
         if (i >= chars.length) finishTyping();
       }, 32);
+    };
+
+    const playScene = scene => {
+      if (!scene || !scene.length) return;
+      queue = scene.slice(1);
+      const [who, text] = scene[0];
+      say(who, text, speaker === null);
     };
 
     const nextPhotoLine = () => {
@@ -2146,6 +2558,11 @@
         finishTyping();
         return;
       }
+      if (queue.length) {
+        const [who, text] = queue.shift();
+        say(who, text, false);
+        return;
+      }
       step += 1;
       if (step % 5 === 0 && photoIdx >= 0) {
         showChoices();
@@ -2163,12 +2580,16 @@
           lightboxShowAwards = false;
           openLightbox(photoIdx);
         }
-        say(speaker, pickOne(V().lines[speaker].flavor), false);
+        say(speaker, pickFresh(`${speaker}.flavor`, V().lines[speaker].flavor), false);
       } else if (key === 'praise') {
-        affinity[speaker] += 1;
+        // 칭찬: 1번째 · 2번째 · 3번째 장면을 차례로, 그 뒤로는 덤 장면을 겹치지 않게
+        const who = speaker;
+        affinity[who] += 1;
         renderHearts();
-        heartPop(speaker);
-        say(speaker, pickOne(V().lines[speaker].thanks), false);
+        heartPop(who);
+        const lines = V().lines[who];
+        const level = affinity[who];
+        playScene(level <= lines.praise.length ? lines.praise[level - 1] : pickFresh(`${who}.praiseMore`, lines.praiseMore));
       } else {
         nextPhotoLine();
       }
@@ -2222,8 +2643,8 @@
       photoIdx = 0;
       showPhoto(photos[0]);
     }
-    const first = pickOne(VN_KEYS);
-    say(first, pickOne(V().lines[first].intro));
+    // 신입 부원에게 셋이 차례로 인사
+    playScene(V().introCast);
     setTimeout(() => toast(V().hint), 2900);
 
     return {
