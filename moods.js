@@ -41,7 +41,7 @@
       close: '닫기',
       toast: name => `기분전환: ${name}`,
       toastOff: '원래 분위기로 돌아왔어요',
-      luckyToast: name => `🎲 10번에 한 번 당첨! 오늘은 '${name}' (오른쪽 아래 ✕로 원래대로)`,
+      luckyToast: name => `🎲 기분전환 당첨! 오늘은 '${name}' (오른쪽 아래 ✕로 원래대로)`,
       weatherSnow: seoul => `${seoul ? '지금 서울에' : '지금 계신 곳에'} 눈이 와요 ❄️ 사이트에도 눈이 내려요`,
       weatherRain: seoul => `${seoul ? '지금 서울에' : '지금 계신 곳에'} 비가 와요 🌧️ 사이트에도 비가 내려요`,
       loadFail: '효과를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.',
@@ -117,33 +117,33 @@
             ]
           },
           sora: {
-            intro: ['아, 오셨어요? 저는 소라예요. 부장님 혼자 두면 불안해서 제가 같이 안내할게요.'],
+            intro: ['아, 오셨어요? 저는 소라예요. 마오 부장 혼자 두면 불안해서 제가 같이 안내할게요.'],
             own: [
               '제 사진이에요. {topic} 주제였죠. 하늘 톤 맞추느라 한참 기다렸다고요.',
               '흐린 날은 햇빛도 그림자도 없어서 못 찍어요. 그래서 이날은 해 나올 때까지 버텼어요.'
             ],
             ownWin: [
-              '제 우승작이에요. …자꾸 이기니까 저도 헷갈려요. 부장님, 분발하세요.',
-              '또 제가 이겼네요. 소마대전 스코어요? 부장님 앞에선 말 안 할게요.'
+              '제 우승작이에요. …자꾸 이기니까 저도 헷갈려요. 마오 부장, 분발 좀 해요.',
+              '또 제가 이겼네요. 소마대전 스코어요? 마오 부장 앞에선 말 안 할게요.'
             ],
             mao: [
-              '부장님 사진이네요. …잘 나왔네요. 근데 부장님, 또 카메라 사신 건 아니죠? 제발요.',
-              '부장님, 이건 좋아요. 근데 다음엔 수평 좀 맞춰 주세요. 잔소리 아니에요, 조언이에요.'
+              '마오 부장 사진이네요. …잘 나왔네요. 근데 마오 부장, 또 카메라 산 건 아니죠? 제발요.',
+              '마오 부장, 이건 좋아요. 근데 다음엔 수평 좀 맞춰요. 잔소리 아니에요, 조언이에요.'
             ],
-            maoWin: ['이번엔 부장님이 이겼죠. 인정해요. …다음엔 없을 거지만요. 흑흑, 농담이에요.'],
-            hood: ['후드 선배 사진이에요. 말은 없는데 사진은 늘 정답이에요. 부장님도 좀 보고 배우세요.'],
-            hoodWin: ['후드 선배는 가끔 나와서 이렇게 가져가요. 부장님, 보세요. 이게 모범 답안이에요.'],
+            maoWin: ['이번엔 마오 부장이 이겼죠. 인정해요. …다음엔 없을 거지만요. 흑흑, 농담이에요.'],
+            hood: ['후드 선배 사진이에요. 말은 없는데 사진은 늘 정답이에요. 마오 부장도 좀 보고 배워요.'],
+            hoodWin: ['후드 선배는 가끔 나와서 이렇게 가져가요. 마오 부장, 봐요. 이게 모범 답안이에요.'],
             other: [
-              '{author} 님 사진이에요. 빛을 잘 읽었네요. 부장님, 메모하세요.',
+              '{author} 님 사진이에요. 빛을 잘 읽었네요. 마오 부장, 메모해요.',
               '{topic} 주제를 이렇게 풀었네요. {author} 님, 좋은 시선이에요.'
             ],
-            ongoing: ['투표 중인 작품이라 작가는 아직 비밀이에요. 그리고 투표 안 하신 분들, 제발 해 주세요. 부장님 또 울어요.'],
+            ongoing: ['투표 중인 작품이라 작가는 아직 비밀이에요. 그리고 투표 안 하신 분들, 제발 해 주세요. 마오 부장 또 울어요.'],
             flavor: [
               '소마대전이 소라랑 마오 대결인 거 아시죠? 스코어는 제가 앞서고 있어요.',
               '감성 사진은 액정 말고 뷰파인더로 보세요. 몇 번을 말해요.',
               '흐린 날은 햇빛도 그림자도 없어서 사진이 다 심심해요… 흑흑.',
               '필카가 미래라고요? 필름값 보세요. 똑딱이 하나 값이에요.',
-              '보정할 땐 RGB 커브부터 만져 보세요. 삼원색만 알면 돼요. 부장님, 듣고 계세요?'
+              '보정할 땐 RGB 커브부터 만져 보세요. 삼원색만 알면 돼요. 마오 부장, 듣고 있어요?'
             ],
             thanks: [
               '…칭찬은 익숙한데요. 이렇게 들으니까 좀 쑥스럽네요.',
@@ -158,10 +158,10 @@
             ],
             ownWin: ['…우승했었어요. 햇빛이 좋았어요. 준비한 만큼 나온 것 같아요.'],
             mao: [
-              '…부장님 사진이에요. 카메라 추천은 안 들으셨지만… 사진은 좋아요.',
-              '…부장님, 많이 느셨어요. 정말이에요.'
+              '…마오 부장 사진이에요. 카메라 추천은 안 들었지만… 사진은 좋아요.',
+              '…마오 부장, 많이 늘었어요. 정말이에요.'
             ],
-            maoWin: ['…부장님이 이기셨어요. 축하드려요. (조용히 박수)'],
+            maoWin: ['…마오 부장이 이겼어요. 축하해요. (조용히 박수)'],
             sora: [
               '…소라 사진이에요. 잔소리는 많지만, 하늘은 정말 잘 찍어요.',
               '…소라 사진. 색이 진하고 깊어요. 저도 배우고 싶어요.'
@@ -233,7 +233,7 @@
       close: 'Close',
       toast: name => `Mood: ${name}`,
       toastOff: 'Back to the usual look',
-      luckyToast: name => `🎲 1-in-10 surprise: ${name} (✕ at the bottom right to go back)`,
+      luckyToast: name => `🎲 Surprise mood: ${name} (✕ at the bottom right to go back)`,
       weatherSnow: seoul => `It’s snowing ${seoul ? 'in Seoul' : 'where you are'} right now ❄️ so it’s snowing here too`,
       weatherRain: seoul => `It’s raining ${seoul ? 'in Seoul' : 'where you are'} right now 🌧️ so it’s raining here too`,
       loadFail: 'Couldn’t load the effect. Check your connection.',
@@ -309,33 +309,33 @@
             ]
           },
           sora: {
-            intro: ['Oh, you’re here? I’m Sora. Leaving the president alone makes me nervous, so I’ll guide you too.'],
+            intro: ['Oh, you’re here? I’m Sora. Leaving Mao alone makes me nervous, so I’ll guide you too.'],
             own: [
               'Mine. The {topic} round. I waited forever to get the sky tones right.',
               'You can’t shoot on overcast days, no light, no shadows. So I held out until the sun came out.'
             ],
             ownWin: [
-              'My winning shot. …I win so much I lose track. President, try harder.',
-              'I won again. The Soma battle score? I won’t say it in front of the president.'
+              'My winning shot. …I win so much I lose track. Mao, try harder.',
+              'I won again. The Soma battle score? I won’t say it in front of Mao.'
             ],
             mao: [
-              'The president’s photo. …It came out well. But president, you didn’t buy another camera, did you? Please.',
-              'President, this one’s good. Next time, level the horizon, though. It’s not nagging, it’s advice.'
+              'Mao’s photo. …It came out well. But Mao, you didn’t buy another camera, did you? Please.',
+              'Mao, this one’s good. Next time, level the horizon, though. It’s not nagging, it’s advice.'
             ],
-            maoWin: ['The president won this time. I admit it. …It won’t happen again. Sniff, just kidding.'],
-            hood: ['Hood’s photo. She never talks, but her photos are always the right answer. President, learn from this.'],
-            hoodWin: ['Hood shows up now and then and takes it. President, look. This is the model answer.'],
+            maoWin: ['Mao won this time. I admit it. …It won’t happen again. Sniff, just kidding.'],
+            hood: ['Hood’s photo. She never talks, but her photos are always the right answer. Mao, learn from this.'],
+            hoodWin: ['Hood shows up now and then and takes it. Mao, look. This is the model answer.'],
             other: [
-              'This is {author}’s. Good read on the light. President, take notes.',
+              'This is {author}’s. Good read on the light. Mao, take notes.',
               'So that’s how they did {topic}. {author}, nice eye.'
             ],
-            ongoing: ['It’s still being voted on, so the photographer is secret. And anyone who hasn’t voted, please do. The president will cry again.'],
+            ongoing: ['It’s still being voted on, so the photographer is secret. And anyone who hasn’t voted, please do. Mao will cry again.'],
             flavor: [
               'You know the Soma battle is Sora vs. Mao, right? I’m ahead.',
               'For moody shots, use the viewfinder, not the screen. How many times do I have to say it.',
               'Overcast days have no light and no shadows. Everything looks dull… sniff.',
               'Film is the future? Look at film prices. One roll costs as much as a point-and-shoot.',
-              'When editing, start with the RGB curves. Just learn the three primaries. President, are you listening?'
+              'When editing, start with the RGB curves. Just learn the three primaries. Mao, are you listening?'
             ],
             thanks: [
               '…I’m used to compliments. Hearing it like this is a little embarrassing, though.',
@@ -350,10 +350,10 @@
             ],
             ownWin: ['…It won. The sunlight was nice. I think the preparation paid off.'],
             mao: [
-              '…The president’s photo. She ignored the camera advice, but… it’s a good photo.',
-              '…President, you’ve really improved. I mean it.'
+              '…Mao’s photo. She ignored the camera advice, but… it’s a good photo.',
+              '…Mao, you’ve really improved. I mean it.'
             ],
-            maoWin: ['…The president won. Congratulations. (quiet clapping)'],
+            maoWin: ['…Mao won. Congratulations. (quiet clapping)'],
             sora: [
               '…Sora’s photo. She nags a lot, but she’s really good at skies.',
               '…Sora’s photo. Deep, rich colors. I want to learn that.'
@@ -2259,9 +2259,9 @@
     vn: setupVN
   };
 
-  /* ---------- 페이지를 열 때 10번에 한 번은 아무 분위기나 저절로 켜짐 ----------
+  /* ---------- 페이지를 열 때(새로고침 포함) 30% 확률로 아무 분위기나 저절로 켜짐 ----------
      주소 뒤에 ?mood=space 처럼 붙이면 그 분위기로, ?mood=random 이면 무작위로 바로 열림 */
-  const LUCKY_CHANCE = 0.1;
+  const LUCKY_CHANCE = 0.3; // 0.3 = 30% (10번에 3번 정도)
 
   // 사진이 화면에 다 그려진 뒤에 켜야 중력 · 미술관 같은 분위기가 사진에 제대로 걸림
   function whenPhotosReady(callback) {
@@ -2334,7 +2334,7 @@
     return result;
   }
 
-  /* ---------- 페이지를 열 때: 눈 · 비가 오면 그 날씨로, 아니면 10번에 한 번은 아무 분위기나 ----------
+  /* ---------- 페이지를 열 때: 눈 · 비가 오면 그 날씨로, 아니면 30% 확률로 아무 분위기나 ----------
      주소 뒤에 ?mood=space 처럼 붙이면 그 분위기로, ?mood=random 이면 무작위로 바로 열림 */
   function autoMoodOnLoad() {
     let params = null;
