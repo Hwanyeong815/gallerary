@@ -2572,18 +2572,29 @@ html[data-mood="vn"] .apple-toast {
   filter: blur(30px) brightness(0.5) saturate(1.15);
 }
 
-/* 사진 전체가 보이게 가운데 */
+/* 사진 전체가 보이게, 캐릭터가 선 반대쪽 칸에 (캐릭터가 사진을 가리지 않음)
+   --vn-girl: 캐릭터 몫으로 비워 두는 너비 */
+.vn-stage {
+  --vn-girl: 30%;
+}
+
 .vn-photo {
   position: absolute;
   top: 96px;
   bottom: 214px;
-  left: 0;
-  right: 0;
+  left: calc(var(--vn-girl) + 2%);
+  right: 3%;
   margin: auto;
-  max-width: 92%;
+  max-width: calc(95% - var(--vn-girl));
   max-height: calc(100% - 310px);
   object-fit: contain;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  transition: left 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), right 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.vn-stage[data-side="right"] .vn-photo {
+  left: 3%;
+  right: calc(var(--vn-girl) + 2%);
 }
 
 .vn-stage::after {
@@ -2623,8 +2634,11 @@ html[data-mood="vn"] .apple-toast {
   position: absolute;
   bottom: 0;
   z-index: 3;
-  height: min(88vh, 980px);
+  height: min(88vh, 980px, 72vw);
+  max-width: calc(var(--vn-girl) - 2%);
   width: auto;
+  object-fit: contain;
+  object-position: bottom;
   opacity: 0;
   transform: translateX(-50%) translateY(26px);
   transition: opacity 0.35s ease, transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -2632,9 +2646,12 @@ html[data-mood="vn"] .apple-toast {
   pointer-events: none;
 }
 
-.vn-sprite[data-spot="left"] { left: 18%; }
-.vn-sprite[data-spot="center"] { left: 50%; }
-.vn-sprite[data-spot="right"] { left: 82%; }
+.vn-sprite[data-spot="left"] { left: calc(var(--vn-girl) / 2); }
+.vn-sprite[data-spot="right"] { left: calc(100% - var(--vn-girl) / 2); }
+
+/* 사진 정보도 사진 쪽 가운데로 */
+.vn-stage[data-side="left"] .vn-caption { left: calc(50% + var(--vn-girl) / 2); }
+.vn-stage[data-side="right"] .vn-caption { left: calc(50% - var(--vn-girl) / 2); }
 
 .vn-sprite.is-in {
   opacity: 1;
@@ -2827,19 +2844,28 @@ html[data-mood="vn"] .apple-toast {
     max-width: 88%;
   }
 
-  .vn-photo {
+  .vn-photo,
+  .vn-stage[data-side="right"] .vn-photo {
     top: 138px;
-    bottom: 196px;
+    bottom: auto;
+    left: 2%;
+    right: 2%;
     max-width: 96%;
-    max-height: calc(100% - 340px);
+    max-height: calc(100% - 138px - 44vh - 12px);
+  }
+
+  .vn-stage[data-side="left"] .vn-caption,
+  .vn-stage[data-side="right"] .vn-caption {
+    left: 50%;
   }
 
   .vn-sprite {
-    height: 62vh;
+    height: 44vh;
+    max-width: 46%;
   }
 
-  .vn-sprite[data-spot="left"] { left: 24%; }
-  .vn-sprite[data-spot="right"] { left: 76%; }
+  .vn-sprite[data-spot="left"] { left: 25%; }
+  .vn-sprite[data-spot="right"] { left: 75%; }
 
   .vn-box {
     bottom: 12px;
