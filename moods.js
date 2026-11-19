@@ -78,7 +78,7 @@
           mao: {
             intro: ['어서 와요! 저는 사진부 부장 마오예요. 와 줘서 정말 고마워요. 같이 천천히 구경해요!'],
             own: [
-              '이거 제가 찍은 거예요… 후지 중형으로요. 아직 잘 모르지만, 찍을 때 정말 행복했어요.',
+              '이거 제가 찍은 거예요… 아직 잘 모르지만, 찍을 때 정말 행복했어요.',
               '제 사진이에요! {topic} 주제라서 열심히 돌아다녔어요. 부장인데 부끄럽지 않게요!',
               '두 달 동안 1200장 찍었는데요, 이게 제일 마음에 들어요. 헤헤.'
             ],
@@ -108,7 +108,7 @@
               '인성은 렌즈 크기에 비례한대요! …제가 한 말이에요. 아니에요?',
               '조리개 숫자를 높이면 뒤까지 선명해진다… 맞나요? 아직 공부 중이에요.',
               '오늘의 좋은 말! 느려도 괜찮아, 포기하지만 않으면. 사진도 그렇대요.',
-              '야시카로 찍은 필름은 아직 현상 중이에요. 두근두근!',
+              '맡겨 둔 필름이 아직 현상 중이에요. 두근두근!',
               '카메라를 세 대나 들고 다녀서 어깨가 아파요… 그래도 다 소중해요.'
             ],
             thanks: [
@@ -119,7 +119,7 @@
           sora: {
             intro: ['아, 오셨어요? 저는 소라예요. 부장님 혼자 두면 불안해서 제가 같이 안내할게요.'],
             own: [
-              '제 사진이에요. {topic} 주제였죠. Z6III로 하늘 톤 맞추느라 한참 기다렸다고요.',
+              '제 사진이에요. {topic} 주제였죠. 하늘 톤 맞추느라 한참 기다렸다고요.',
               '흐린 날은 햇빛도 그림자도 없어서 못 찍어요. 그래서 이날은 해 나올 때까지 버텼어요.'
             ],
             ownWin: [
@@ -153,18 +153,18 @@
           hood: {
             intro: ['…안녕하세요. 후드예요. 사진 설명은… 정리해 왔어요. 천천히 보세요.'],
             own: [
-              '…제 사진이에요. {topic}. 소니로 찍었어요. 노출은 미리 계산해 뒀어요.',
+              '…제 사진이에요. {topic}. 노출은 미리 계산해 뒀어요.',
               '…필름으로 찍은 것도 있어요. 현상 나오길 기다리는 시간이 제일 두근거려요.'
             ],
             ownWin: ['…우승했었어요. 햇빛이 좋았어요. 준비한 만큼 나온 것 같아요.'],
             mao: [
-              '…부장님 사진이에요. 카메라 추천은 안 들으시고 중형을 사셨지만… 사진은 좋아요.',
+              '…부장님 사진이에요. 카메라 추천은 안 들으셨지만… 사진은 좋아요.',
               '…부장님, 많이 느셨어요. 정말이에요.'
             ],
             maoWin: ['…부장님이 이기셨어요. 축하드려요. (조용히 박수)'],
             sora: [
               '…소라 사진이에요. 잔소리는 많지만, 하늘은 정말 잘 찍어요.',
-              '…소라 사진. 니콘 색은 진한 옷을 입은 느낌이에요.'
+              '…소라 사진. 색이 진하고 깊어요. 저도 배우고 싶어요.'
             ],
             soraWin: ['…또 소라예요. 놀랍지 않아요. 열심히 하니까요.'],
             other: [
@@ -270,7 +270,7 @@
           mao: {
             intro: ['Welcome! I’m Mao, president of the photo club. Thank you so much for coming. Let’s look around slowly!'],
             own: [
-              'I took this one… on the Fuji medium format. I don’t know much yet, but I was so happy shooting it.',
+              'I took this one… I don’t know much yet, but I was so happy shooting it.',
               'This is mine! I walked all over for the {topic} theme. Can’t embarrass myself as president!',
               'I took 1,200 shots in two months, and this is my favorite. Hehe.'
             ],
@@ -300,7 +300,7 @@
               'They say your character grows with your lens size! …I said that. Isn’t it true?',
               'A higher f-number keeps the background sharp too… right? Still studying.',
               'Nice words for today: it’s okay to be slow, as long as you don’t give up. Same with photos.',
-              'My Yashica film is still being developed. So exciting!',
+              'My film is still being developed. So exciting!',
               'Carrying three cameras hurts my shoulders… but they’re all precious.'
             ],
             thanks: [
@@ -311,7 +311,7 @@
           sora: {
             intro: ['Oh, you’re here? I’m Sora. Leaving the president alone makes me nervous, so I’ll guide you too.'],
             own: [
-              'Mine. The {topic} round. I waited forever to get the sky tones right on the Z6III.',
+              'Mine. The {topic} round. I waited forever to get the sky tones right.',
               'You can’t shoot on overcast days, no light, no shadows. So I held out until the sun came out.'
             ],
             ownWin: [
@@ -345,18 +345,18 @@
           hood: {
             intro: ['…Hello. I’m Hood. I… organized some notes on the photos. Take your time.'],
             own: [
-              '…This is my photo. {topic}. Shot on the Sony. I worked out the exposure beforehand.',
+              '…This is my photo. {topic}. I worked out the exposure beforehand.',
               '…I shoot film too. Waiting for the scans is the most exciting part.'
             ],
             ownWin: ['…It won. The sunlight was nice. I think the preparation paid off.'],
             mao: [
-              '…The president’s photo. She ignored the camera advice and bought a medium format, but… it’s a good photo.',
+              '…The president’s photo. She ignored the camera advice, but… it’s a good photo.',
               '…President, you’ve really improved. I mean it.'
             ],
             maoWin: ['…The president won. Congratulations. (quiet clapping)'],
             sora: [
               '…Sora’s photo. She nags a lot, but she’s really good at skies.',
-              '…Sora’s photo. Nikon colors feel like dark clothes.'
+              '…Sora’s photo. Deep, rich colors. I want to learn that.'
             ],
             soraWin: ['…Sora again. Not surprising. She works hard.'],
             other: [
