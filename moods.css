@@ -651,8 +651,7 @@ html[data-mood="hacker"] .hero-eyebrow::before {
 
 /* 사진은 초록 모니터 색, 마우스를 올리면 원래 색 */
 html[data-mood="hacker"] .photo-thumb,
-html[data-mood="hacker"] .comp-card-cover,
-html[data-mood="hacker"] .comp-detail-hero-media img {
+html[data-mood="hacker"] .comp-card-cover {
   filter: grayscale(1) sepia(1) hue-rotate(68deg) saturate(2.6) brightness(0.82) contrast(1.15);
   transition: filter 0.35s ease, opacity 0.5s ease, transform 0.8s var(--ease-out);
 }

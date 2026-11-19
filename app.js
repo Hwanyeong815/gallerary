@@ -91,7 +91,6 @@ const STRINGS = {
     noMatchContests: '조건에 해당하는 공모전이 없습니다.',
     yearCount: n => `공모전 ${n}개`,
     statEntries: n => `출품 ${n}점`,
-    statAwards: n => `수상 ${n}점`,
     statAuthors: n => `작가 ${n}명`,
     viewExhibition: '전시 보기',
     viewExhibitionOf: name => `${name} 전시 보기`,
@@ -100,10 +99,7 @@ const STRINGS = {
     backToContests: '공모전 아카이브로 돌아가기',
     backToMini: '소마대전으로 돌아가기',
     kindMini: '소마대전',
-    cover: credit => `표지 · ${credit}`,
-    coverAlt: title => `${title} 표지 사진`,
     statLabelEntries: '출품',
-    statLabelAwards: '수상',
     statLabelAuthors: '참여 작가',
     pieces: n => `${n}점`,
     people: n => `${n}명`,
@@ -111,7 +107,6 @@ const STRINGS = {
     none: '없음',
     revealAfterVote: '투표 후 공개',
     sectionEntries: '출품작',
-    sectionAuthors: '참여 작가',
     shownOf: (shown, total) => `${shown} / ${total}점`,
     noMatchEntries: '검색어에 맞는 출품작이 없습니다.',
 
@@ -211,7 +206,6 @@ const STRINGS = {
     noMatchContests: 'No contests match.',
     yearCount: n => plural(n, 'contest', 'contests'),
     statEntries: n => plural(n, 'entry', 'entries'),
-    statAwards: n => plural(n, 'award', 'awards'),
     statAuthors: n => plural(n, 'photographer', 'photographers'),
     viewExhibition: 'View exhibition',
     viewExhibitionOf: name => `View ${name}`,
@@ -220,10 +214,7 @@ const STRINGS = {
     backToContests: 'Back to contests',
     backToMini: 'Back to mini contests',
     kindMini: 'Mini contest',
-    cover: credit => `Cover · ${credit}`,
-    coverAlt: title => `${title} cover photo`,
     statLabelEntries: 'Entries',
-    statLabelAwards: 'Awards',
     statLabelAuthors: 'Photographers',
     pieces: n => `${n}`,
     people: n => `${n}`,
@@ -231,7 +222,6 @@ const STRINGS = {
     none: 'None',
     revealAfterVote: 'After voting',
     sectionEntries: 'Entries',
-    sectionAuthors: 'Photographers',
     shownOf: (shown, total) => `${shown} / ${total}`,
     noMatchEntries: 'No entries match your search.',
 
@@ -498,6 +488,28 @@ function getFolderTabs() {
   return tabs;
 }
 
+// 묶음 안 회차(주제) 탭 이름: 묶음 이름은 위 탭에 있으니 뺌 ('1차 소마대전 RED' → '1차 RED')
+function getRoundTabLabel(folderName) {
+  const group = getFolderGroupName(folderName);
+  const short = getFolderShortName(folderName);
+  if (!group) return short;
+  return short.split(group).join(' ').replace(/\s{2,}/g, ' ').trim() || short;
+}
+
+// 묶음(공식전, 소마대전 …) 안의 회차들 — 묶음 탭을 누르면 그 아래 한 줄로 나옴
+function getRoundTabs(group) {
+  return getOrderedFolders()
+    .filter(f => !isOngoingFolder(f.name) && getFolderGroupName(f.name) === group)
+    .map(f => ({ id: f.id, label: getRoundTabLabel(f.name) }));
+}
+
+// 지금 고른 탭이 들어 있는 묶음 (묶음 탭 자체이거나 그 묶음의 회차를 고른 경우)
+function getActiveGroup() {
+  if (selectedSubfolderId.startsWith('GROUP:')) return selectedSubfolderId.slice(6);
+  const folder = folderCategories.find(f => f.id === selectedSubfolderId);
+  return folder && !isOngoingFolder(folder.name) ? getFolderGroupName(folder.name) : '';
+}
+
 // 선택한 탭에 이 사진이 들어가는지
 function photoMatchesTab(photo, tabId) {
   if (tabId === 'ALL') return true;
@@ -506,7 +518,9 @@ function photoMatchesTab(photo, tabId) {
 }
 
 function isValidTab(tabId) {
-  return tabId === 'ALL' || getFolderTabs().some(tab => tab.id === tabId);
+  return tabId === 'ALL' ||
+    getFolderTabs().some(tab => tab.id === tabId) ||
+    folderCategories.some(f => f.id === tabId);
 }
 
 // 목차와 갤러리에서 쓰는 폴더 순서: 일반 공모전(진행중 먼저) → 소마대전
@@ -756,13 +770,16 @@ function cleanDuplicateTrailingNumber(title) {
 
 // 작가명 추출: 수상 키워드 및 맨 앞 번호(01_) 제거 후 첫 번째 언더바(_) 앞부분
 // 언더바가 없으면 파일 이름 전체가 작가명 (예: '소라.jpg' → 소라)
+// 한 사람이 여러 장 낸 경우 끝의 번호는 뺌: '소라 (2).jpg' · '소라 2.jpg' · '소라-2.jpg' · '소라2.jpg' → 소라
 function extractAuthorFromFilename(filename) {
   const cleaned = removeAwardAndLeadingNumber(filename);
   const underscoreIdx = cleaned.indexOf('_');
   if (underscoreIdx > 0) {
     return cleaned.slice(0, underscoreIdx).trim();
   }
-  return cleanDuplicateTrailingNumber(cleaned) === 'Untitled' ? '' : cleanDuplicateTrailingNumber(cleaned);
+  const base = cleanDuplicateTrailingNumber(cleaned);
+  if (base === 'Untitled') return '';
+  return base.replace(/[\s.-]*\d+$/, '').trim() || base;
 }
 
 // 순수 작품 제목 추출 (언더바 뒤 작품 제목 부분만 + 끝의 카메라 기종 제외 + 끝의 중복 (1), (2) 제거)
@@ -772,11 +789,13 @@ function extractWorkTitleOnly(filename) {
   const withoutParen = cleanDuplicateTrailingNumber(cleaned);
   const parts = withoutParen.split('_').map(s => s.trim()).filter(Boolean);
 
+  // '소라_2.jpg'처럼 언더바 뒤가 번호뿐이면 제목이 아니라 같은 사람의 몇 번째 사진
+  const notJustNumber = text => (/^\d+$/.test(text) ? '' : text);
   if (parts.length >= 3) {
-    return parts.slice(1, -1).join(' ');
+    return notJustNumber(parts.slice(1, -1).join(' '));
   }
   if (parts.length === 2) {
-    return parts[1];
+    return notJustNumber(parts[1]);
   }
   return '';
 }
@@ -1214,16 +1233,32 @@ function renderFolderTabs() {
     return;
   }
 
-  // 회차가 많아져도 목차가 길어지지 않도록 회차 대신 묶음(공식전 · 소마대전)만 탭으로 보여 줌
+  // 첫 줄은 묶음(공식전 · 소마대전)만 보여 주고, 묶음을 누르면 둘째 줄에 그 안의 회차(주제)가 나옴
+  // 회차를 누르면 그 주제에 낸 사람들 사진이 모두 보임
   const tabs = [{ id: 'ALL', label: t('all'), ongoing: false }, ...getFolderTabs()];
-  tabsContainer.innerHTML = tabs.map(tab => {
+  const activeGroup = getActiveGroup();
+  const tabButton = (tab, isActive, extraClass = '') => {
     const count = allPhotos.filter(p => photoMatchesTab(p, tab.id)).length;
     return `
-      <button type="button" class="folder-tab-btn ${selectedSubfolderId === tab.id ? 'active' : ''}" data-folder-id="${escapeHtml(tab.id)}">
+      <button type="button" class="folder-tab-btn ${extraClass} ${isActive ? 'active' : ''}" data-folder-id="${escapeHtml(tab.id)}">
         ${tab.ongoing ? `<span class="tab-live-dot" title="${escapeHtml(t('ongoingDotTitle'))}"></span>` : ''}${escapeHtml(tab.label)}<span class="folder-tab-count">${count}</span>
       </button>
     `;
+  };
+
+  const groupRow = tabs.map(tab => {
+    const isActive = selectedSubfolderId === tab.id || (activeGroup && tab.id === `GROUP:${activeGroup}`);
+    return tabButton(tab, isActive);
   }).join('');
+
+  const rounds = activeGroup ? getRoundTabs(activeGroup) : [];
+  const roundRow = rounds.length > 1
+    ? `<div class="folder-subtabs" role="group" aria-label="${escapeHtml(activeGroup)}">
+        ${rounds.map(round => tabButton(round, selectedSubfolderId === round.id, 'is-sub')).join('')}
+      </div>`
+    : '';
+
+  tabsContainer.innerHTML = groupRow + roundRow;
 
   tabsContainer.querySelectorAll('.folder-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1250,7 +1285,10 @@ function applyFiltersAndRender() {
   const badge = document.getElementById('photoCountBadge');
   if (badge) {
     const activeTab = getFolderTabs().find(tab => tab.id === selectedSubfolderId);
-    const prefix = activeTab ? `${activeTab.label} · ` : '';
+    const activeFolder = activeTab ? null : folderCategories.find(f => f.id === selectedSubfolderId);
+    const prefix = activeTab
+      ? `${activeTab.label} · `
+      : (activeFolder ? `${getFolderFullName(activeFolder.name)} · ` : '');
     badge.textContent = `${prefix}${t('photoCount', filteredPhotos.length)}`;
   }
 
@@ -1449,7 +1487,11 @@ function renderPhotoCardHtml(photo, idx, showAward = false, delayIdx = idx) {
   const meta = getDisplayMeta(photo);
   const award = showAward ? meta.awardInfo : null;
   const rawFolder = photo.folderName && photo.folderName !== '기본 폴더' ? photo.folderName : '';
-  const folderLabel = rawFolder ? getFolderFullName(rawFolder) : '';
+  // 한 회차만 보는 화면(공모전 상세 — showAward가 true — 또는 갤러리에서 회차 탭을 고른 경우)은
+  // 회차 이름이 이미 위에 있으니 캡션에서는 뺌
+  const singleRound = showAward ||
+    (currentMainView === 'gallery' && folderCategories.some(f => f.id === selectedSubfolderId));
+  const folderLabel = rawFolder && !singleRound ? getFolderFullName(rawFolder) : '';
   const label = getPhotoLabel(meta);
 
   let captionHtml;
@@ -1874,14 +1916,25 @@ function renderCompetitionsArchiveView(kind = 'regular') {
   const selectedFilter = compListFilter[kind] || 'ALL';
   const years = Array.from(new Set(comps.map(c => c.year))).sort((a, b) => b.localeCompare(a));
 
-  const filterOptions = [
-    { id: 'ALL', label: t('filterAll', comps.length) },
-    { id: 'LIVE', label: t('filterLive', comps.filter(c => c.ongoing).length) },
-    { id: 'ENDED', label: t('filterEnded', comps.filter(c => !c.ongoing).length) },
-    ...years.map(y => ({ id: `YEAR_${y}`, label: t('filterYear', y) }))
-  ];
+  // '전체'와 결과가 똑같은 칸은 만들지 않음: 진행 중인 공모전이 없으면 진행 중/종료 칸을, 연도가 하나뿐이면 연도 칸을 뺌
+  const liveCount = comps.filter(c => c.ongoing).length;
+  const filterOptions = [{ id: 'ALL', label: t('filterAll', comps.length) }];
+  if (liveCount > 0 && liveCount < comps.length) {
+    filterOptions.push(
+      { id: 'LIVE', label: t('filterLive', liveCount) },
+      { id: 'ENDED', label: t('filterEnded', comps.length - liveCount) }
+    );
+  }
+  if (years.length > 1) {
+    filterOptions.push(...years.map(y => ({ id: `YEAR_${y}`, label: t('filterYear', y) })));
+  }
+  // 고를 칸이 '전체' 하나뿐이면 막대를 비움 (이전에 고른 칸이 사라졌으면 전체로)
+  if (!filterOptions.some(opt => opt.id === selectedFilter)) {
+    compListFilter[kind] = 'ALL';
+    return renderCompetitionsArchiveView(kind);
+  }
 
-  filterBar.innerHTML = filterOptions.map(opt => `
+  filterBar.innerHTML = filterOptions.length <= 1 ? '' : filterOptions.map(opt => `
     <button type="button" class="comp-filter-chip ${selectedFilter === opt.id ? 'active' : ''}" data-comp-filter="${opt.id}">
       ${escapeHtml(opt.label)}
     </button>
@@ -1918,19 +1971,21 @@ function renderCompetitionsArchiveView(kind = 'regular') {
 
   let html = '';
   groupedByYear.forEach((group, year) => {
+    // 연도가 하나뿐이면 연도 제목(2026 · 공모전 8개)은 위 '전체 (8)'과 같으므로 숨김
     html += `
       <section class="comp-year-section">
-        <div class="comp-year-header">
-          <h2 class="comp-year-title">${escapeHtml(year)}</h2>
-          <span class="comp-year-count">${escapeHtml(t('yearCount', group.length))}</span>
-        </div>
+        ${groupedByYear.size > 1 ? `
+          <div class="comp-year-header">
+            <h2 class="comp-year-title">${escapeHtml(year)}</h2>
+            <span class="comp-year-count">${escapeHtml(t('yearCount', group.length))}</span>
+          </div>
+        ` : ''}
         <div class="comp-cards-grid">
           ${group.map(comp => {
             const coverUrl = comp.coverPhoto ? comp.coverPhoto.thumbUrl : '';
             const topWinner = comp.winners[0];
             const topWinnerMeta = topWinner ? getDisplayMeta(topWinner) : null;
             const stats = [t('statEntries', comp.photoCount)];
-            if (comp.winnerCount > 0) stats.push(t('statAwards', comp.winnerCount));
             if (!comp.ongoing && comp.authors.length > 0) stats.push(t('statAuthors', comp.authors.length));
             return `
               <article class="comp-archive-card ${comp.ongoing ? 'is-ongoing-card' : ''}" data-comp-id="${escapeHtml(comp.id)}" tabindex="0" role="button" aria-label="${escapeHtml(t('viewExhibitionOf', comp.title))}">
@@ -2003,27 +2058,24 @@ function renderCompetitionDetailView(folderId) {
   resetRevealObserver();
 
   const comp = buildCompetitionMetadata(targetFolder);
-  const coverUrl = comp.coverPhoto ? (comp.coverPhoto.fullUrl || comp.coverPhoto.thumbUrl) : '';
-  const coverMeta = comp.coverPhoto ? getDisplayMeta(comp.coverPhoto) : null;
-  const coverCredit = coverMeta && !coverMeta.isAnonymous
-    ? [coverMeta.headline, coverMeta.subAuthor].filter(Boolean).join(', ')
-    : '';
+  // 우승 칸: 폴더 이름의 '(소라 우승)', 없으면 [1등] 같은 표시가 붙은 사진의 작가
+  const winnerLabel = comp.winnerName || (comp.winners[0] ? getDisplayMeta(comp.winners[0]).authorLabel : '');
+  const winnerValue = winnerLabel || (comp.ongoing ? t('judging') : t('none'));
+  // 회차 이름에 이미 '소마대전'이 들어 있으면 옆의 '소마대전' 표시는 뺌
+  const showKindTag = comp.isMini && !comp.title.includes(MINI_CONTEST_NAME);
   // 상세 화면에서도 상단 검색어로 출품작을 거를 수 있게 함
   const shownPhotos = searchQuery
     ? comp.photos.filter(p => matchesSearchQuery(p, searchQuery))
     : comp.photos;
-  const shownCount = searchQuery ? t('shownOf', shownPhotos.length, comp.photoCount) : t('pieces', comp.photoCount);
+  // 출품 수는 위 '출품 N점'에 있으니, 검색했을 때만 '보이는 수 / 전체'를 붙임
+  const shownCount = t('shownOf', shownPhotos.length, comp.photoCount);
 
   container.innerHTML = `
     <header class="comp-detail-hero">
-      <figure class="comp-detail-hero-media">
-        ${coverUrl ? `<img src="${coverUrl}" alt="${escapeHtml(t('coverAlt', comp.title))}" referrerpolicy="no-referrer" />` : ''}
-        ${coverCredit ? `<figcaption class="comp-cover-caption">${escapeHtml(t('cover', coverCredit))}</figcaption>` : ''}
-      </figure>
       <div class="comp-detail-hero-content">
         <p class="comp-detail-badges">
           ${statusPillHtml(comp)}
-          ${comp.isMini ? `<span class="comp-kind-tag">${escapeHtml(t('kindMini'))}</span>` : ''}
+          ${showKindTag ? `<span class="comp-kind-tag">${escapeHtml(t('kindMini'))}</span>` : ''}
         </p>
         <h1 class="comp-detail-title">${escapeHtml(comp.title)}</h1>
         ${comp.description ? `<p class="comp-detail-desc">${escapeHtml(comp.description)}</p>` : ''}
@@ -2034,8 +2086,8 @@ function renderCompetitionDetailView(folderId) {
             <dd class="detail-stat-value">${escapeHtml(t('pieces', comp.photoCount))}</dd>
           </div>
           <div class="detail-stat-item">
-            <dt class="detail-stat-label">${escapeHtml(t('statLabelAwards'))}</dt>
-            <dd class="detail-stat-value">${escapeHtml(comp.winnerCount > 0 ? t('pieces', comp.winnerCount) : (comp.ongoing ? t('judging') : t('none')))}</dd>
+            <dt class="detail-stat-label">${escapeHtml(t('awardWin'))}</dt>
+            <dd class="detail-stat-value">${escapeHtml(winnerValue)}</dd>
           </div>
           <div class="detail-stat-item">
             <dt class="detail-stat-label">${escapeHtml(t('statLabelAuthors'))}</dt>
@@ -2048,7 +2100,7 @@ function renderCompetitionDetailView(folderId) {
     <section class="comp-detail-section">
       <div class="comp-section-head">
         <h2 class="comp-section-title">${escapeHtml(t('sectionEntries'))}</h2>
-        <span class="comp-section-count">${escapeHtml(shownCount)}</span>
+        ${searchQuery ? `<span class="comp-section-count">${escapeHtml(shownCount)}</span>` : ''}
       </div>
       ${shownPhotos.length > 0 ? `
         <div id="compDetailAllPhotosGrid" class="bento-grid"></div>
@@ -2056,17 +2108,6 @@ function renderCompetitionDetailView(folderId) {
       ` : `<div class="archive-empty-state">${escapeHtml(t('noMatchEntries'))}</div>`}
     </section>
 
-    ${comp.authors.length > 0 ? `
-      <section class="comp-detail-section">
-        <div class="comp-section-head">
-          <h2 class="comp-section-title">${escapeHtml(t('sectionAuthors'))}</h2>
-          <span class="comp-section-count">${escapeHtml(t('people', comp.authors.length))}</span>
-        </div>
-        <p class="comp-authors-list">
-          ${comp.authors.map(author => `<span class="comp-author-chip">${escapeHtml(author)}</span>`).join('')}
-        </p>
-      </section>
-    ` : ''}
   `;
 
   if (shownPhotos.length > 0) {

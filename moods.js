@@ -342,7 +342,7 @@
     '.hero-eyebrow', '.hero-title .word', '.hero-subtitle > span',
     '.photo-card', '.load-more-btn', '.status-banner',
     '.archive-page-title', '.archive-page-subtitle', '.comp-filter-chip', '.comp-year-title', '.comp-archive-card',
-    '.comp-back-btn', '.comp-detail-hero-media', '.comp-detail-title', '.comp-detail-desc', '.detail-stat-item', '.comp-section-title',
+    '.comp-back-btn', '.comp-detail-title', '.comp-detail-desc', '.detail-stat-item', '.comp-section-title',
     '.minimal-footer .footer-item', '.mood-btn'
   ].join(', ');
 
