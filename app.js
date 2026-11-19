@@ -13,16 +13,11 @@ const CONFIGURED_BOARD_FORM_URL =
     ? window.BOARD_FORM_URL
     : '';
 
-// 사용자 브라우저 언어(Locale) 기반 다국어(i18n) 매핑 (한국어 기본, 해외 접속 시 영문 전환)
-const IS_KOREAN = typeof navigator !== 'undefined'
-  ? String(navigator.language || 'ko').toLowerCase().startsWith('ko')
-  : true;
-
+// 화면 고정 문구 (영문 표기 없이 한국어로만 표시)
 const I18N = {
-  allTab: IS_KOREAN ? '전체' : 'ALL',
-  liveBadge: IS_KOREAN ? '진행중' : 'LIVE',
-  heroEyebrow: IS_KOREAN ? '전시 아카이브' : 'ARCHIVE',
-  firstPrizeBadge: IS_KOREAN ? '👑 1등 · WINNER' : '👑 1ST · WINNER'
+  allTab: '전체',
+  heroEyebrow: '전시 아카이브',
+  firstPrizeBadge: '👑 1등'
 };
 
 function formatDateYMD(dateObj) {
@@ -51,10 +46,8 @@ function updateFooterLastUpdated(withTime = false, customDate = null) {
 
 function applyLocaleTexts() {
   const eyebrow = document.getElementById('heroEyebrow');
-  const liveBadgeText = document.getElementById('ongoingLiveBadgeText');
 
   if (eyebrow) eyebrow.textContent = I18N.heroEyebrow;
-  if (liveBadgeText) liveBadgeText.textContent = I18N.liveBadge;
   updateFooterLastUpdated(false);
 }
 
@@ -77,7 +70,6 @@ let toastTimer = null;
 let currentMainView = 'gallery';
 let selectedCompetitionId = null;
 let selectedCompYearFilter = 'ALL';
-let selectedWinnerTierFilter = 'ALL';
 let activeTipPostId = null;
 let tipsPosts = [];
 let isBoardLoading = false;
@@ -225,7 +217,7 @@ function initWebGLBackground() {
 }
 
 /* ==========================================================================
-   2. [진행중] 공모전 폴더 감지 & 상단 슬림 배너 + 화면 정중앙 모달 제어
+   2. [진행중] 공모전 폴더 감지
    ========================================================================== */
 function isOngoingFolder(folderName) {
   return /(?:\[\s*진행\s*중\s*\]|진행\s*중)/i.test(String(folderName || ''));
@@ -277,9 +269,8 @@ function dismissOngoingPopup() {
   backdrop.classList.add('hidden');
 }
 
-function updateOngoingNoticeUI() {
-  const banner = document.getElementById('ongoingBanner');
-  const bannerText = document.getElementById('ongoingBannerText');
+// 접속 시 화면 가운데 [진행중] 공모전 안내 팝업 (출품작은 번호만 표시)
+function updateOngoingPopup() {
   const backdrop = document.getElementById('ongoingModalBackdrop');
   const popupTitle = document.getElementById('ongoingPopupTitle');
   const previewGrid = document.getElementById('ongoingModalPreviewGrid');
@@ -289,7 +280,6 @@ function updateOngoingNoticeUI() {
 
   if (!ongoingFolder) {
     isOngoingModalOpen = false;
-    if (banner) banner.classList.add('hidden');
     if (backdrop) {
       backdrop.classList.remove('is-visible');
       backdrop.classList.add('hidden');
@@ -300,30 +290,17 @@ function updateOngoingNoticeUI() {
 
   const cleanName = cleanOngoingFolderName(ongoingFolder.name);
 
-  if (banner && bannerText) {
-    bannerText.innerHTML = `현재 <strong>[${escapeHtml(cleanName)}]</strong> 진행 중입니다 ·`;
-    banner.classList.remove('hidden');
-  }
-
-  // 모달 내 진행중 후보작 미리보기 카드 렌더링 (고대비 1번 배지 + 굵은 작품제목 + 클릭 시 라이트박스 직행)
   if (previewGrid) {
     const ongoingPhotos = allPhotos.filter(p => p.folderId === ongoingFolder.id);
     previewGrid.innerHTML = ongoingPhotos.map(photo => {
       const meta = getDisplayMeta(photo);
-      const numBadgeHtml = meta.numLabel
-        ? `<span class="vote-num-badge">${escapeHtml(meta.numLabel)}</span>`
-        : '';
       return `
         <button type="button" class="ongoing-preview-item" data-photo-id="${escapeHtml(photo.id)}" aria-label="${escapeHtml(meta.title)} 크게 보기">
           <div class="ongoing-preview-thumb-wrap">
             <img class="ongoing-preview-thumb" src="${photo.thumbUrl}" alt="${escapeHtml(meta.title)}" loading="lazy" referrerpolicy="no-referrer" />
           </div>
           <div class="ongoing-preview-info">
-            <div class="ongoing-preview-title-row">
-              ${numBadgeHtml}
-              <span class="ongoing-preview-title">${escapeHtml(meta.pureTitle)}</span>
-            </div>
-            <span class="ongoing-preview-author">by 익명</span>
+            <span class="vote-num-badge">${escapeHtml(meta.title)}</span>
           </div>
         </button>
       `;
@@ -349,7 +326,7 @@ function updateOngoingNoticeUI() {
     });
   }
 
-  // 한 번 닫은 뒤에는 다시 튀어나오지 않도록 ongoingModalDismissedOnThisLoad 체크
+  // 한 번 닫은 뒤에는 새로고침 전까지 다시 뜨지 않음
   if (backdrop && popupTitle) {
     if (!ongoingModalDismissedOnThisLoad) {
       isOngoingModalOpen = true;
@@ -448,19 +425,19 @@ function stripExtension(filename) {
 function getAwardTierInfo(filename) {
   const s = stripExtension(filename);
   if (/(?:\[\s*대상\s*\]|(?:^|[_\s-])대상(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'GRAND', rankOrder: 1, label: '👑 대상 · GRAND PRIZE', shortLabel: '👑 대상 · WINNER', isTopWinner: true };
+    return { tier: 'GRAND', rankOrder: 1, label: '👑 대상', shortLabel: '👑 대상', isTopWinner: true };
   }
   if (/(?:\[\s*최우수(?:상)?\s*\]|(?:^|[_\s-])최우수(?:상)?(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'BEST', rankOrder: 2, label: '👑 최우수상 · BEST AWARD', shortLabel: '👑 최우수 · WINNER', isTopWinner: true };
+    return { tier: 'BEST', rankOrder: 2, label: '👑 최우수상', shortLabel: '👑 최우수상', isTopWinner: true };
   }
   if (/(?:\[\s*(?:1등|우승)\s*\]|(?:^|[_\s-])(?:1등|우승)(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'FIRST', rankOrder: 3, label: '👑 1등 · WINNER', shortLabel: '👑 1등 · WINNER', isTopWinner: true };
+    return { tier: 'FIRST', rankOrder: 3, label: '👑 1등', shortLabel: '👑 1등', isTopWinner: true };
   }
   if (/(?:\[\s*(?:우수(?:상)?|2등|3등)\s*\]|(?:^|[_\s-])(?:우수(?:상)?|2등|3등)(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'EXCELLENCE', rankOrder: 4, label: '✦ 우수상 · EXCELLENCE', shortLabel: '✦ 우수상', isTopWinner: false };
+    return { tier: 'EXCELLENCE', rankOrder: 4, label: '✦ 우수상', shortLabel: '✦ 우수상', isTopWinner: false };
   }
   if (/(?:\[\s*(?:장려(?:상)?|입선)\s*\]|(?:^|[_\s-])(?:장려(?:상)?|입선)(?:$|[_\s-]))/i.test(s)) {
-    return { tier: 'HONOR', rankOrder: 5, label: '• 입선 · HONORABLE', shortLabel: '• 입선', isTopWinner: false };
+    return { tier: 'HONOR', rankOrder: 5, label: '• 입선', shortLabel: '• 입선', isTopWinner: false };
   }
   return null;
 }
@@ -522,17 +499,7 @@ function extractAuthorFromFilename(filename) {
   return '';
 }
 
-// 카메라 기종(EXIF) 추출: 작가명_작품제목_카메라기종 형태에서 3번째 이상 파트가 있을 때 마지막 파트 추출
-function extractCameraFromFilename(filename) {
-  const cleaned = cleanDuplicateTrailingNumber(removeAwardAndLeadingNumber(filename));
-  const parts = cleaned.split('_').map(s => s.trim()).filter(Boolean);
-  if (parts.length >= 3) {
-    return parts[parts.length - 1];
-  }
-  return '';
-}
-
-// 순수 작품 제목 추출 (언더바 뒤 작품 제목 부분만 추출 + 카메라 기종 분리 + 끝의 중복 (1), (2) 제거)
+// 순수 작품 제목 추출 (언더바 뒤 작품 제목 부분만 추출 + 끝의 카메라 기종 제외 + 끝의 중복 (1), (2) 제거)
 function extractWorkTitleOnly(filename, hideCamera = false) {
   const cleaned = removeAwardAndLeadingNumber(filename);
   const withoutParen = cleanDuplicateTrailingNumber(cleaned);
@@ -597,25 +564,23 @@ function sortAndNumberOngoingPhotos(photos) {
   return result;
 }
 
-// 사진 객체별로 화면에 표시할 제목, 순번 배지, 작가명, 카메라 EXIF, 수상 등급 반환
+// 사진 객체별로 화면에 표시할 제목, 순번 배지, 작가명, 수상 등급 반환 (카메라 기종은 표시하지 않음)
 function getDisplayMeta(photo) {
   const inOngoing = isOngoingFolder(photo.folderName);
   const rawAuthor = extractAuthorFromFilename(photo.name);
-  const rawCamera = extractCameraFromFilename(photo.name);
   const pureWorkTitle = extractWorkTitleOnly(photo.name, inOngoing);
   const fullCleanTitle = cleanDuplicateTrailingNumber(removeAwardAndLeadingNumber(photo.name));
   const awardInfo = getAwardTierInfo(photo.name);
 
   if (inOngoing) {
+    // 진행중 공모전 작품은 번호만 표시 (제목·작가명 모두 숨김)
     const numLabel = photo.contestNumber ? `${photo.contestNumber}번` : '';
-    const combinedTitle = numLabel ? `${numLabel} ${pureWorkTitle}` : pureWorkTitle;
     return {
-      title: combinedTitle,
-      pureTitle: pureWorkTitle,
+      title: numLabel || '출품작',
+      pureTitle: '',
       numLabel: numLabel,
-      authorName: '익명',
-      authorLabel: 'by 익명',
-      cameraLabel: '',
+      authorName: '',
+      authorLabel: '',
       awardInfo: null,
       isAnonymous: true
     };
@@ -626,8 +591,7 @@ function getDisplayMeta(photo) {
     pureTitle: pureWorkTitle || fullCleanTitle,
     numLabel: '',
     authorName: rawAuthor || '미상',
-    authorLabel: rawAuthor ? `by ${rawAuthor}` : '',
-    cameraLabel: rawCamera,
+    authorLabel: rawAuthor || '',
     awardInfo: awardInfo,
     isAnonymous: false
   };
@@ -640,8 +604,8 @@ function matchesSearchQuery(photo, query) {
   const meta = getDisplayMeta(photo);
 
   if (meta.isAnonymous) {
-    // 진행중 익명 작품: 오직 화면에 표시된 번호('1번', '1')와 순수 작품 제목만 검색 허용
-    const searchable = `${meta.numLabel} ${meta.pureTitle}`.toLowerCase();
+    // 진행중 작품: 화면에 표시된 번호('1번', '1')로만 검색 허용
+    const searchable = `${meta.numLabel}`.toLowerCase();
     return searchable.includes(q);
   }
 
@@ -844,7 +808,6 @@ function renderFolderTabs() {
     btn.addEventListener('click', () => {
       selectedSubfolderId = btn.getAttribute('data-folder-id');
       renderFolderTabs();
-      renderOngoingHeroShowcase();
       applyFiltersAndRender();
     });
   });
@@ -950,8 +913,7 @@ async function loadDriveFolder(folderInput, forceLive = false) {
     }
 
     renderFolderTabs();
-    updateOngoingNoticeUI();
-    renderOngoingHeroShowcase();
+    updateOngoingPopup();
 
     if (photos.length === 0) {
       document.getElementById('photoGrid').innerHTML = '';
@@ -999,9 +961,6 @@ function renderPhotoCardHtml(photo, idx, forceWinnerGlow = false) {
   const numBadgeHtml = meta.numLabel
     ? `<span class="vote-num-badge">${escapeHtml(meta.numLabel)}</span>`
     : '';
-  const exifPillHtml = meta.cameraLabel
-    ? `<span class="caption-exif-pill">📷 ${escapeHtml(meta.cameraLabel)}</span>`
-    : '';
   const badgeLabel = awardInfo ? awardInfo.shortLabel : I18N.firstPrizeBadge;
 
   return `
@@ -1033,7 +992,6 @@ function renderPhotoCardHtml(photo, idx, forceWinnerGlow = false) {
               ${folderLabel ? `<span>${escapeHtml(folderLabel)}</span>` : ''}
               ${folderLabel && meta.authorLabel ? `<span>·</span>` : ''}
               ${meta.authorLabel ? `<span class="caption-author">${escapeHtml(meta.authorLabel)}</span>` : ''}
-              ${exifPillHtml}
             </div>
             <h3 class="caption-title">${numBadgeHtml}${escapeHtml(meta.pureTitle)}</h3>
           </div>
@@ -1338,7 +1296,7 @@ function buildCompetitionMetadata(folder) {
   const authors = Array.from(authorSet);
 
   const description = ongoing
-    ? `현재 실시간 블라인드 투표가 진행 중인 「${title}」 전시입니다. 공정한 심사를 위해 모든 출품작의 작가명과 카메라 기종이 익명으로 보호되며, 종료 후 수상작과 작가명이 영구 아카이브에 기록됩니다.`
+    ? `현재 실시간 블라인드 투표가 진행 중인 「${title}」 전시입니다. 공정한 심사를 위해 모든 출품작의 작가명이 익명으로 보호되며, 종료 후 수상작과 작가명이 영구 아카이브에 기록됩니다.`
     : `「${title}」에 출품된 총 ${photos.length}점의 작품과 수상작을 보존한 공식 디지털 전시관입니다. 공모전 종료 이후에도 각 작가의 시선과 기록을 언제든 감상할 수 있습니다.`;
 
   return {
@@ -1348,7 +1306,7 @@ function buildCompetitionMetadata(folder) {
     year,
     period,
     ongoing,
-    statusLabel: ongoing ? '진행 중 · LIVE' : '전시 종료 · ARCHIVED',
+    statusLabel: ongoing ? '진행 중' : '전시 종료',
     photoCount: photos.length,
     winnerCount: winners.length,
     coverPhoto,
@@ -1363,77 +1321,6 @@ function getAllCompetitionsMeta() {
   return folderCategories
     .filter(f => f.name !== '기본 폴더' || folderCategories.length === 1)
     .map(buildCompetitionMetadata);
-}
-
-// 1. 메인 갤러리 상단 진행 중인 공모전 스포트라이트 쇼케이스 렌더링
-function renderOngoingHeroShowcase() {
-  const wrap = document.getElementById('ongoingHeroCardWrap');
-  if (!wrap) return;
-
-  const ongoingFolder = folderCategories.find(f => isOngoingFolder(f.name));
-  if (!ongoingFolder || selectedSubfolderId !== 'ALL' || searchQuery.trim() !== '') {
-    wrap.classList.add('hidden');
-    wrap.innerHTML = '';
-    return;
-  }
-
-  const comp = buildCompetitionMetadata(ongoingFolder);
-  const previewPhotos = comp.photos.slice(0, 3);
-
-  wrap.innerHTML = `
-    <div class="ongoing-showcase-card">
-      <div class="ongoing-showcase-info">
-        <div class="ongoing-showcase-badges">
-          <span class="comp-status-pill is-live"><span class="live-dot"></span>${escapeHtml(comp.statusLabel)}</span>
-          <span class="comp-period-tag">${escapeHtml(comp.period)}</span>
-        </div>
-        <h2 class="ongoing-showcase-title">${escapeHtml(comp.title)}</h2>
-        <p class="ongoing-showcase-desc">${escapeHtml(comp.description)}</p>
-        <div class="ongoing-showcase-stats">
-          <div class="stat-box">
-            <span class="stat-num">${comp.photoCount}</span>
-            <span class="stat-label">출품작</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-box">
-            <span class="stat-num">블라인드</span>
-            <span class="stat-label">심사 방식</span>
-          </div>
-        </div>
-        <div class="ongoing-showcase-actions">
-          <button type="button" class="ongoing-btn-primary" id="btnShowcaseOpenDetail">공모전 전시관 입장 &rarr;</button>
-          <button type="button" class="ongoing-btn-secondary" id="btnShowcaseFilterGrid">갤러리에서 바로 필터링</button>
-        </div>
-      </div>
-      <div class="ongoing-showcase-thumbs">
-        ${previewPhotos.map((p, idx) => {
-          const meta = getDisplayMeta(p);
-          return `
-            <div class="showcase-thumb-card" data-showcase-photo-id="${escapeHtml(p.id)}" role="button" tabindex="0" aria-label="${escapeHtml(meta.title)} 보기">
-              <img src="${p.thumbUrl}" alt="${escapeHtml(meta.title)}" loading="lazy" referrerpolicy="no-referrer" />
-              <span class="showcase-thumb-num">${escapeHtml(meta.numLabel || `${idx + 1}번`)}</span>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    </div>
-  `;
-  wrap.classList.remove('hidden');
-
-  document.getElementById('btnShowcaseOpenDetail')?.addEventListener('click', () => {
-    openCompetitionDetail(comp.id);
-  });
-  document.getElementById('btnShowcaseFilterGrid')?.addEventListener('click', () => {
-    navigateToOngoingFolder(ongoingFolder);
-  });
-  wrap.querySelectorAll('.showcase-thumb-card').forEach(el => {
-    el.addEventListener('click', () => {
-      const pid = el.getAttribute('data-showcase-photo-id');
-      filteredPhotos = comp.photos;
-      const targetIdx = filteredPhotos.findIndex(p => p.id === pid);
-      if (targetIdx !== -1) openLightbox(targetIdx);
-    });
-  });
 }
 
 // 2. 공모전 아카이브 페이지 렌더링 (연도별 분류, 진행 중/종료 상태, 개최 기간, 작품 수)
@@ -1526,7 +1413,7 @@ function renderCompetitionsArchiveView() {
                   ${topWinnerMeta ? `
                     <div class="comp-card-winner-highlight">
                       <span class="winner-highlight-label">대표 수상작</span>
-                      <span class="winner-highlight-val">${escapeHtml(topWinnerMeta.pureTitle)} (${escapeHtml(topWinnerMeta.authorLabel)})</span>
+                      <span class="winner-highlight-val">${escapeHtml(topWinnerMeta.pureTitle || topWinnerMeta.title)}${topWinnerMeta.authorLabel ? ` (${escapeHtml(topWinnerMeta.authorLabel)})` : ''}</span>
                     </div>
                   ` : ''}
                   <div class="comp-card-footer">
@@ -1616,7 +1503,7 @@ function renderCompetitionDetailView(folderId) {
             <strong class="detail-stat-value">${comp.ongoing ? '블라인드 익명' : `${comp.authors.length}명`}</strong>
           </div>
         </div>
-        ${coverMeta ? `<div class="comp-cover-caption">대표 전시작: ${escapeHtml(coverMeta.pureTitle)} (${escapeHtml(coverMeta.authorLabel)})</div>` : ''}
+        ${coverMeta ? `<div class="comp-cover-caption">대표 전시작: ${escapeHtml(coverMeta.pureTitle || coverMeta.title)}${coverMeta.authorLabel ? ` (${escapeHtml(coverMeta.authorLabel)})` : ''}</div>` : ''}
       </div>
     </div>
 
@@ -1624,7 +1511,6 @@ function renderCompetitionDetailView(folderId) {
     <section class="comp-detail-section">
       <div class="comp-section-head">
         <div>
-          <p class="comp-section-eyebrow">PARTICIPATING PHOTOGRAPHERS</p>
           <h2 class="comp-section-title">참여 작가 목록</h2>
         </div>
       </div>
@@ -1646,7 +1532,6 @@ function renderCompetitionDetailView(folderId) {
       <section class="comp-detail-section">
         <div class="comp-section-head">
           <div>
-            <p class="comp-section-eyebrow">AWARD-WINNING WORKS</p>
             <h2 class="comp-section-title">수상작 모음</h2>
           </div>
           <span class="comp-section-count">총 ${comp.winners.length}점</span>
@@ -1661,7 +1546,6 @@ function renderCompetitionDetailView(folderId) {
     <section class="comp-detail-section">
       <div class="comp-section-head">
         <div>
-          <p class="comp-section-eyebrow">ALL EXHIBITED WORKS</p>
           <h2 class="comp-section-title">전체 출품작 (${comp.photoCount})</h2>
         </div>
       </div>
@@ -1678,48 +1562,23 @@ function renderCompetitionDetailView(folderId) {
 }
 
 // 4. 역대 수상작 (Hall of Fame) 큐레이션 뷰 렌더링
+// 역대 수상작: 등급 구분 없이 모든 수상작을 한 목록으로 표시 (현재 수상은 1등만 있음)
 function renderWinnersHallView() {
-  const filterBar = document.getElementById('winnerTierFilterBar');
   const container = document.getElementById('winnersHallContainer');
-  if (!container || !filterBar) return;
+  if (!container) return;
 
   const allWinners = allPhotos
     .map(p => ({ photo: p, award: getAwardTierInfo(p.name), meta: getDisplayMeta(p) }))
     .filter(item => item.award !== null)
     .sort((a, b) => a.award.rankOrder - b.award.rankOrder);
 
-  const tierFilters = [
-    { id: 'ALL', label: `전체 수상작 (${allWinners.length})` },
-    { id: 'TOP', label: '대상 · 최우수 · 1등' },
-    { id: 'EXCELLENCE', label: '우수상 · 장려 · 입선' }
-  ];
-
-  filterBar.innerHTML = tierFilters.map(t => `
-    <button type="button" class="comp-filter-chip ${selectedWinnerTierFilter === t.id ? 'active' : ''}" data-tier-filter="${t.id}">
-      ${escapeHtml(t.label)}
-    </button>
-  `).join('');
-
-  filterBar.querySelectorAll('.comp-filter-chip').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedWinnerTierFilter = btn.getAttribute('data-tier-filter');
-      renderWinnersHallView();
-    });
-  });
-
-  const q = searchQuery.toLowerCase();
-  const filteredWinners = allWinners.filter(item => {
-    if (selectedWinnerTierFilter === 'TOP' && !item.award.isTopWinner) return false;
-    if (selectedWinnerTierFilter === 'EXCELLENCE' && item.award.isTopWinner) return false;
-    if (q) {
-      return matchesSearchQuery(item.photo, searchQuery);
-    }
-    return true;
-  });
+  const filteredWinners = searchQuery
+    ? allWinners.filter(item => matchesSearchQuery(item.photo, searchQuery))
+    : allWinners;
 
   if (filteredWinners.length === 0) {
     container.innerHTML = `
-      <div class="archive-empty-state">표시할 수상작이 없습니다. 파일명에 [1등], [대상], [최우수상], [우수상] 태그가 포함된 작품이 이곳에 자동 큐레이션됩니다.</div>
+      <div class="archive-empty-state">표시할 수상작이 없습니다. 파일명에 [1등] 태그가 붙은 작품이 이곳에 자동으로 모입니다.</div>
     `;
     return;
   }
@@ -1744,8 +1603,7 @@ function renderWinnersHallView() {
                   <h2 class="winner-pedestal-title">${escapeHtml(meta.pureTitle)}</h2>
                 </div>
                 <div class="winner-pedestal-author-box">
-                  <span class="winner-pedestal-author">${escapeHtml(meta.authorLabel || 'by 작가 미상')}</span>
-                  ${meta.cameraLabel ? `<span class="winner-pedestal-camera">📷 ${escapeHtml(meta.cameraLabel)}</span>` : ''}
+                  <span class="winner-pedestal-author">${escapeHtml(meta.authorLabel || '작가 미상')}</span>
                 </div>
               </div>
             </div>
@@ -2057,14 +1915,13 @@ function switchMainView(viewName) {
     if (searchInput) searchInput.placeholder = '공모전명, 연도, 참여 작가 검색...';
     renderCompetitionsArchiveView();
   } else if (currentMainView === 'competition-detail') {
-    if (searchInput) searchInput.placeholder = '작품, 작가, 카메라 검색...';
+    if (searchInput) searchInput.placeholder = '작품, 작가 검색...';
     renderCompetitionDetailView(selectedCompetitionId);
   } else if (currentMainView === 'winners') {
-    if (searchInput) searchInput.placeholder = '수상작 제목, 작가, 카메라 검색...';
+    if (searchInput) searchInput.placeholder = '수상작 제목, 작가 검색...';
     renderWinnersHallView();
   } else {
-    if (searchInput) searchInput.placeholder = '작품, 작가, 카메라 검색...';
-    renderOngoingHeroShowcase();
+    if (searchInput) searchInput.placeholder = '작품, 작가 검색...';
     applyFiltersAndRender();
   }
 }
@@ -2199,17 +2056,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 스크롤 시 상단 공지 배너 슬림 축소 애니메이션 (scrollY > 40px)
-  window.addEventListener('scroll', () => {
-    const banner = document.getElementById('ongoingBanner');
-    if (!banner || banner.classList.contains('hidden')) return;
-    if (window.scrollY > 40) {
-      banner.classList.add('is-compact');
-    } else {
-      banner.classList.remove('is-compact');
-    }
-  }, { passive: true });
-
   // 상단 메인 섹션 전환 메뉴 (갤러리 / 공모전 아카이브 / 역대 수상작 / 로컬 전용 게시판)
   document.getElementById('navViewGallery')?.addEventListener('click', () => switchMainView('gallery'));
   document.getElementById('navViewCompetitions')?.addEventListener('click', () => switchMainView('competitions'));
@@ -2282,63 +2128,32 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (currentMainView === 'winners') {
         renderWinnersHallView();
       } else {
-        renderOngoingHeroShowcase();
         applyFiltersAndRender();
       }
     });
   }
 
-  // 상단 슬림 공지 배너 클릭 -> 해당 [진행중] 폴더 탭 필터링 및 스크롤
-  document.getElementById('btnOngoingBanner').addEventListener('click', () => {
+  // 공모전 안내 팝업: 작품 보러가기 / 닫기 / X 버튼 / 바깥 영역 클릭
+  const ongoingModalBackdrop = document.getElementById('ongoingModalBackdrop');
+  document.getElementById('btnOngoingViewNow')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dismissOngoingPopup();
     if (currentOngoingFolder) {
       navigateToOngoingFolder(currentOngoingFolder);
     }
   });
-
-  // 화면 중앙 모달 팝업 닫기 동작 연결 (상단 X 버튼, 하단 닫기 버튼, 배경 오버레이 클릭, ESC 키)
-  const btnOngoingViewNow = document.getElementById('btnOngoingViewNow');
-  const btnOngoingClose = document.getElementById('btnOngoingClose');
-  const btnOngoingCloseTop = document.getElementById('btnOngoingCloseTop');
-  const ongoingModalBackdrop = document.getElementById('ongoingModalBackdrop');
-  const ongoingPopupCard = document.getElementById('ongoingPopup');
-
-  if (btnOngoingViewNow) {
-    btnOngoingViewNow.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dismissOngoingPopup();
-      if (currentOngoingFolder) {
-        navigateToOngoingFolder(currentOngoingFolder);
-      }
-    });
-  }
-
-  if (btnOngoingClose) {
-    btnOngoingClose.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dismissOngoingPopup();
-    });
-  }
-
-  if (btnOngoingCloseTop) {
-    btnOngoingCloseTop.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dismissOngoingPopup();
-    });
-  }
-
-  if (ongoingPopupCard) {
-    ongoingPopupCard.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-  }
-
-  if (ongoingModalBackdrop) {
-    ongoingModalBackdrop.addEventListener('click', (e) => {
-      if (e.target === ongoingModalBackdrop) {
-        dismissOngoingPopup();
-      }
-    });
-  }
+  document.getElementById('btnOngoingClose')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dismissOngoingPopup();
+  });
+  document.getElementById('btnOngoingCloseTop')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dismissOngoingPopup();
+  });
+  document.getElementById('ongoingPopup')?.addEventListener('click', e => e.stopPropagation());
+  ongoingModalBackdrop?.addEventListener('click', (e) => {
+    if (e.target === ongoingModalBackdrop) dismissOngoingPopup();
+  });
 
   // 새로고침(↻) 버튼: 캐시 무시하고 구글 드라이브 최신 폴더명/파일명 및 구글 시트 게시글 즉시 반영
   document.getElementById('btnRefreshGallery').addEventListener('click', () => {

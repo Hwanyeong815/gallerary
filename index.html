@@ -52,7 +52,7 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </button>
-          <input type="text" id="searchInput" placeholder="작품, 작가, 카메라 검색..." aria-label="작품, 작가, 카메라 검색" />
+          <input type="text" id="searchInput" placeholder="작품, 작가 검색..." aria-label="작품, 작가 검색" />
         </div>
 
         <button type="button" id="btnRefreshGallery" class="nav-icon-btn" title="구글 드라이브 최신 목록 새로고침" aria-label="구글 드라이브 최신 목록 새로고침">
@@ -80,15 +80,6 @@
         </button>
       </div>
     </div>
-
-    <!-- 상단 헤더 바로 아래 고정(Sticky) 공지 배너 (스크롤 시 슬림 축소 애니메이션 적용) -->
-    <div id="ongoingBanner" class="ongoing-ribbon hidden" role="region" aria-label="진행 중인 공모전 안내">
-      <button type="button" id="btnOngoingBanner" class="ongoing-ribbon-btn">
-        <span class="live-dot" aria-hidden="true"></span>
-        <span id="ongoingBannerText" class="ongoing-ribbon-text">현재 [공모전] 진행 중입니다</span>
-        <span class="ongoing-ribbon-cta">작품 보러가기 &rarr;</span>
-      </button>
-    </div>
   </header>
 
   <!-- [뷰 1] 사진 갤러리 화면 컨테이너 -->
@@ -109,9 +100,6 @@
     <!-- 메인 벤토 & 매거진 갤러리 영역 -->
     <main class="gallery-stage">
       <div class="gallery-container">
-        <!-- 현재 진행 중인 공모전 상단 에디토리얼 스포트라이트 쇼케이스 -->
-        <div id="ongoingHeroCardWrap" class="ongoing-hero-showcase hidden"></div>
-
         <div id="statusBanner" class="status-banner hidden"></div>
 
         <!-- 비율 보존형 비대칭 벤토/매거진 그리드 -->
@@ -124,7 +112,6 @@
   <section id="competitionsArchiveView" class="comp-archive-stage hidden" aria-label="공모전 아카이브">
     <div class="gallery-container">
       <div class="archive-page-header">
-        <p class="hero-eyebrow">COMPETITION ARCHIVE</p>
         <h1 class="archive-page-title">공모전 아카이브</h1>
         <p class="archive-page-subtitle">
           진행 중인 공모전과 종료된 역대 전시를 연도별로 영구 보존합니다. 각 공모전을 선택하면 수상작과 전체 출품작, 참여 작가를 감상할 수 있습니다.
@@ -154,17 +141,14 @@
     </div>
   </section>
 
-  <!-- [뷰 4] 역대 수상작 (대상 / 최우수상 / 우승·1등 / 우수상 등급별 큐레이션 & 상세 뷰어 연결) -->
+  <!-- [뷰 4] 역대 수상작 (각 공모전 1등 작품 모음 & 상세 뷰어 연결) -->
   <section id="winnersHallView" class="winners-hall-stage hidden" aria-label="역대 수상작 아카이브">
     <div class="gallery-container">
       <div class="archive-page-header">
-        <p class="hero-eyebrow">HALL OF FAME · AWARD WINNERS</p>
         <h1 class="archive-page-title">역대 수상작</h1>
         <p class="archive-page-subtitle">
-          각 공모전에서 선정된 역대 수상작들을 수상 등급별로 보존하고 전시하는 큐레이션 컬렉션입니다.
+          각 공모전에서 선정된 역대 수상작들을 보존하고 전시하는 컬렉션입니다.
         </p>
-        <!-- 수상 등급 필터 바 -->
-        <div id="winnerTierFilterBar" class="comp-filter-bar" role="tablist" aria-label="수상 등급 필터"></div>
       </div>
 
       <div id="winnersHallContainer" class="winners-hall-container" aria-live="polite"></div>
@@ -259,7 +243,7 @@
         <span id="lightboxFolderTag" class="lightbox-folder-pill">Collection</span>
         <div class="lightbox-title-group">
           <h2 id="lightboxTitle" class="lightbox-filename">Untitled</h2>
-          <span id="lightboxAuthor" class="lightbox-author">by 익명</span>
+          <span id="lightboxAuthor" class="lightbox-author hidden"></span>
         </div>
         <span id="lightboxResolution" class="lightbox-dimensions"></span>
       </div>
@@ -302,10 +286,10 @@
     </div>
   </div>
 
-  <!-- 접속 및 새로고침(F5) 시 화면 정중앙 모달 팝업 ([진행중] 폴더 감지 시 표시) -->
+  <!-- 접속 시 화면 가운데 공모전 안내 팝업 ([진행중] 폴더가 있을 때만 표시) -->
   <div id="ongoingModalBackdrop" class="ongoing-modal-backdrop hidden" role="dialog" aria-labelledby="ongoingPopupTitle" aria-modal="true">
     <div id="ongoingPopup" class="ongoing-modal-card">
-      <button type="button" id="btnOngoingCloseTop" class="ongoing-modal-close-x" aria-label="모달 닫기">
+      <button type="button" id="btnOngoingCloseTop" class="ongoing-modal-close-x" aria-label="팝업 닫기">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -314,14 +298,13 @@
       <div class="ongoing-modal-badge-row">
         <span class="ongoing-live-badge">
           <span class="live-dot"></span>
-          <span id="ongoingLiveBadgeText">진행중</span>
+          <span>진행중</span>
         </span>
       </div>
-      <h3 id="ongoingPopupTitle" class="ongoing-modal-title">현재 2026 겨울 공모전 진행 중입니다</h3>
+      <h3 id="ongoingPopupTitle" class="ongoing-modal-title">현재 공모전 진행 중입니다</h3>
       <p id="ongoingPopupDesc" class="ongoing-modal-desc">
         방에서 투표 진행중인 사진입니다.<br />투표는 오픈채팅 톡방에서 부탁드려요.
       </p>
-      <!-- 모달 내 진행중 후보작 미리보기 그리드 -->
       <div id="ongoingModalPreviewGrid" class="ongoing-preview-grid" aria-label="투표 후보작 미리보기"></div>
       <div class="ongoing-modal-actions">
         <button type="button" id="btnOngoingViewNow" class="ongoing-btn-primary">작품 보러가기</button>
