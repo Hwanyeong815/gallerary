@@ -8,11 +8,11 @@
 (function () {
   const MOODS = [
     'win98', 'hacker', 'gravity', 'viewfinder', 'homepage',
-    'upside', 'space', 'board', 'darkroom', 'fog', 'museum', 'snow', 'pixel'
+    'upside', 'space', 'board', 'darkroom', 'fog', 'museum', 'snow', 'pixel', 'vn'
   ];
   const ICONS = {
     win98: '🪟', hacker: '💻', gravity: '🍎', viewfinder: '📷', homepage: '💌',
-    upside: '🙃', space: '🚀', board: '💬', darkroom: '🔴', fog: '🌧️', museum: '🖼️', snow: '❄️', pixel: '👾',
+    upside: '🙃', space: '🚀', board: '💬', darkroom: '🔴', fog: '🌧️', museum: '🖼️', snow: '❄️', pixel: '👾', vn: '💕',
     random: '🎲', normal: '↩️'
   };
   const GALMURI_CSS = 'https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css';
@@ -24,13 +24,14 @@
       names: {
         win98: '윈도우 98', hacker: '해커 터미널', gravity: '중력', viewfinder: '카메라 뷰파인더', homepage: '미니홈피',
         upside: '거꾸로', space: '우주 공간', board: '커뮤니티 게시판', darkroom: '암실', fog: '김 서린 창문',
-        museum: '미술관 경매', snow: '첫눈', pixel: '8비트', random: '아무거나', normal: '원래대로'
+        museum: '미술관 경매', snow: '첫눈', pixel: '8비트', vn: '미연시', random: '아무거나', normal: '원래대로'
       },
       descs: {
         win98: '회색 창과 작업 표시줄', hacker: '검은 화면 초록 글자', gravity: '다 떨어진다, 잡아서 던지기',
         viewfinder: '초점 맞추고 찰칵', homepage: '2000년대 감성 홈피', upside: '세상이 뒤집혔다',
         space: '별 사이를 떠다니는 사진', board: '사진이 게시글이 된다', darkroom: '빨간 불 아래 현상 중',
         fog: '문질러서 닦아 보기', museum: '추정가 38억', snow: '액자 위에 눈이 쌓인다', pixel: '도트로 깨진 사진',
+        vn: '마오 · 소라 · 후드가 사진을 소개해요',
         random: '뭐가 나올지 몰라요', normal: '처음 모습으로'
       },
       pickerTitle: '기분전환',
@@ -67,6 +68,54 @@
       snowHint: '사진에 마우스를 올리면 쌓인 눈이 털려요',
       pixelScore: n => ` · HI-SCORE ${String(n).padStart(6, '0')}`,
       pixelStart: '▶ PRESS START',
+      vn: {
+        names: { mao: '마오', sora: '소라', hood: '후드' },
+        choices: { big: '이 사진 크게 볼래', praise: '칭찬해 주기 ♥', next: '다음 사진 보여 줘' },
+        affinity: '호감도',
+        save: '세이브 슬롯이 가득 찼어요… 대신 사진은 갤러리에 전부 저장돼 있어요!',
+        hint: '화면을 누르거나 스페이스를 누르면 다음 대사로 넘어가요',
+        lines: {
+          mao: {
+            intro: ['어서 와요, 선배! 오늘은 저희가 사진 구경 시켜 줄게요!'],
+            own: ['이거 제 사진이에요! {topic} 주제 때 후지 중형으로 찍었어요. 무거웠지만 그만한 가치가 있죠?', '짠! 마오 작품이에요. {topic}… 이번엔 꽤 자신 있었다고요!'],
+            ownWin: ['후후, 이건 제가 우승한 사진! 소라 선배를 이긴 날이라 절대 못 잊어요!'],
+            sora: ['소라 선배 사진이네요… 분하지만 인정. 하늘 색감은 진짜 못 이기겠어요.', '소라 선배는 니콘 하나로 어떻게 이렇게 찍는 거지…?'],
+            soraWin: ['또 소라 선배 우승작… 다음엔 꼭 이길 거예요. 진짜로!'],
+            hood: ['후드 선배 사진이다! 평소엔 안 보이다가 이런 걸 툭 내놓는다니까요.'],
+            hoodWin: ['후드 선배는 한 번 나오면 바로 우승이라니까요. 반칙이에요!'],
+            other: ['{author} 님 사진이에요! 저도 이 구도 따라 해 봐야지~', '{author} 님은 {topic} 주제를 이렇게 풀었구나. 오오…!'],
+            ongoing: ['이건 지금 투표 중인 작품이에요. 누가 찍었는지는… 비밀! 히히.'],
+            flavor: ['참고로 오늘도 카메라 세 대 들고 왔어요. 어깨가 좀… 아프네요.', '야시카로 찍은 필름은 아직 현상 중이에요. 기대해 주세요!', '저 소마대전 한 번도 안 빠졌어요! 개근상 같은 거 없나요?'],
+            thanks: ['헤헤, 칭찬받았다! 오늘 하루 종일 기분 좋을 거예요!']
+          },
+          sora: {
+            intro: ['어서 와. 오늘은 우리가 사진을 안내해 줄게. 천천히 봐.'],
+            own: ['내 사진이네. {topic} 주제였지. Z6III로 하늘 톤 맞추느라 꽤 기다렸어.', '이건 내가 찍은 거야. 빛이 딱 좋은 순간이었거든.'],
+            ownWin: ['이건 우승작이야. …뭐, 당연한 결과지만. 후훗.'],
+            mao: ['마오 사진이구나. 열정만큼은 동아리 최고야. 나도 방심 못 하겠는걸?', '카메라를 세 대나 들고 다니더니… 결과물은 확실하네, 마오.'],
+            maoWin: ['이번엔 마오가 이겼지. 인정할게. …다음은 없겠지만.'],
+            hood: ['후드 사진… 말수는 적어도 사진은 늘 많은 걸 말해.'],
+            hoodWin: ['후드는 가끔 나와서 이렇게 가져가 버린다니까. 무서운 아이야.'],
+            other: ['{author}의 사진이야. 빛을 읽는 눈이 좋네.', '{topic} 주제를 이렇게 해석했구나, {author}. 좋은 시선이야.'],
+            ongoing: ['투표 중인 작품이니까 누가 찍었는지는 아직 말 못 해. 너는 몇 번에 투표할 거야?'],
+            flavor: ['좋은 사진은 장비보다 기다림이야. 이 장면도 그랬을 거야.', '하늘을 찍을 땐 노출을 살짝 낮춰 봐. 색이 깊어져.'],
+            thanks: ['…칭찬은 익숙하지만, 네가 해 주니까 조금 다르네.']
+          },
+          hood: {
+            intro: ['…왔구나. …사진, 같이 볼래?'],
+            own: ['…이거, 내 거. {topic}. 소니로 찍었어.', '…내 사진. 오래 기다렸어. 빛이 들어올 때까지.'],
+            ownWin: ['…우승했었지. 햇빛이 좋았어. 그게 다야.'],
+            mao: ['…마오. 카메라 세 대 들고 다니는 애. …사진은 좋아.'],
+            maoWin: ['…마오가 이겼네. 축하해. (작게 박수)'],
+            sora: ['…소라 선배. 역시 하늘은 잘 찍어.'],
+            soraWin: ['…또 소라 선배. 놀랍지도 않아.'],
+            other: ['…{author}. 이거, 좋네.', '…{topic}. 이렇게 찍을 수도 있구나.'],
+            ongoing: ['…투표 중. 누군지는 비밀.'],
+            flavor: ['…(하품) 아, 미안. 계속 봐.', '…필름은 니콘으로 찍어. 수동이라 좋아.'],
+            thanks: ['…! …고, 고마워.']
+          }
+        }
+      },
       board: {
         title: '각자의 프레임 갤러리',
         info: '사진 찍는 사람들 모임 · 매니저 웰컴',
@@ -97,13 +146,14 @@
       names: {
         win98: 'Windows 98', hacker: 'Hacker terminal', gravity: 'Gravity', viewfinder: 'Camera viewfinder', homepage: 'Retro homepage',
         upside: 'Upside down', space: 'Outer space', board: 'Forum board', darkroom: 'Darkroom', fog: 'Foggy window',
-        museum: 'Museum auction', snow: 'First snow', pixel: '8-bit', random: 'Surprise me', normal: 'Back to normal'
+        museum: 'Museum auction', snow: 'First snow', pixel: '8-bit', vn: 'Dating sim', random: 'Surprise me', normal: 'Back to normal'
       },
       descs: {
         win98: 'Gray windows and a taskbar', hacker: 'Green text on black', gravity: 'Everything falls, throw it around',
         viewfinder: 'Focus and click', homepage: '2000s personal homepage', upside: 'The world flipped',
         space: 'Photos floating among stars', board: 'Photos become forum posts', darkroom: 'Developing under red light',
         fog: 'Wipe the glass to see', museum: 'Estimate: $2.9M', snow: 'Snow piles on the frames', pixel: 'Pixelated photos',
+        vn: 'Mao, Sora and Hood show you the photos',
         random: 'No idea what you’ll get', normal: 'The usual look'
       },
       pickerTitle: 'Mood swap',
@@ -140,6 +190,54 @@
       snowHint: 'Hover a photo to shake the snow off',
       pixelScore: n => ` · HI-SCORE ${String(n).padStart(6, '0')}`,
       pixelStart: '▶ PRESS START',
+      vn: {
+        names: { mao: 'Mao', sora: 'Sora', hood: 'Hood' },
+        choices: { big: 'Show this one bigger', praise: 'Give a compliment ♥', next: 'Next photo, please' },
+        affinity: 'Affection',
+        save: 'Save slots are full… but every photo is saved in the gallery!',
+        hint: 'Click or press Space to continue',
+        lines: {
+          mao: {
+            intro: ['Welcome! Today we’re giving you the photo tour!'],
+            own: ['This one’s mine! Shot it on the Fuji medium format for {topic}. Heavy, but worth it, right?', 'Ta-da! A Mao original. I was pretty confident about {topic}!'],
+            ownWin: ['Hehe, this is the one that won! The day I beat Sora. Never forgetting it!'],
+            sora: ['Sora’s photo… annoying, but fine. Nobody beats her skies.', 'How does Sora do this with just one Nikon…?'],
+            soraWin: ['Another Sora win… I’ll beat her next time. For real!'],
+            hood: ['A Hood photo! Never around, then drops something like this.'],
+            hoodWin: ['Hood shows up once and wins. That’s cheating!'],
+            other: ['This is {author}’s! I’m stealing this composition~', 'So that’s how {author} took on {topic}. Ooh…!'],
+            ongoing: ['This one’s still up for a vote. Who shot it? …Secret! Hehe.'],
+            flavor: ['I brought three cameras again today. My shoulders… hurt.', 'My Yashica film is still being developed. Stay tuned!', 'I haven’t missed a single round! Is there a perfect-attendance award?'],
+            thanks: ['Hehe, a compliment! I’ll be happy all day!']
+          },
+          sora: {
+            intro: ['Welcome. We’ll show you around the photos today. Take your time.'],
+            own: ['Mine. The {topic} round. I waited a while to get the sky tones right on the Z6III.', 'I took this one. The light was just right.'],
+            ownWin: ['This one won. …Well, of course. Hehe.'],
+            mao: ['Mao’s photo. Nobody in the club has more passion. I can’t let my guard down.', 'All those cameras… and the results show, Mao.'],
+            maoWin: ['Mao won this one. I’ll admit it. …It won’t happen again.'],
+            hood: ['Hood’s photo… quiet, but the pictures always say a lot.'],
+            hoodWin: ['Hood shows up now and then and just takes it. Scary kid.'],
+            other: ['This is {author}’s. A good eye for light.', 'So that’s how you read {topic}, {author}. Nice.'],
+            ongoing: ['It’s still being voted on, so I can’t say who took it. Which number are you voting for?'],
+            flavor: ['Good photos come from patience more than gear. This one too, I bet.', 'For skies, try a little less exposure. The color gets deeper.'],
+            thanks: ['…I’m used to compliments, but it feels different from you.']
+          },
+          hood: {
+            intro: ['…You came. …Want to look at photos together?'],
+            own: ['…This is mine. {topic}. Shot on the Sony.', '…My photo. I waited a long time for the light.'],
+            ownWin: ['…It won. The sunlight was nice. That’s all.'],
+            mao: ['…Mao. The one with three cameras. …Nice photo.'],
+            maoWin: ['…Mao won. Congrats. (quiet clapping)'],
+            sora: ['…Sora. She’s good at skies.'],
+            soraWin: ['…Sora again. Not surprised.'],
+            other: ['…{author}. This is nice.', '…{topic}. You can shoot it like this, huh.'],
+            ongoing: ['…Being voted on. Who took it is a secret.'],
+            flavor: ['…(yawn) Oh, sorry. Keep looking.', '…I shoot film on the Nikon. Manual. I like it.'],
+            thanks: ['…! …Th-thanks.']
+          }
+        }
+      },
       board: {
         title: 'Frames of Our Own board',
         info: 'A club for people who take photos · Manager 웰컴',
@@ -1694,6 +1792,315 @@
     };
   }
 
+  /* ======================================================================
+     14. 미연시: 갤러리 사진이 배경, 대사가 넘어갈 때마다 마오 · 소라 · 후드 중 한 명이 등장
+         대사는 사진 정보로 만듦 (누가 찍었나 · 우승했나 · 투표 중인가). 투표 중인 작품은 작가를 숨김
+         가끔 선택지(크게 보기 · 칭찬하기 · 다음), 위쪽에 호감도, AUTO · SKIP · SAVE
+     ====================================================================== */
+  const VN_CHARS = {
+    mao: { img: './vn/mao.webp', color: '#ff8a3d', koName: '마오' },
+    sora: { img: './vn/sora.webp', color: '#4aa3e8', koName: '소라' },
+    hood: { img: './vn/hood.webp', color: '#9096ab', koName: '후드' }
+  };
+  const VN_KEYS = Object.keys(VN_CHARS);
+  const VN_SPOTS = ['left', 'center', 'right'];
+
+  function setupVN() {
+    const root = document.documentElement;
+    const V = () => L('vn');
+    const pickOne = list => list[Math.floor(Math.random() * list.length)];
+
+    // 사진 순서: 지금 갤러리 목록(없으면 전체)을 섞어서
+    const source = (document.getElementById('photoGrid') || {})._paged;
+    const base = (source && source.photos && source.photos.length ? source.photos : (typeof allPhotos !== 'undefined' ? allPhotos : [])).slice();
+    for (let i = base.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [base[i], base[j]] = [base[j], base[i]];
+    }
+    const photos = base;
+    let photoIdx = -1;
+
+    const stage = document.createElement('div');
+    stage.className = 'vn-stage';
+    stage.innerHTML = `
+      <div class="vn-bg"></div>
+      <div class="vn-hud">
+        <div class="vn-hearts"></div>
+        <div class="vn-menu">
+          <button type="button" data-vn="auto">AUTO</button>
+          <button type="button" data-vn="skip">SKIP</button>
+          <button type="button" data-vn="save">SAVE</button>
+        </div>
+      </div>
+      <p class="vn-caption"></p>
+      <img class="vn-sprite" alt="" draggable="false" />
+      <div class="vn-box" aria-live="polite">
+        <div class="vn-name"></div>
+        <p class="vn-text"></p>
+        <span class="vn-next" aria-hidden="true">▼</span>
+        <div class="vn-choices hidden"></div>
+      </div>
+    `;
+    document.body.appendChild(stage);
+    root.classList.add('vn-on');
+    VN_KEYS.forEach(k => { const im = new Image(); im.src = VN_CHARS[k].img; });
+
+    const $ = sel => stage.querySelector(sel);
+    const bg = $('.vn-bg');
+    const sprite = $('.vn-sprite');
+    const nameEl = $('.vn-name');
+    const textEl = $('.vn-text');
+    const nextEl = $('.vn-next');
+    const choicesEl = $('.vn-choices');
+    const captionEl = $('.vn-caption');
+
+    const affinity = { mao: 0, sora: 0, hood: 0 };
+    let speaker = null;
+    let spot = 'center';
+    let full = '';
+    let typing = null;
+    let autoOn = false;
+    let skipOn = false;
+    let autoTimer = null;
+    let step = 0;
+    let waitingChoice = false;
+
+    const renderHearts = () => {
+      $('.vn-hearts').innerHTML = `<span class="vn-hearts-label">${esc(V().affinity)}</span>` + VN_KEYS.map(k => `
+        <span class="vn-heart" data-char="${k}" style="--c:${VN_CHARS[k].color}">
+          <b>${esc(V().names[k])}</b><i aria-hidden="true">♥</i><em>${affinity[k]}</em>
+        </span>`).join('');
+    };
+
+    // 배경: 사진 전체가 보이게 가운데 놓고, 남는 자리는 같은 사진을 흐리게 깔아서 채움
+    const showPhoto = photo => {
+      const url = photo.fullUrl || photo.thumbUrl;
+      const slide = document.createElement('div');
+      slide.className = 'vn-slide';
+      slide.innerHTML = `<img class="vn-fill" alt="" referrerpolicy="no-referrer" /><img class="vn-photo" alt="" referrerpolicy="no-referrer" />`;
+      const [fill, main] = slide.querySelectorAll('img');
+      fill.src = photo.thumbUrl || url;
+      main.src = url;
+      bg.appendChild(slide);
+      requestAnimationFrame(() => slide.classList.add('is-in'));
+      [...bg.children].slice(0, -2).forEach(old => old.remove());
+      setTimeout(() => { [...bg.children].slice(0, -1).forEach(old => old.classList.add('is-out')); }, 30);
+
+      const meta = typeof getDisplayMeta === 'function' ? getDisplayMeta(photo) : { isAnonymous: true };
+      const round = typeof getFolderFullName === 'function' ? getFolderFullName(photo.folderName) : '';
+      captionEl.textContent = [round, meta.isAnonymous ? meta.title : meta.authorLabel].filter(Boolean).join(' · ');
+
+      const next = photos[(photoIdx + 1) % photos.length];
+      if (next) { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.src = next.fullUrl || next.thumbUrl; }
+    };
+
+    // 사진에 맞는 대사 고르기
+    const topicOf = photo => {
+      const group = typeof getFolderGroupName === 'function' ? getFolderGroupName(photo.folderName) : '';
+      const short = typeof getFolderShortName === 'function' ? getFolderShortName(photo.folderName) : '';
+      return short.replace(/\d+\s*차/, '').split(group).join(' ').replace(/\s{2,}/g, ' ').trim() || short;
+    };
+    const lineFor = (who, photo) => {
+      const lines = V().lines[who];
+      const meta = typeof getDisplayMeta === 'function' ? getDisplayMeta(photo) : { isAnonymous: true };
+      if (meta.isAnonymous) return pickOne(lines.ongoing);
+      if (Math.random() < 0.18) return pickOne(lines.flavor);
+      const author = meta.authorLabel || '';
+      const award = typeof getPhotoAward === 'function' ? getPhotoAward(photo) : null;
+      const won = Boolean(award && award.isTopWinner);
+      const authorKey = VN_KEYS.find(k => VN_CHARS[k].koName === author);
+      let pool;
+      if (authorKey === who) pool = won ? lines.ownWin : lines.own;
+      else if (authorKey) pool = (won && lines[`${authorKey}Win`]) || lines[authorKey];
+      else pool = author ? lines.other : lines.flavor;
+      const shownAuthor = authorKey ? V().names[authorKey] : author;
+      return pickOne(pool).replace(/\{author\}/g, shownAuthor).replace(/\{topic\}/g, topicOf(photo));
+    };
+
+    const clearAuto = () => { if (autoTimer) clearTimeout(autoTimer); autoTimer = null; };
+    const scheduleAuto = () => {
+      clearAuto();
+      if (!(autoOn || skipOn) || waitingChoice) return;
+      autoTimer = setTimeout(advance, skipOn ? 450 : 2400);
+    };
+
+    const finishTyping = () => {
+      if (typing) clearInterval(typing);
+      typing = null;
+      textEl.textContent = full;
+      nextEl.classList.remove('is-hidden');
+      scheduleAuto();
+    };
+
+    const say = (who, text, newSpot = true) => {
+      clearAuto();
+      if (who !== speaker || newSpot) {
+        const spots = VN_SPOTS.filter(s => who !== speaker || s !== spot);
+        spot = pickOne(spots);
+        sprite.classList.remove('is-in');
+        void sprite.offsetWidth;
+        sprite.src = VN_CHARS[who].img;
+        sprite.dataset.spot = spot;
+        sprite.alt = V().names[who];
+        sprite.classList.add('is-in');
+      }
+      speaker = who;
+      nameEl.textContent = V().names[who];
+      nameEl.style.setProperty('--c', VN_CHARS[who].color);
+      full = text;
+      textEl.textContent = '';
+      nextEl.classList.add('is-hidden');
+      if (typing) clearInterval(typing);
+      if (reducedMotion || skipOn) {
+        finishTyping();
+        return;
+      }
+      let i = 0;
+      const chars = [...text];
+      typing = setInterval(() => {
+        i += 1;
+        textEl.textContent = chars.slice(0, i).join('');
+        if (i >= chars.length) finishTyping();
+      }, 32);
+    };
+
+    const nextPhotoLine = () => {
+      if (!photos.length) return;
+      photoIdx = (photoIdx + 1) % photos.length;
+      const photo = photos[photoIdx];
+      showPhoto(photo);
+      // 대사가 넘어갈 때마다 아무나 한 명 (방금 말한 사람은 되도록 피함)
+      const who = pickOne(VN_KEYS.filter(k => k !== speaker)) || pickOne(VN_KEYS);
+      say(who, lineFor(who, photo));
+    };
+
+    const showChoices = () => {
+      waitingChoice = true;
+      clearAuto();
+      const C = V().choices;
+      choicesEl.innerHTML = ['big', 'praise', 'next'].map(k => `<button type="button" class="vn-choice" data-choice="${k}">${esc(C[k])}</button>`).join('');
+      choicesEl.classList.remove('hidden');
+      nextEl.classList.add('is-hidden');
+      const first = choicesEl.querySelector('button');
+      if (first) first.focus({ preventScroll: true });
+    };
+
+    const hideChoices = () => {
+      waitingChoice = false;
+      choicesEl.classList.add('hidden');
+      choicesEl.innerHTML = '';
+    };
+
+    const heartPop = who => {
+      const target = stage.querySelector(`.vn-heart[data-char="${who}"]`);
+      if (!target) return;
+      target.classList.remove('is-pop');
+      void target.offsetWidth;
+      target.classList.add('is-pop');
+    };
+
+    function advance() {
+      if (waitingChoice) return;
+      if (typing) {
+        finishTyping();
+        return;
+      }
+      step += 1;
+      if (step % 5 === 0 && photoIdx >= 0) {
+        showChoices();
+        return;
+      }
+      nextPhotoLine();
+    }
+
+    const onChoice = key => {
+      hideChoices();
+      if (key === 'big') {
+        const photo = photos[photoIdx];
+        if (photo && typeof openLightbox === 'function') {
+          filteredPhotos = photos;
+          lightboxShowAwards = false;
+          openLightbox(photoIdx);
+        }
+        say(speaker, pickOne(V().lines[speaker].flavor), false);
+      } else if (key === 'praise') {
+        affinity[speaker] += 1;
+        renderHearts();
+        heartPop(speaker);
+        say(speaker, pickOne(V().lines[speaker].thanks), false);
+      } else {
+        nextPhotoLine();
+      }
+    };
+
+    const lightboxOpen = () => {
+      const lb = document.getElementById('lightboxModal');
+      return lb && !lb.classList.contains('hidden');
+    };
+
+    stage.addEventListener('click', e => {
+      const menu = e.target.closest('[data-vn]');
+      if (menu) {
+        const act = menu.getAttribute('data-vn');
+        if (act === 'auto') {
+          autoOn = !autoOn;
+          menu.classList.toggle('is-on', autoOn);
+          if (autoOn && !typing) scheduleAuto();
+          if (!autoOn) clearAuto();
+        } else if (act === 'skip') {
+          skipOn = !skipOn;
+          menu.classList.toggle('is-on', skipOn);
+          if (skipOn) { if (typing) finishTyping(); else scheduleAuto(); } else clearAuto();
+        } else if (act === 'save') {
+          toast(V().save);
+        }
+        return;
+      }
+      const choice = e.target.closest('[data-choice]');
+      if (choice) {
+        onChoice(choice.getAttribute('data-choice'));
+        return;
+      }
+      advance();
+    });
+
+    const onKey = e => {
+      if (pickerEl || lightboxOpen()) return;
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if ((e.key === ' ' || e.key === 'Enter') && !(waitingChoice && tag === 'BUTTON')) {
+        e.preventDefault();
+        advance();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+
+    renderHearts();
+    // 시작: 첫 사진과 함께 인사
+    if (photos.length) {
+      photoIdx = 0;
+      showPhoto(photos[0]);
+    }
+    const first = pickOne(VN_KEYS);
+    say(first, pickOne(V().lines[first].intro));
+    setTimeout(() => toast(V().hint), 2900);
+
+    return {
+      refresh() {
+        renderHearts();
+        if (speaker) nameEl.textContent = V().names[speaker];
+        if (waitingChoice) showChoices();
+      },
+      cleanup() {
+        clearAuto();
+        if (typing) clearInterval(typing);
+        document.removeEventListener('keydown', onKey);
+        root.classList.remove('vn-on');
+        stage.remove();
+      }
+    };
+  }
+
   const SETUPS = {
     win98: setupWin98,
     hacker: setupHacker,
@@ -1707,7 +2114,8 @@
     fog: setupFog,
     museum: setupMuseum,
     snow: setupSnow,
-    pixel: setupPixel
+    pixel: setupPixel,
+    vn: setupVN
   };
 
   /* ---------- 페이지를 열 때 10번에 한 번은 아무 분위기나 저절로 켜짐 ----------
