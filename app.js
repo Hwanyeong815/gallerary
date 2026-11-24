@@ -1042,13 +1042,15 @@ async function fetchFolderTreeViaPublicEmbed(rootFolderId, bustCache = false, ma
   const photos = [];
   const folders = [];
   const visited = new Set();
+  // 중계 서버로 못 읽은 폴더 수 (하나라도 있으면 일부가 빠진 목록일 수 있음)
+  let failed = 0;
 
   async function traverse(folderId, folderName, depth) {
     if (visited.has(folderId) || depth > maxDepth) return;
     visited.add(folderId);
 
     const html = await fetchSingleFolderEmbedHtml(folderId, bustCache);
-    if (!html) return;
+    if (!html) { failed += 1; return; }
 
     const { subfolders, files, texts } = parseEntriesFromEmbedHtml(html);
 
@@ -1091,7 +1093,7 @@ async function fetchFolderTreeViaPublicEmbed(rootFolderId, bustCache = false, ma
   }
 
   await traverse(rootFolderId, '기본 폴더', 0);
-  return { folders, photos };
+  return { folders, photos, failed };
 }
 
 /* 구글 Drive API(키 필요)로 폴더 읽기: 브라우저에서 바로 읽을 수 있어 중계 서버가 필요 없음.
@@ -1282,11 +1284,13 @@ function hasFastLiveSource() {
   return Boolean(CONFIGURED_API_KEY) || isLocalServerHost();
 }
 
+// 읽는 방법마다 순서가 다를 수 있어서 정렬해서 비교 (순서만 다르면 같은 목록)
 function getDriveDataSignature(photos, folders) {
-  return JSON.stringify([
-    (folders || []).map(f => [f.id, f.name, f.description || '', f.descriptionEn || '']),
-    (photos || []).map(p => [p.id, p.name, p.folderId, p.folderName])
-  ]);
+  const rows = [
+    ...(folders || []).map(f => JSON.stringify(['f', f.id, f.name, f.description || '', f.descriptionEn || ''])),
+    ...(photos || []).map(p => JSON.stringify(['p', p.id, p.name, p.folderId, p.folderName]))
+  ];
+  return rows.sort().join('|');
 }
 
 async function readCachedDriveList(folderId) {
@@ -1425,9 +1429,23 @@ async function loadDriveFolder(folderInput, forceLive = false) {
 
     // 저장된 목록을 먼저 보여 준 경우: 드라이브를 다 읽은 뒤 달라졌을 때만 다시 그림
     // 저장된 목록도 없는 경우: 공개 중계 서버로라도 읽어 봄
-    const live = fast
-      ? await livePromise
-      : (cached ? null : await readLiveDriveList(folderId, { allowRelays: true }));
+    // 사이트(GitHub Pages)에서는 저장된 목록이 몇 시간 늦을 수 있어서, 먼저 보여 준 뒤 공개 중계 서버로 드라이브를 다시 읽음
+    // (새 사진 · 새 폴더 · 폴더 이름의 '진행중'을 바로 반영. 폴더를 하나라도 못 읽으면 저장된 목록을 그대로 둠)
+    let live = fast ? await livePromise : null;
+    if (!fast) {
+      const relay = await fetchFolderTreeViaPublicEmbed(folderId, true);
+      if (relay.photos.length > 0 && (!cached || relay.failed === 0)) {
+        const knownSizes = new Map((cached ? cached.photos : []).map(p => [p.id, p]));
+        relay.photos.forEach(p => {
+          const known = knownSizes.get(p.id);
+          if (known && known.width && known.height) {
+            p.width = known.width;
+            p.height = known.height;
+          }
+        });
+        live = relay;
+      }
+    }
 
     if (live && getDriveDataSignature(live.photos, live.folders) !== driveDataSignature) {
       applyDriveData(live.photos, live.folders);

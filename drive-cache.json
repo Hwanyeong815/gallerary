@@ -1,8 +1,8 @@
 {
   "ok": true,
   "folderId": "1o3QBRz4f87QC9L-c2wuBADjgb28uUMmw",
-  "updatedAt": "2026-11-19T05:01:21.753Z",
-  "count": 22,
+  "updatedAt": "2026-11-24T00:00:47.220Z",
+  "count": 24,
   "folders": [
     {
       "id": "1hI_YjTlHiIQ0r7X0Nq56rvRuXd9tCHtz",
@@ -43,6 +43,10 @@
     {
       "id": "1Bq4hYSdoOhOOwK00WXUY4NMGNAVlGYLQ",
       "name": "소마대전 / 8차 소마대전 전봇대,가로등(마오 우승)"
+    },
+    {
+      "id": "1_jGRhNT38yg8O0-u6GowtIqwJemFEEQV",
+      "name": "소마대전 / 9차 소마대전 행복"
     }
   ],
   "photos": [
@@ -329,6 +333,32 @@
       "thumbUrl": "https://drive.google.com/thumbnail?id=10gI3vBLZVXtHmASooBMhAcmIt6dJzVBq&sz=w800",
       "fullUrl": "https://drive.google.com/thumbnail?id=10gI3vBLZVXtHmASooBMhAcmIt6dJzVBq&sz=w2000",
       "driveUrl": "https://drive.google.com/file/d/10gI3vBLZVXtHmASooBMhAcmIt6dJzVBq/view",
+      "width": 200,
+      "height": 300
+    },
+    {
+      "id": "1gIwfBUWcMQH6Hd-Siv6fE1e-jBmk5KGN",
+      "name": "KakaoTalk_20261123_220307443.jpg",
+      "folderId": "1_jGRhNT38yg8O0-u6GowtIqwJemFEEQV",
+      "folderName": "소마대전 / 9차 소마대전 행복",
+      "modifiedTime": 1,
+      "uploadIndex": 1,
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1gIwfBUWcMQH6Hd-Siv6fE1e-jBmk5KGN&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1gIwfBUWcMQH6Hd-Siv6fE1e-jBmk5KGN&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1gIwfBUWcMQH6Hd-Siv6fE1e-jBmk5KGN/view",
+      "width": 200,
+      "height": 250
+    },
+    {
+      "id": "1nirPfU_QrHbsmy3bVMK0pdjYLj5Q9mF2",
+      "name": "KakaoTalk_20261123_220307443_01.jpg",
+      "folderId": "1_jGRhNT38yg8O0-u6GowtIqwJemFEEQV",
+      "folderName": "소마대전 / 9차 소마대전 행복",
+      "modifiedTime": 2,
+      "uploadIndex": 2,
+      "thumbUrl": "https://drive.google.com/thumbnail?id=1nirPfU_QrHbsmy3bVMK0pdjYLj5Q9mF2&sz=w800",
+      "fullUrl": "https://drive.google.com/thumbnail?id=1nirPfU_QrHbsmy3bVMK0pdjYLj5Q9mF2&sz=w2000",
+      "driveUrl": "https://drive.google.com/file/d/1nirPfU_QrHbsmy3bVMK0pdjYLj5Q9mF2/view",
       "width": 200,
       "height": 300
     }
