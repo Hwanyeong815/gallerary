@@ -82,6 +82,8 @@ const STRINGS = {
     contestsSubtitle: '지금까지 열린 공모전을 연도별로 모았습니다. 공모전을 누르면 출품작과 수상작을 볼 수 있어요.',
     miniTitle: '소마대전',
     miniSubtitle: '소마대전은 미니 공모전입니다. 회차를 누르면 출품작과 수상작을 볼 수 있어요.',
+    winTallyLabel: '누적 우승',
+    winTallyItem: (name, n) => `${name} ${n}승`,
     filterAll: n => `전체 (${n})`,
     filterLive: n => `진행 중 (${n})`,
     filterEnded: n => `종료 (${n})`,
@@ -180,6 +182,8 @@ const STRINGS = {
     contestsSubtitle: 'Every contest so far, by year. Pick one to see its entries and winners.',
     miniTitle: 'Mini contests',
     miniSubtitle: '소마대전 is our mini contest series. Pick a round to see its entries and winners.',
+    winTallyLabel: 'Total wins',
+    winTallyItem: (name, n) => `${name} ${n}`,
     filterAll: n => `All (${n})`,
     filterLive: n => `Ongoing (${n})`,
     filterEnded: n => `Closed (${n})`,
@@ -1908,6 +1912,27 @@ function statusPillHtml(comp) {
 }
 
 // 공모전 목록 (연도별) — kind: 'regular' = 공모전 아카이브, 'mini' = 소마대전
+// 소마대전 누적 우승 횟수 (폴더 이름의 '(소라 우승)'을 셈, 진행 중 회차는 뺌) — 많이 이긴 사람부터
+function renderMiniWinTally(comps) {
+  const el = document.getElementById('miniWinTally');
+  if (!el) return;
+  const tally = new Map();
+  comps.forEach(c => {
+    if (c.ongoing || !c.winnerName) return;
+    tally.set(c.winnerName, (tally.get(c.winnerName) || 0) + 1);
+  });
+  if (tally.size === 0) {
+    el.hidden = true;
+    el.innerHTML = '';
+    return;
+  }
+  const items = Array.from(tally.entries())
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([name, n]) => `<span class="mini-win-tally-item">${escapeHtml(t('winTallyItem', name, n))}</span>`);
+  el.innerHTML = `<span class="mini-win-tally-label">${escapeHtml(t('winTallyLabel'))}</span>${items.join('<span class="mini-win-tally-sep" aria-hidden="true">·</span>')}`;
+  el.hidden = false;
+}
+
 function renderCompetitionsArchiveView(kind = 'regular') {
   const isMiniList = kind === 'mini';
   const filterBar = document.getElementById(isMiniList ? 'miniYearFilterBar' : 'compYearFilterBar');
@@ -1915,6 +1940,7 @@ function renderCompetitionsArchiveView(kind = 'regular') {
   if (!container || !filterBar) return;
 
   const comps = getAllCompetitionsMeta().filter(c => c.isMini === isMiniList);
+  if (isMiniList) renderMiniWinTally(comps);
 
   if (comps.length === 0) {
     filterBar.innerHTML = '';
