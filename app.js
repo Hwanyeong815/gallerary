@@ -102,6 +102,11 @@ const STRINGS = {
     backToMini: '소마대전으로 돌아가기',
     kindMini: '소마대전',
     statLabelEntries: '출품',
+    periodDate: (y, m, d, withYear) => `${withYear ? `${y}년 ` : ''}${m}월 ${d}일`,
+    periodSameMonthEnd: (m, d) => `${d}일`,
+    periodDays: n => `${n}일간`,
+    periodFrom: s => `${s}부터`,
+    periodLeft: n => (n === 0 ? '오늘 마감' : `${n}일 남음`),
     statLabelAuthors: '참여 작가',
     pieces: n => `${n}점`,
     people: n => `${n}명`,
@@ -202,6 +207,11 @@ const STRINGS = {
     backToMini: 'Back to mini contests',
     kindMini: 'Mini contest',
     statLabelEntries: 'Entries',
+    periodDate: (y, m, d, withYear) => `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1]} ${d}${withYear ? `, ${y}` : ''}`,
+    periodSameMonthEnd: (m, d) => `${d}`,
+    periodDays: n => plural(n, 'day', 'days'),
+    periodFrom: s => `from ${s}`,
+    periodLeft: n => (n === 0 ? 'ends today' : `${plural(n, 'day', 'days')} left`),
     statLabelAuthors: 'Photographers',
     pieces: n => `${n}`,
     people: n => `${n}`,
@@ -384,6 +394,125 @@ function getFolderWinnerName(folderName) {
   return m ? m[1].trim() : '';
 }
 
+/* 폴더 이름의 진행 기간 (예: '9차 소마대전 행복 11.20~11.23(소라 우승)')
+   쓸 수 있는 모양: 11.20~11.23 · 11/20-11/23 · 11.20~23 · 2026.11.20~2026.11.23 · 26.11.20~11.23
+                   261120~261123 · 20261120~20261123 · 11월20일~11월23일 · 11월 20일~23일
+                   한 날짜만(11.20) 또는 시작만(11.20~)도 됨. 연도가 없으면 폴더 이름의 20xx, 그것도 없으면 올해
+   날짜 뒤에는 띄어쓰기 · 괄호 · 이름 끝만 와야 함 ('2.5배' 같은 숫자는 날짜로 읽지 않음) */
+const PERIOD_SEP = '\\s*[~～〜\\-–—]\\s*';
+const PERIOD_PATTERNS = [
+  // 261120~261123 / 20261120~20261123 (끝은 1123 · 23처럼 줄여도 됨)
+  new RegExp(`(?<![\\d.])(\\d{8}|\\d{6})(?:${PERIOD_SEP}(\\d{8}|\\d{6}|\\d{4}|\\d{1,2})?)?(?=$|[\\s()\\[\\]])`),
+  // 11월 20일 ~ 11월 23일 / 11월 20일~23일
+  new RegExp(`(?:(\\d{2,4})\\s*년\\s*)?(\\d{1,2})\\s*월\\s*(\\d{1,2})\\s*일(?:${PERIOD_SEP}(?:(?:(\\d{2,4})\\s*년\\s*)?(\\d{1,2})\\s*월\\s*)?(\\d{1,2})\\s*일|${PERIOD_SEP}(?=$|[\\s)\\]]))?`),
+  // 2026.11.20 ~ 2026.11.23 / 11.20~11.23 / 11.20~23 (구분: . 또는 /)
+  new RegExp(`(?<![\\d.])(?:(\\d{4}|\\d{2})[./])?(\\d{1,2})[./](\\d{1,2})(?:${PERIOD_SEP}(?:(?:(\\d{4}|\\d{2})[./])?(\\d{1,2})[./])?(\\d{1,2})(?![\\d.])|${PERIOD_SEP}(?=$|[\\s)\\]]))?(?=$|[\\s()\\[\\]])`)
+];
+
+function toFullYear(y, fallback) {
+  if (y === undefined || y === null || y === '') return fallback;
+  const n = Number(y);
+  return n < 100 ? 2000 + n : n;
+}
+
+function isValidMonthDay(m, d) {
+  return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+}
+
+function getLastFolderSegment(folderName) {
+  const parts = String(folderName || '').split(/\s+\/\s+/);
+  return parts[parts.length - 1] || '';
+}
+
+// → { start: Date, end: Date | null, openEnded, raw } (없으면 null)
+function parseFolderPeriod(folderName) {
+  const name = getLastFolderSegment(folderName);
+  const yearInName = String(folderName || '').match(/(?<!\d)(20\d{2})(?![\d./-])/);
+  const baseYear = yearInName ? Number(yearInName[1]) : new Date().getFullYear();
+
+  for (let i = 0; i < PERIOD_PATTERNS.length; i++) {
+    const m = name.match(PERIOD_PATTERNS[i]);
+    if (!m) continue;
+    let sy, sm, sd;
+    let ey = null, em = null, ed = null;
+    const endGroup = i === 0 ? m[2] : m[6];
+    const openEnded = !endGroup && /[~～〜\-–—]\s*$/.test(m[0]);
+
+    if (i === 0) {
+      const s = m[1];
+      if (s.length === 8) { sy = Number(s.slice(0, 4)); sm = Number(s.slice(4, 6)); sd = Number(s.slice(6, 8)); }
+      else { sy = 2000 + Number(s.slice(0, 2)); sm = Number(s.slice(2, 4)); sd = Number(s.slice(4, 6)); }
+      const e = m[2];
+      if (e) {
+        if (e.length === 8) { ey = Number(e.slice(0, 4)); em = Number(e.slice(4, 6)); ed = Number(e.slice(6, 8)); }
+        else if (e.length === 6) { ey = 2000 + Number(e.slice(0, 2)); em = Number(e.slice(2, 4)); ed = Number(e.slice(4, 6)); }
+        else if (e.length === 4) { em = Number(e.slice(0, 2)); ed = Number(e.slice(2, 4)); }
+        else { ed = Number(e); }
+      }
+    } else {
+      sy = toFullYear(m[1], baseYear); sm = Number(m[2]); sd = Number(m[3]);
+      if (m[6]) {
+        ey = m[4] ? toFullYear(m[4]) : null;
+        em = m[5] ? Number(m[5]) : null;
+        ed = Number(m[6]);
+      }
+    }
+
+    if (!isValidMonthDay(sm, sd)) continue;
+    const start = new Date(sy, sm - 1, sd);
+    let end = null;
+    if (ed !== null) {
+      if (em === null) em = sm;
+      if (ey === null) ey = em < sm ? sy + 1 : sy; // 12.30~1.2 처럼 해를 넘기는 경우
+      if (!isValidMonthDay(em, ed)) continue;
+      end = new Date(ey, em - 1, ed);
+      if (end < start) continue;
+    }
+    return { start, end, openEnded, raw: m[0] };
+  }
+  return null;
+}
+
+// 이름에서 기간 표시를 뺌 (괄호 안에만 있었으면 괄호째)
+function stripPeriodNote(name) {
+  const period = parseFolderPeriod(name);
+  if (!period) return String(name || '');
+  return String(name || '')
+    .replace(period.raw, ' ')
+    .replace(/[(\[]\s*[)\]]/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+// 화면에 쓸 기간 글자: '11월 20일 – 23일 · 4일간' (올해가 아니면 연도도), 진행 중이면 '2일 남음'
+function formatFolderPeriod(period, ongoing = false) {
+  if (!period) return '';
+  const thisYear = new Date().getFullYear();
+  const s = period.start;
+  const withYear = s.getFullYear() !== thisYear || Boolean(period.end && period.end.getFullYear() !== s.getFullYear());
+  const startText = t('periodDate', s.getFullYear(), s.getMonth() + 1, s.getDate(), withYear);
+  const parts = [];
+  if (!period.end) {
+    parts.push(period.openEnded ? t('periodFrom', startText) : startText);
+  } else {
+    const e = period.end;
+    const sameMonth = e.getFullYear() === s.getFullYear() && e.getMonth() === s.getMonth();
+    const endText = e.getTime() === s.getTime()
+      ? ''
+      : (sameMonth ? t('periodSameMonthEnd', e.getMonth() + 1, e.getDate()) : t('periodDate', e.getFullYear(), e.getMonth() + 1, e.getDate(), withYear));
+    parts.push(endText ? `${startText} – ${endText}` : startText);
+    const days = Math.round((e - s) / 86400000) + 1;
+    if (days > 1) parts.push(t('periodDays', days));
+    if (ongoing) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const left = Math.round((e - today) / 86400000);
+      if (left >= 0) parts.push(t('periodLeft', left));
+    }
+  }
+  return parts.join(' · ');
+}
+
 // 회차 번호 '3차' → 3 (없으면 null)
 function getRoundNumber(folderName) {
   const m = String(folderName || '').match(/(\d+)\s*차/);
@@ -400,7 +529,7 @@ function getFolderGroupName(folderName) {
 function getFolderShortName(folderName) {
   const parts = cleanOngoingFolderName(folderName).split(/\s+\/\s+/).map(s => s.trim()).filter(Boolean);
   const last = parts.length ? parts[parts.length - 1] : cleanOngoingFolderName(folderName);
-  return stripWinnerNote(last) || last;
+  return stripPeriodNote(stripWinnerNote(last)) || stripWinnerNote(last) || last;
 }
 
 // 여러 공모전이 섞여 보이는 곳(갤러리 캡션, 수상작, 크게 보기, 팝업)에 쓸 이름: 소마대전이면 앞에 붙임
@@ -1857,9 +1986,12 @@ function buildCompetitionMetadata(folder) {
   const ongoing = isOngoingFolder(folder.name);
   const isMini = isMiniFolder(folder.name);
   const title = getFolderShortName(folder.name);
-  // 연도는 폴더 이름의 20xx에서 읽고, 없으면 올해로 묶음
+  // 진행 기간: 폴더 이름의 날짜 (예: 11.20~11.23)
+  const period = parseFolderPeriod(folder.name);
+  const periodText = formatFolderPeriod(period, ongoing);
+  // 연도는 기간의 연도 → 폴더 이름의 20xx → 올해 순서로 묶음
   const yearMatch = folder.name.match(/(20\d{2})/);
-  const year = yearMatch ? yearMatch[1] : String(new Date().getFullYear());
+  const year = period ? String(period.start.getFullYear()) : (yearMatch ? yearMatch[1] : String(new Date().getFullYear()));
 
   const photos = allPhotos.filter(p => p.folderId === folder.id);
   const winners = photos.filter(p => Boolean(getPhotoAward(p)));
@@ -1883,6 +2015,8 @@ function buildCompetitionMetadata(folder) {
     rawName: folder.name,
     title,
     year,
+    period,
+    periodText,
     ongoing,
     isMini,
     statusLabel: ongoing ? t('statusOngoing') : t('statusEnded'),
@@ -1911,7 +2045,6 @@ function statusPillHtml(comp) {
   return `<span class="comp-status-pill is-live"><span class="live-dot"></span>${escapeHtml(comp.statusLabel)}</span>`;
 }
 
-// 공모전 목록 (연도별) — kind: 'regular' = 공모전 아카이브, 'mini' = 소마대전
 // 소마대전 누적 우승 횟수 (폴더 이름의 '(소라 우승)'을 셈, 진행 중 회차는 뺌) — 많이 이긴 사람부터
 function renderMiniWinTally(comps) {
   const el = document.getElementById('miniWinTally');
@@ -1933,6 +2066,7 @@ function renderMiniWinTally(comps) {
   el.hidden = false;
 }
 
+// 공모전 목록 (연도별) — kind: 'regular' = 공모전 아카이브, 'mini' = 소마대전
 function renderCompetitionsArchiveView(kind = 'regular') {
   const isMiniList = kind === 'mini';
   const filterBar = document.getElementById(isMiniList ? 'miniYearFilterBar' : 'compYearFilterBar');
@@ -2030,6 +2164,7 @@ function renderCompetitionsArchiveView(kind = 'regular') {
                 <div class="comp-card-body">
                   ${comp.ongoing ? `<p class="comp-card-period">${statusPillHtml(comp)}</p>` : ''}
                   <h3 class="comp-card-title">${escapeHtml(comp.title)}</h3>
+                  ${comp.periodText ? `<p class="comp-card-dates">${escapeHtml(comp.periodText)}</p>` : ''}
                   ${comp.customDescription ? `<p class="comp-card-desc">${escapeHtml(comp.customDescription)}</p>` : ''}
                   ${comp.ongoing ? voteNoteHtml() : ''}
                   <p class="comp-card-meta-stats">${escapeHtml(stats.join(' · '))}</p>
@@ -2115,6 +2250,7 @@ function renderCompetitionDetailView(folderId) {
           </p>
         ` : ''}
         <h1 class="comp-detail-title">${escapeHtml(comp.title)}</h1>
+        ${comp.periodText ? `<p class="comp-detail-dates">${escapeHtml(comp.periodText)}</p>` : ''}
         ${comp.description ? `<p class="comp-detail-desc">${escapeHtml(comp.description)}</p>` : ''}
         ${comp.ongoing ? voteNoteHtml() : ''}
         <dl class="comp-detail-QuickStats">

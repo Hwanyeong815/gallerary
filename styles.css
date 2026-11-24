@@ -1192,6 +1192,20 @@ html[data-theme="light"] .hero-stage {
   color: var(--ink-2);
 }
 
+.comp-card-dates,
+.comp-detail-dates {
+  margin: 2px 0 6px;
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.comp-detail-dates {
+  margin: 6px 0 10px;
+  font-size: 0.88rem;
+}
+
 .comp-card-meta-stats {
   font-size: 0.92rem;
   color: var(--ink-2);
